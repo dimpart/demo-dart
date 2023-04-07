@@ -11,6 +11,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   dimsdk: 0.1.0-dev.1
+  dimp: ^0.1.0-dev.2
 
 dev_dependencies:
   lints: ^2.0.0
