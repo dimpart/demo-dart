@@ -68,7 +68,7 @@ class SocketAddress extends Pair<String, int> {
   int get port => second;
 }
 
-abstract class Session implements Transceiver {
+abstract class Session implements Transmitter {
 
   SessionDBI get database;
 

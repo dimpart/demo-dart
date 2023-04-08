@@ -4,5 +4,4 @@
 library dim_client;
 
 export 'src/dim_common.dart';
-
-export 'src/client_base.dart';
+export 'src/dim_network.dart';
