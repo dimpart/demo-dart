@@ -276,7 +276,8 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   //
 
   @override
-  Pair<InstantMessage, ReliableMessage?> sendContent(ID? sender, ID receiver, Content content, int priority) {
+  Pair<InstantMessage, ReliableMessage?> sendContent(Content content,
+      {required ID? sender, required ID receiver, int priority = 0}) {
     if (sender == null) {
       User? current = facebook.currentUser;
       assert(current != null, 'current suer not set');
@@ -284,12 +285,12 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
     }
     Envelope env = Envelope.create(sender: sender, receiver: receiver);
     InstantMessage iMsg = InstantMessage.create(env, content);
-    ReliableMessage? rMsg = sendInstantMessage(iMsg, priority);
+    ReliableMessage? rMsg = sendInstantMessage(iMsg, priority: priority);
     return Pair(iMsg, rMsg);
   }
 
   @override
-  ReliableMessage? sendInstantMessage(InstantMessage iMsg, int priority) {
+  ReliableMessage? sendInstantMessage(InstantMessage iMsg, {int priority = 0}) {
     Log.debug('send instant message (type=${iMsg.content.type}): ${iMsg.sender} -> ${iMsg.receiver}');
     // send message (secured + certified) to target station
     SecureMessage sMsg = encryptMessage(iMsg);
@@ -302,7 +303,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       // TODO: set msg.state = error
       throw Exception('failed to sign message: ${sMsg.dictionary}');
     }
-    if (sendReliableMessage(rMsg, priority)) {
+    if (sendReliableMessage(rMsg, priority: priority)) {
       return rMsg;
     } else {
       // failed
@@ -311,13 +312,13 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   }
 
   @override
-  bool sendReliableMessage(ReliableMessage rMsg, int priority) {
+  bool sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) {
     // 1. serialize message
     Uint8List data = serializeMessage(rMsg);
     assert(data.isNotEmpty, 'failed to serialize message: ${rMsg.dictionary}');
     // 2. call gate keeper to send the message data package
     //    put message package into the waiting queue of current session
-    return session.queueMessagePackage(rMsg, data, priority);
+    return session.queueMessagePackage(rMsg, data, priority: priority);
   }
 
 }

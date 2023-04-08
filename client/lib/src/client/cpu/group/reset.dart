@@ -28,47 +28,12 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 
+import '../group.dart';
 
-///  Command message: {
-///      type : 0x88,
-///      sn   : 123,
-///
-///      command : "ans",
-///      names   : "...",        // query with alias(es, separated by ' ')
-///      records : {             // respond with record(s)
-///          "{alias}": "{ID}",
-///      }
-///  }
-class AnsCommand extends BaseCommand {
-  AnsCommand(super.dict);
+class ResetCommandProcessor extends GroupCommandProcessor {
+  ResetCommandProcessor(super.facebook, super.messenger);
 
-  static final String kANS = 'ans';
-
-  AnsCommand.from(String names, Map<String, String>? records) : super.fromName(kANS) {
-    assert(names.isNotEmpty, 'query names should not empty');
-    this['names'] = names;
-    if (records != null) {
-      this['records'] = records;
-    }
-  }
-
-  List<String> get names {
-    String? string = getString('names');
-    return string == null ? [] : string.split(' ');
-  }
-
-  Map<String, String> get records => this['records'];
-  set records(Map info) => this['records'] = info;
-
-  //
-  //  Factories
-  //
-
-  AnsCommand.query(String names) : this.from(names, null);
-
-  AnsCommand.response(String names, Map<String, String> records)
-      : this.from(names, records);
+  // TODO: implement it
 
 }

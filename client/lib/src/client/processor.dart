@@ -1,0 +1,111 @@
+/* license: https://mit-license.org
+ *
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *
+ *                               Written in 2023 by Moky <albert.moky@gmail.com>
+ *
+ * =============================================================================
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2023 Albert Moky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * =============================================================================
+ */
+import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
+
+import '../dim_network.dart';
+import 'cpu/creator.dart';
+
+class ClientMessageProcessor extends MessageProcessor {
+  ClientMessageProcessor(super.facebook, super.messenger);
+
+  @override
+  CommonMessenger get messenger => super.messenger as CommonMessenger;
+
+  @override
+  CommonFacebook get facebook => super.facebook as CommonFacebook;
+
+  @override
+  List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) {
+    try {
+      return super.processSecureMessage(sMsg, rMsg);
+    } catch (e) {
+      String errMsg = e.toString();
+      if (errMsg.startsWith("receiver error")) {
+        // not mine? ignore it
+        Log.warning('ignore message for: ${sMsg.receiver}');
+        return [];
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  @override
+  List<Content> processContent(Content content, ReliableMessage rMsg) {
+    List<Content> responses = super.processContent(content, rMsg);
+    if (responses.isEmpty) {
+      // respond nothing
+      return [];
+    } else if (responses[0] is HandshakeCommand) {
+      // urgent command
+      return responses;
+    }
+    ID sender = rMsg.sender;
+    ID receiver = rMsg.receiver;
+    User? user = facebook.selectLocalUser(receiver);
+    assert(user != null, "receiver error: $receiver");
+    receiver = user!.identifier;
+    // check responses
+    for (Content res in responses) {
+      if (res.isEmpty) {
+        // should not happen
+        continue;
+      } else if (res is ReceiptCommand) {
+        if (sender.type == EntityType.kStation) {
+          // no need to respond receipt to station
+          continue;
+        } else if (sender.type == EntityType.kBot) {
+          // no need to respond receipt to a bot
+          continue;
+        }
+      } else if (res is TextContent) {
+        if (sender.type == EntityType.kStation) {
+          // no need to respond text message to station
+          continue;
+        } else if (sender.type == EntityType.kBot) {
+          // no need to respond text message to a bot
+          continue;
+        }
+      }
+      // normal response
+      messenger.sendContent(res, sender: receiver, receiver: sender, priority: 1);
+    }
+    // DON'T respond to station directly
+    return [];
+  }
+
+  @override
+  ContentProcessorCreator createCreator() {
+    return ClientContentProcessorCreator(facebook, messenger);
+  }
+
+}

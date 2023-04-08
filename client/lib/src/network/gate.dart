@@ -42,5 +42,5 @@ abstract class GateKeeper {
   bool get isActive;
   bool setActive(bool flag, int when);
 
-  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, int priority);
+  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0});
 }

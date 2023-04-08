@@ -28,47 +28,30 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 
+import '../../dim_network.dart';
 
-///  Command message: {
-///      type : 0x88,
-///      sn   : 123,
-///
-///      command : "ans",
-///      names   : "...",        // query with alias(es, separated by ' ')
-///      records : {             // respond with record(s)
-///          "{alias}": "{ID}",
-///      }
-///  }
-class AnsCommand extends BaseCommand {
-  AnsCommand(super.dict);
-
-  static final String kANS = 'ans';
-
-  AnsCommand.from(String names, Map<String, String>? records) : super.fromName(kANS) {
-    assert(names.isNotEmpty, 'query names should not empty');
-    this['names'] = names;
-    if (records != null) {
-      this['records'] = records;
-    }
+class ClientSession extends BaseSession {
+  ClientSession(Station server, SessionDBI sdb)
+      : _server = server, super(sdb, SocketAddress(server.host!, server.port!)) {
+    _key = null;
   }
 
-  List<String> get names {
-    String? string = getString('names');
-    return string == null ? [] : string.split(' ');
+  final Station _server;
+  String? _key;
+
+  Station get station => _server;
+
+  @override
+  String? get key => _key;
+
+  set key(String? sessionKey) => _key = sessionKey;
+
+  @override
+  GateKeeper createGateKeeper(SocketAddress remote) {
+    // TODO: implement createGateKeeper
+    throw UnimplementedError();
   }
-
-  Map<String, String> get records => this['records'];
-  set records(Map info) => this['records'] = info;
-
-  //
-  //  Factories
-  //
-
-  AnsCommand.query(String names) : this.from(names, null);
-
-  AnsCommand.response(String names, Map<String, String> records)
-      : this.from(names, records);
 
 }

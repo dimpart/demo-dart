@@ -29,46 +29,47 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 
-///  Command message: {
-///      type : 0x88,
-///      sn   : 123,
-///
-///      command : "ans",
-///      names   : "...",        // query with alias(es, separated by ' ')
-///      records : {             // respond with record(s)
-///          "{alias}": "{ID}",
-///      }
-///  }
-class AnsCommand extends BaseCommand {
-  AnsCommand(super.dict);
+class HistoryCommandProcessor extends BaseCommandProcessor {
+  HistoryCommandProcessor(super.facebook, super.messenger);
 
-  static final String kANS = 'ans';
+  @override
+  List<Content> processContent(Content content, ReliableMessage rMsg) {
+    assert(content is HistoryCommand, 'history command error: $content');
+    HistoryCommand command = content as HistoryCommand;
+    String text = 'History command (name: ${command.cmd}) not support yet!';
+    return respondText(text, group: content.group);
+  }
 
-  AnsCommand.from(String names, Map<String, String>? records) : super.fromName(kANS) {
-    assert(names.isNotEmpty, 'query names should not empty');
-    this['names'] = names;
-    if (records != null) {
-      this['records'] = records;
+}
+
+
+class GroupCommandProcessor extends HistoryCommandProcessor {
+  GroupCommandProcessor(super.facebook, super.messenger);
+
+  @override
+  List<Content> processContent(Content content, ReliableMessage rMsg) {
+    assert(content is GroupCommand, 'group command error: $content');
+    GroupCommand command = content as GroupCommand;
+    String text = 'Group command (name: ${command.cmd}) not support yet!';
+    return respondText(text, group: content.group);
+  }
+
+  // protected
+  List<ID> getMembers(GroupCommand content) {
+    // get from 'members'
+    List<ID>? members = content.members;
+    if (members == null) {
+      members = [];
+      // get from 'member'
+      ID? member = content.member;
+      if (member != null) {
+        members.add(member);
+      }
     }
+    return members;
   }
-
-  List<String> get names {
-    String? string = getString('names');
-    return string == null ? [] : string.split(' ');
-  }
-
-  Map<String, String> get records => this['records'];
-  set records(Map info) => this['records'] = info;
-
-  //
-  //  Factories
-  //
-
-  AnsCommand.query(String names) : this.from(names, null);
-
-  AnsCommand.response(String names, Map<String, String> records)
-      : this.from(names, records);
 
 }

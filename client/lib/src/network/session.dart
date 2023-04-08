@@ -85,8 +85,8 @@ abstract class BaseSession implements Session {
   SocketAddress get remoteAddress => _keeper.remoteAddress;
 
   @override
-  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, int priority) {
-    return _keeper.queueMessagePackage(rMsg, data, priority);
+  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0}) {
+    return _keeper.queueMessagePackage(rMsg, data, priority: priority);
   }
 
   //
@@ -94,18 +94,20 @@ abstract class BaseSession implements Session {
   //
 
   @override
-  Pair<InstantMessage, ReliableMessage?> sendContent(ID? sender, ID receiver, Content content, int priority) {
-    return messenger!.sendContent(sender, receiver, content, priority);
+  Pair<InstantMessage, ReliableMessage?> sendContent(Content content,
+      {required ID? sender, required ID receiver, int priority = 0}) {
+    return messenger!.sendContent(content,
+        sender: sender, receiver: receiver, priority: priority);
   }
 
   @override
-  ReliableMessage? sendInstantMessage(InstantMessage iMsg, int priority) {
-    return messenger!.sendInstantMessage(iMsg, priority);
+  ReliableMessage? sendInstantMessage(InstantMessage iMsg, {int priority = 0}) {
+    return messenger!.sendInstantMessage(iMsg, priority: priority);
   }
 
   @override
-  bool sendReliableMessage(ReliableMessage rMsg, int priority) {
-    return messenger!.sendReliableMessage(rMsg, priority);
+  bool sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) {
+    return messenger!.sendReliableMessage(rMsg, priority: priority);
   }
 
 }

@@ -44,21 +44,22 @@ abstract class Transmitter {
   /// @param content  - message content
   /// @param priority - smaller is faster
   /// @return (iMsg, None) on error
-  Pair<InstantMessage, ReliableMessage?> sendContent(ID? sender, ID receiver, Content content, int priority);
+  Pair<InstantMessage, ReliableMessage?> sendContent(Content content,
+      {required ID? sender, required ID receiver, int priority = 0});
 
   ///  Send instant message with priority
   ///
   /// @param iMsg     - plain message
   /// @param priority - smaller is faster
   /// @return null on error
-  ReliableMessage? sendInstantMessage(InstantMessage iMsg, int priority);
+  ReliableMessage? sendInstantMessage(InstantMessage iMsg, {int priority = 0});
 
   ///  Send reliable message with priority
   ///
   /// @param rMsg     - encrypted & signed message
   /// @param priority - smaller is faster
   /// @return false on error
-  bool sendReliableMessage(ReliableMessage rMsg, int priority);
+  bool sendReliableMessage(ReliableMessage rMsg, {int priority = 0});
 }
 
 class SocketAddress extends Pair<String, int> {
@@ -101,5 +102,5 @@ abstract class Session implements Transmitter {
   /// @param data     - serialized message
   /// @param priority - smaller is faster
   /// @return false on error
-  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, int priority);
+  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0});
 }
