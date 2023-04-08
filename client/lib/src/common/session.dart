@@ -93,7 +93,7 @@ abstract class Session implements Transmitter {
   /// @param active - flag
   /// @param when   - now
   /// @return true on changed
-  bool setActive(bool flag, int when);
+  bool setActive(bool flag, {int when = 0});
   bool get isActive;
 
   ///  Pack message into a waiting queue

@@ -28,33 +28,22 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dimp/dimp.dart';
 
 import '../dim_common.dart';
 import 'gate.dart';
 
-abstract class BaseSession implements Session {
-  BaseSession(SessionDBI sdb, SocketAddress remote)
-      : _database = sdb {
-    _keeper = createGateKeeper(remote);
+abstract class BaseSession extends GateKeeper implements Session {
+  BaseSession(SocketAddress remote, SessionDBI sdb)
+      : _database = sdb, super(remote) {
     _identifier = null;
     _transceiver = null;
   }
 
   final SessionDBI _database;
-  late final GateKeeper _keeper;
 
   ID? _identifier;
   WeakReference<CommonMessenger>? _transceiver;
-
-  CommonMessenger? get messenger => _transceiver?.target;
-  set messenger(CommonMessenger? transceiver)
-  => _transceiver = transceiver == null ? null : WeakReference(transceiver);
-
-  // protected
-  GateKeeper createGateKeeper(SocketAddress remote);
 
   @override
   SessionDBI get database => _database;
@@ -75,19 +64,9 @@ abstract class BaseSession implements Session {
     return true;
   }
 
-  @override
-  bool get isActive => _keeper.isActive;
-
-  @override
-  bool setActive(bool flag, int when) => _keeper.setActive(flag, when);
-
-  @override
-  SocketAddress get remoteAddress => _keeper.remoteAddress;
-
-  @override
-  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0}) {
-    return _keeper.queueMessagePackage(rMsg, data, priority: priority);
-  }
+  CommonMessenger? get messenger => _transceiver?.target;
+  set messenger(CommonMessenger? transceiver)
+  => _transceiver = transceiver == null ? null : WeakReference(transceiver);
 
   //
   //  Transmitter

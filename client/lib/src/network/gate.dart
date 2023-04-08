@@ -33,14 +33,72 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import '../dim_common.dart';
+import 'docker.dart';
 
-abstract class GateKeeper {
-  GateKeeper(this.remoteAddress);
+
+abstract class GateKeeper implements DockerDelegate {
+  GateKeeper(this.remoteAddress) : _active = false, _lastActive = 0;
 
   final SocketAddress remoteAddress;
 
-  bool get isActive;
-  bool setActive(bool flag, int when);
+  bool _active;
+  int _lastActive;  // last update time
 
-  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0});
+  bool get isActive => _active;
+  bool setActive(bool flag, {int when = 0}) {
+    if (_active == flag) {
+      // flag not changed
+      return false;
+    }
+    if (when <= 0) {
+      when = Time.currentTimeMillis;
+    } else if (when <= _lastActive) {
+      return false;
+    }
+    _active = flag;
+    _lastActive = when;
+    return true;
+  }
+
+  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data,
+      {int priority = 0}) {
+    // TODO:
+    return true;
+  }
+
+  bool sendResponse(Uint8List payload, Arrival ship,
+      {required SocketAddress remote, SocketAddress? local}) {
+    // TODO:
+    return false;
+  }
+
+  //
+  //  Docker Delegate
+  //
+
+  @override
+  void onDockerStatusChanged(int previous, int current, Docker docker) {
+    Log.info('docker status changed: $previous => $current, $docker');
+  }
+
+  @override
+  void onDockerReceived(Arrival ship, Docker docker) {
+    Log.debug("docker received a ship: $ship, $docker");
+  }
+
+  @override
+  void onDockerSent(Departure ship, Docker docker) {
+    // TODO: remove sent message from local cache
+  }
+
+  @override
+  void onDockerFailed(Error error, Departure ship, Docker docker) {
+    Log.error("docker failed to send ship: $ship, $docker");
+  }
+
+  @override
+  void onDockerError(Error error, Departure ship, Docker docker) {
+    Log.error("docker error while sending ship: $ship, $docker");
+  }
+
 }
