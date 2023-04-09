@@ -28,9 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
-
 import '../dim_common.dart';
+
 import 'gate.dart';
 
 abstract class BaseSession extends GateKeeper implements Session {

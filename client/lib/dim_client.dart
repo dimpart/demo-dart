@@ -3,12 +3,9 @@
 /// More dartdocs go here.
 library dim_client;
 
-export 'package:dimp/dimp.dart';
-export 'package:dimsdk/dimsdk.dart';
-export 'package:dim_plugins/dim_plugins.dart';
-
 export 'src/dim_common.dart';
 export 'src/dim_network.dart';
+
 
 export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';

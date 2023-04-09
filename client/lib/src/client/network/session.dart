@@ -30,9 +30,9 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimsdk/dimsdk.dart';
-
 import '../../dim_network.dart';
+
+import 'state.dart';
 
 ///  Session for Connection
 ///  ~~~~~~~~~~~~~~~~~~~~~~
@@ -54,7 +54,7 @@ import '../../dim_network.dart';
 ///          Station with remote IP & port, its ID will be set
 ///          when first handshake responded, and we can trust
 ///          all messages from this ID after that.
-class ClientSession extends BaseSession {
+abstract class ClientSession extends BaseSession {
   ClientSession(Station server, SessionDBI sdb)
       : _server = server, super(SocketAddress(server.host!, server.port!), sdb) {
     _key = null;
@@ -70,13 +70,21 @@ class ClientSession extends BaseSession {
 
   set key(String? sessionKey) => _key = sessionKey;
 
-  void start() {
-    // TODO:
-  }
+  SessionState get state;
 
-  void stop() {
-    // TODO:
-  }
+  /// pause state machine
+  void pause();
+
+  /// resume state machine
+  void resume();
+
+  /// start session in background thread
+  /// start session state machine
+  void start();
+
+  /// stop state machine for this session
+  /// stop background machine for this session
+  void stop();
 
   //
   //  Docker Delegate

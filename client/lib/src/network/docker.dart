@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dim_client/dim_client.dart';
+import '../dim_common.dart';
 
 
 abstract class Arrival {

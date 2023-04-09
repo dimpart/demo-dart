@@ -30,8 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dim_plugins/dim_plugins.dart';
 import 'package:dimp/dimp.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 
 class Anonymous {
 

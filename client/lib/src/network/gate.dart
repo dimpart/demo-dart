@@ -30,9 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
-
 import '../dim_common.dart';
+
 import 'docker.dart';
 
 
@@ -61,16 +60,10 @@ abstract class GateKeeper implements DockerDelegate {
   }
 
   bool queueMessagePackage(ReliableMessage rMsg, Uint8List data,
-      {int priority = 0}) {
-    // TODO:
-    return true;
-  }
+      {int priority = 0});
 
   bool sendResponse(Uint8List payload, Arrival ship,
-      {required SocketAddress remote, SocketAddress? local}) {
-    // TODO:
-    return false;
-  }
+      {required SocketAddress remote, SocketAddress? local});
 
   //
   //  Docker Delegate

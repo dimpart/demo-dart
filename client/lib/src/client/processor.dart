@@ -28,10 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
+import '../dim_common.dart';
 
-import '../dim_network.dart';
 import 'cpu/creator.dart';
 
 class ClientMessageProcessor extends MessageProcessor {

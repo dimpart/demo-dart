@@ -30,10 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
-
-import '../dim_network.dart';
+import '../dim_common.dart';
 
 class ClientMessagePacker extends MessagePacker {
   ClientMessagePacker(super.facebook, super.messenger);

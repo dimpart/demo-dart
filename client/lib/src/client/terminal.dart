@@ -28,10 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
+import '../dim_common.dart';
 
-import '../dim_network.dart';
 import 'messenger.dart';
 import 'network/session.dart';
 import 'network/state.dart';
@@ -107,13 +105,8 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
           return old;
         }
       }
+      session.stop();
     }
-    // // stop the machine & remove old messenger
-    // StateMachine machine = fsm;
-    // if (machine != null) {
-    //   machine.stop();
-    //   fsm = null;
-    // }
     // create new messenger with session
     Station station = createStation(host, port);
     ClientSession session = createSession(station);
@@ -125,38 +118,39 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     transceiver.processor = createProcessor(facebook, transceiver);
     // set weak reference to messenger
     session.messenger = transceiver;
-    // // create & start state machine
-    // machine = StateMachine(session);
-    // machine.setDelegate(this);
-    // machine.start();
-    // fsm = machine;
     return transceiver;
   }
+
   // protected
   Station createStation(String host, int port) {
     Station station = Station.fromRemote(host, port);
     station.dataSource = facebook;
     return station;
   }
+
   // protected
-  ClientSession createSession(Station station) {
-    ClientSession session = ClientSession(station, sdb);
-    // set current user for handshaking
-    User? user = facebook.currentUser;
-    if (user != null) {
-      session.setIdentifier(user.identifier);
-    }
-    session.start();
-    return session;
-  }
+  ClientSession createSession(Station station);
+  // ClientSession createSession(Station station) {
+  //   ClientSession session = ClientSession(station, sdb);
+  //   // set current user for handshaking
+  //   User? user = facebook.currentUser;
+  //   if (user != null) {
+  //     session.setIdentifier(user.identifier);
+  //   }
+  //   session.start();
+  //   return session;
+  // }
+
   // protected
   Packer createPacker(CommonFacebook facebook, ClientMessenger messenger) {
     return ClientMessagePacker(facebook, messenger);
   }
+
   // protected
   Processor createProcessor(CommonFacebook facebook, ClientMessenger messenger) {
     return ClientMessageProcessor(facebook, messenger);
   }
+
   // protected
   ClientMessenger createMessenger(ClientSession session, CommonFacebook facebook);
 
@@ -167,6 +161,51 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     } else {
       clientSession.setIdentifier(current);
       return true;
+    }
+  }
+
+  void enterBackground() {
+    ClientMessenger? transceiver = messenger;
+    if (transceiver == null) {
+      // not connect
+      return;
+    }
+    // check signed in user
+    ClientSession session = transceiver.session;
+    ID? uid = session.identifier;
+    if (uid != null) {
+      // already signed in, check session state
+      SessionState state = session.state;
+      if (state.index == SessionStateOrder.kRunning) {
+        // report client state
+        transceiver.reportOffline(uid);
+        /// TODO:
+        // idle(512);
+      }
+    }
+    // pause the session
+    session.pause();
+  }
+  void enterForeground() {
+    ClientMessenger? transceiver = messenger;
+    if (transceiver == null) {
+      // not connect
+      return;
+    }
+    ClientSession session = transceiver.session;
+    // resume the session
+    session.resume();
+    // check signed in user
+    ID? uid = session.identifier;
+    if (uid != null) {
+      // already signed in, wait a while to check session state
+      /// TODO:
+      // idle(512);
+      SessionState state = session.state;
+      if (state.index == SessionStateOrder.kRunning) {
+        // report client state
+        transceiver.reportOnline(uid);
+      }
     }
   }
 

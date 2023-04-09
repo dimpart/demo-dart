@@ -28,9 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import '../dim_common.dart';
 
-import '../dim_network.dart';
 import 'messenger.dart';
 
 ///  This is for sending group message, or managing group members
