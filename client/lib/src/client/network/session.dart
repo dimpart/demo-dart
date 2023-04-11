@@ -55,15 +55,12 @@ import 'state.dart';
 ///          when first handshake responded, and we can trust
 ///          all messages from this ID after that.
 abstract class ClientSession extends BaseSession {
-  ClientSession(Station server, SessionDBI sdb)
-      : _server = server, super(SocketAddress(server.host!, server.port!), sdb) {
+  ClientSession(this.station, super.remoteAddress, super.database) {
     _key = null;
   }
 
-  final Station _server;
+  final Station station;
   String? _key;
-
-  Station get station => _server;
 
   @override
   String? get key => _key;
@@ -91,8 +88,8 @@ abstract class ClientSession extends BaseSession {
   //
 
   @override
-  void onDockerStatusChanged(int previous, int current, Docker docker) {
-    super.onDockerStatusChanged(previous, current, docker);
+  Future<void> onDockerStatusChanged(int previous, int current, Docker docker) async {
+    await super.onDockerStatusChanged(previous, current, docker);
     if (current == DockerStatus.kError) {
       // connection error or session finished
       // TODO: reconnect?
@@ -105,8 +102,8 @@ abstract class ClientSession extends BaseSession {
   }
 
   @override
-  void onDockerReceived(Arrival ship, Docker docker) {
-    super.onDockerReceived(ship, docker);
+  Future<void> onDockerReceived(Arrival ship, Docker docker) async {
+    await super.onDockerReceived(ship, docker);
     List<Uint8List> allResponses = [];
     // 1. get data packages from arrival ship's payload
     List<Uint8List> packages = _getDataPackages(ship);
@@ -114,7 +111,7 @@ abstract class ClientSession extends BaseSession {
     for (Uint8List pack in packages) {
       try {
         // 2. process each data package
-        responses = messenger!.processPackage(pack);
+        responses = await messenger!.processPackage(pack);
         if (responses.isEmpty) {
           continue;
         }

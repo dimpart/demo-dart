@@ -77,21 +77,21 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   /// @param identifier - entity ID
   /// @return false on duplicated
   // protected
-  bool queryMeta(ID identifier);
+  Future<bool> queryMeta(ID identifier);
 
   ///  Request for meta & visa document with entity ID
   ///
   /// @param identifier - entity ID
   /// @return false on duplicated
   // protected
-  bool queryDocument(ID identifier);
+  Future<bool> queryDocument(ID identifier);
 
   ///  Request for group members with group ID
   ///
   /// @param identifier - group ID
   /// @return false on duplicated
   // protected
-  bool queryMembers(ID identifier);
+  Future<bool> queryMembers(ID identifier);
 
   ///  Add income message in a queue for waiting sender's visa
   ///
@@ -109,14 +109,14 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
 
   /// for checking whether user's ready
   // protected
-  EncryptKey? getVisaKey(ID user) {
-    EncryptKey? visaKey = facebook.getPublicKeyForEncryption(user);
+  Future<EncryptKey?> getVisaKey(ID user) async {
+    EncryptKey? visaKey = await facebook.getPublicKeyForEncryption(user);
     if (visaKey != null) {
       // user is ready
       return visaKey;
     }
     // user not ready, try to query document for it
-    if (queryDocument(user)) {
+    if (await queryDocument(user)) {
       Log.info('querying document for user: $user');
     }
     return null;
@@ -124,20 +124,20 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
 
   /// for checking whether group's ready
   // protected
-  List<ID> getMembers(ID group) {
-    Meta? meta = facebook.getMeta(group);
+  Future<List<ID>> getMembers(ID group) async {
+    Meta? meta = await facebook.getMeta(group);
     if (meta == null/* || meta.getKey() == null*/) {
       // group not ready, try to query meta for it
-      if (queryMeta(group)) {
+      if (await queryMeta(group)) {
         Log.info('querying meta for group: $group');
       }
       return [];
     }
     Group? grp = facebook.getGroup(group);
-    List<ID>? members = grp?.members;
+    List<ID>? members = await grp?.members;
     if (members == null || members.isEmpty) {
       // group not ready, try to query members for it
-      if (queryMembers(group)) {
+      if (await queryMembers(group)) {
         Log.info('querying members for group: $group');
       }
       return [];
@@ -151,7 +151,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   /// @param rMsg - network message
   /// @return false on verify key not found
   // protected
-  bool checkSenderInReliableMessage(ReliableMessage rMsg) {
+  Future<bool> checkSenderInReliableMessage(ReliableMessage rMsg) async {
     ID sender = rMsg.sender;
     assert(sender.isUser, 'sender error: $sender');
     // check sender's meta & document
@@ -161,7 +161,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       assert(visa.identifier == sender, 'visa ID not match: $sender');
       //assert Meta.matches(sender, rMsg.getMeta()) : "meta error: " + rMsg;
       return true;
-    } else if (getVisaKey(sender) != null) {
+    } else if (await getVisaKey(sender) != null) {
       // sender is OK
       return true;
     }
@@ -175,14 +175,14 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   }
 
   // protected
-  bool checkReceiverInSecureMessage(SecureMessage sMsg) {
+  Future<bool> checkReceiverInSecureMessage(SecureMessage sMsg) async {
     ID receiver = sMsg.receiver;
     if (receiver.isBroadcast) {
       // broadcast message
       return true;
     } else if (receiver.isGroup) {
       // check for received group message
-      List<ID> members = getMembers(receiver);
+      List<ID> members = await getMembers(receiver);
       return members.isNotEmpty;
     }
     // the facebook will select a user from local users to match this receiver,
@@ -195,7 +195,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   /// @param iMsg - plain message
   /// @return false on encrypt key not found
   // protected
-  bool checkReceiverInInstantMessage(InstantMessage iMsg) {
+  Future<bool> checkReceiverInInstantMessage(InstantMessage iMsg) async {
     ID receiver = iMsg.receiver;
     if (receiver.isBroadcast) {
       // broadcast message
@@ -207,7 +207,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       //         that should be sent to a group bot first,
       //         and the bot will separate it for all members.
       return false;
-    } else if (getVisaKey(receiver) != null) {
+    } else if (await getVisaKey(receiver) != null) {
       // receiver is OK
       return true;
     }
@@ -222,7 +222,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
 
   /*
   @override
-  Uint8List? serializeKey(SymmetricKey password, InstantMessage iMsg) {
+  Future<Uint8List?> serializeKey(SymmetricKey password, InstantMessage iMsg) async {
     // try to reuse message key
     Object? reused = password['reused'];
     if (reused != null) {
@@ -234,7 +234,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       // remove before serialize key
       password.remove("reused");
     }
-    Uint8List? data = super.serializeKey(password, iMsg);
+    Uint8List? data = await super.serializeKey(password, iMsg);
     if (reused != null) {
       // put it back
       password['reused'] = reused;
@@ -244,31 +244,31 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
    */
 
   @override
-  SecureMessage encryptMessage(InstantMessage iMsg) {
-    if (!checkReceiverInInstantMessage(iMsg)) {
+  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async {
+    if (await checkReceiverInInstantMessage(iMsg)) {} else {
       // receiver not ready
       String error = 'receiver not ready: ${iMsg.receiver}';
       Log.warning(error);
       throw Exception(error);
     }
-    return super.encryptMessage(iMsg);
+    return await super.encryptMessage(iMsg);
   }
 
   @override
-  SecureMessage? verifyMessage(ReliableMessage rMsg) {
-    if (!checkReceiverInSecureMessage(rMsg)) {
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
+    if (await checkReceiverInSecureMessage(rMsg)) {} else {
       // receiver (group) not ready
       String error = 'receiver not ready: ${rMsg.receiver}';
       Log.warning(error);
       return null;
     }
-    if (!checkSenderInReliableMessage(rMsg)) {
+    if (await checkSenderInReliableMessage(rMsg)) {} else {
       // sender not ready
       String error = 'sender not ready: ${rMsg.sender}';
       Log.warning(error);
       return null;
     }
-    return super.verifyMessage(rMsg);
+    return await super.verifyMessage(rMsg);
   }
 
   //
@@ -276,34 +276,34 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   //
 
   @override
-  Pair<InstantMessage, ReliableMessage?> sendContent(Content content,
-      {required ID? sender, required ID receiver, int priority = 0}) {
+  Future<Pair<InstantMessage, ReliableMessage?>> sendContent(Content content,
+      {required ID? sender, required ID receiver, int priority = 0}) async {
     if (sender == null) {
-      User? current = facebook.currentUser;
+      User? current = await facebook.currentUser;
       assert(current != null, 'current suer not set');
       sender = current!.identifier;
     }
     Envelope env = Envelope.create(sender: sender, receiver: receiver);
     InstantMessage iMsg = InstantMessage.create(env, content);
-    ReliableMessage? rMsg = sendInstantMessage(iMsg, priority: priority);
+    ReliableMessage? rMsg = await sendInstantMessage(iMsg, priority: priority);
     return Pair(iMsg, rMsg);
   }
 
   @override
-  ReliableMessage? sendInstantMessage(InstantMessage iMsg, {int priority = 0}) {
+  Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     Log.debug('send instant message (type=${iMsg.content.type}): ${iMsg.sender} -> ${iMsg.receiver}');
     // send message (secured + certified) to target station
-    SecureMessage sMsg = encryptMessage(iMsg);
+    SecureMessage sMsg = await encryptMessage(iMsg);
     if (sMsg.isEmpty) {
       assert(false, 'public key not found?');
       return null;
     }
-    ReliableMessage rMsg = signMessage(sMsg);
+    ReliableMessage rMsg = await signMessage(sMsg);
     if (rMsg.isEmpty) {
       // TODO: set msg.state = error
       throw Exception('failed to sign message: ${sMsg.dictionary}');
     }
-    if (sendReliableMessage(rMsg, priority: priority)) {
+    if (await sendReliableMessage(rMsg, priority: priority)) {
       return rMsg;
     } else {
       // failed
@@ -312,9 +312,9 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   }
 
   @override
-  bool sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) {
+  Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) async {
     // 1. serialize message
-    Uint8List data = serializeMessage(rMsg);
+    Uint8List data = await serializeMessage(rMsg);
     assert(data.isNotEmpty, 'failed to serialize message: ${rMsg.dictionary}');
     // 2. call gate keeper to send the message data package
     //    put message package into the waiting queue of current session

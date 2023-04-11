@@ -67,33 +67,33 @@ abstract class DockerDelegate {
   ///
   /// @param ship        - income data package container
   /// @param docker      - connection docker
-  void onDockerReceived(Arrival ship, Docker docker);
+  Future<void> onDockerReceived(Arrival ship, Docker docker);
 
   ///  Callback when package sent
   ///
   /// @param ship        - outgo data package container
   /// @param docker      - connection docker
-  void onDockerSent(Departure ship, Docker docker);
+  Future<void> onDockerSent(Departure ship, Docker docker);
 
   ///  Callback when failed to send package
   ///
   /// @param error       - error message
   /// @param ship        - outgo data package container
   /// @param docker      - connection docker
-  void onDockerFailed(Error error, Departure ship, Docker docker);
+  Future<void> onDockerFailed(Error error, Departure ship, Docker docker);
 
   ///  Callback when connection error
   ///
   /// @param error       - error message
   /// @param ship        - outgo data package container
   /// @param docker      - connection docker
-  void onDockerError(Error error, Departure ship, Docker docker);
+  Future<void> onDockerError(Error error, Departure ship, Docker docker);
 
   ///  Callback when connection status changed
   ///
   /// @param previous    - old status
   /// @param current     - new status
   /// @param docker      - connection docker
-  void onDockerStatusChanged(int previous, int current, Docker docker);
+  Future<void> onDockerStatusChanged(int previous, int current, Docker docker);
 
 }

@@ -33,19 +33,16 @@ import '../dim_common.dart';
 import 'gate.dart';
 
 abstract class BaseSession extends GateKeeper implements Session {
-  BaseSession(SocketAddress remote, SessionDBI sdb)
-      : _database = sdb, super(remote) {
+  BaseSession(super.remoteAddress, this.database) {
     _identifier = null;
     _transceiver = null;
   }
 
-  final SessionDBI _database;
+  @override
+  final SessionDBI database;
 
   ID? _identifier;
   WeakReference<CommonMessenger>? _transceiver;
-
-  @override
-  SessionDBI get database => _database;
 
   @override
   ID? get identifier => _identifier;
@@ -72,20 +69,21 @@ abstract class BaseSession extends GateKeeper implements Session {
   //
 
   @override
-  Pair<InstantMessage, ReliableMessage?> sendContent(Content content,
-      {required ID? sender, required ID receiver, int priority = 0}) {
-    return messenger!.sendContent(content,
+  Future<Pair<InstantMessage, ReliableMessage?>> sendContent(Content content,
+      {required ID? sender, required ID receiver, int priority = 0}) async {
+    return await messenger!.sendContent(content,
         sender: sender, receiver: receiver, priority: priority);
   }
 
   @override
-  ReliableMessage? sendInstantMessage(InstantMessage iMsg, {int priority = 0}) {
-    return messenger!.sendInstantMessage(iMsg, priority: priority);
+  Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg,
+      {int priority = 0}) async {
+    return await messenger!.sendInstantMessage(iMsg, priority: priority);
   }
 
   @override
-  bool sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) {
-    return messenger!.sendReliableMessage(rMsg, priority: priority);
+  Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) async {
+    return await messenger!.sendReliableMessage(rMsg, priority: priority);
   }
 
 }

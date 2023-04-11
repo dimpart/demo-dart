@@ -37,9 +37,9 @@ import 'group.dart';
 class ClientFacebook extends CommonFacebook {
   ClientFacebook(super.adb);
 
-  String getName(ID identifier) {
+  Future<String> getName(ID identifier) async {
     // get name from document
-    Document? doc = getDocument(identifier, '*');
+    Document? doc = await getDocument(identifier, '*');
     if (doc != null) {
       String? name = doc.name;
       if (name != null && name.isNotEmpty) {

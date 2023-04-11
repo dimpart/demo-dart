@@ -44,12 +44,12 @@ abstract class ReliableMessageDBI {
   /// @param start    start position for loading message
   /// @param limit    max count for loading message
   /// @return partial messages and remaining count, 0 means there are all messages cached
-  Pair<List<ReliableMessage>, int> getReliableMessages(ID receiver,
-      {int start, int limit});
+  Future<Pair<List<ReliableMessage>, int>> getReliableMessages(ID receiver,
+      {int start = 0, int? limit});
 
-  bool cacheReliableMessage(ID receiver, ReliableMessage rMsg);
+  Future<bool> cacheReliableMessage(ID receiver, ReliableMessage rMsg);
 
-  bool removeReliableMessage(ID receiver, ReliableMessage rMsg);
+  Future<bool> removeReliableMessage(ID receiver, ReliableMessage rMsg);
 }
 
 

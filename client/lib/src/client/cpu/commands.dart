@@ -39,11 +39,11 @@ class AnsCommandProcessor extends BaseCommandProcessor {
   AnsCommandProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is AnsCommand, 'ans command error: $content');
     AnsCommand command = content as AnsCommand;
     Map<String, String> records = command.records;
-    int count = ClientFacebook.ans!.fix(records);
+    int count = await ClientFacebook.ans!.fix(records);
     Log.info('ANS: update $count record(s), $records');
     return [];
   }
@@ -58,7 +58,7 @@ class LoginCommandProcessor extends BaseCommandProcessor {
   ClientMessenger get messenger => super.messenger as ClientMessenger;
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is LoginCommand, 'login command error: $content');
     LoginCommand command = content as LoginCommand;
     ID sender = command.identifier;
@@ -66,7 +66,7 @@ class LoginCommandProcessor extends BaseCommandProcessor {
     // save login command to session db
     ClientSession session = messenger.session;
     SessionDBI db = session.database;
-    if (db.saveLoginCommandMessage(sender, command, rMsg)) {
+    if (await db.saveLoginCommandMessage(sender, command, rMsg)) {
       Log.info('saved login command for user: $sender');
     } else {
       Log.error('failed to save login command: $sender, $command');
@@ -82,7 +82,7 @@ class ReceiptCommandProcessor extends BaseCommandProcessor {
   ReceiptCommandProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ReceiptCommand, 'receipt command error: $content');
     // no need to response login command
     return [];

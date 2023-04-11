@@ -36,7 +36,7 @@ class HistoryCommandProcessor extends BaseCommandProcessor {
   HistoryCommandProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is HistoryCommand, 'history command error: $content');
     HistoryCommand command = content as HistoryCommand;
     String text = 'History command (name: ${command.cmd}) not support yet!';
@@ -50,7 +50,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
   GroupCommandProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is GroupCommand, 'group command error: $content');
     GroupCommand command = content as GroupCommand;
     String text = 'Group command (name: ${command.cmd}) not support yet!';

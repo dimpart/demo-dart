@@ -40,7 +40,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
   ClientMessenger get messenger => super.messenger as ClientMessenger;
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is HandshakeCommand, 'handshake command error: $content');
     HandshakeCommand command = content as HandshakeCommand;
     ClientSession session = messenger.session;

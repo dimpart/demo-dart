@@ -42,38 +42,38 @@ class ClientMessagePacker extends MessagePacker {
   CommonFacebook get facebook => super.facebook as CommonFacebook;
 
   @override
-  Uint8List serializeMessage(ReliableMessage rMsg) {
-    attachKeyDigest(rMsg, messenger);
-    return super.serializeMessage(rMsg);
+  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async {
+    await attachKeyDigest(rMsg, messenger);
+    return await super.serializeMessage(rMsg);
   }
 
   @override
-  ReliableMessage? deserializeMessage(Uint8List data) {
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
     if (data.length < 2) {
       // message data error
       return null;
     }
-    return super.deserializeMessage(data);
+    return await super.deserializeMessage(data);
   }
 
   @override
-  ReliableMessage signMessage(SecureMessage sMsg) {
+  Future<ReliableMessage> signMessage(SecureMessage sMsg) async {
     if (sMsg is ReliableMessage) {
       // already signed
       return sMsg;
     }
-    return super.signMessage(sMsg);
+    return await super.signMessage(sMsg);
   }
 
   /*
   @override
-  SecureMessage encryptMessage(InstantMessage iMsg) {
+  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async {
     // make sure visa.key exists before encrypting message
-    SecureMessage sMsg = super.encryptMessage(iMsg);
+    SecureMessage sMsg = await super.encryptMessage(iMsg);
     ID receiver = iMsg.receiver;
     if (receiver.isGroup) {
       // reuse group message keys
-      SymmetricKey? key = messenger?.getCipherKey(iMsg.sender, receiver);
+      SymmetricKey? key = await messenger.getCipherKey(iMsg.sender, receiver);
       key?['reused'] = true;
     }
     // TODO: reuse personal message key?
@@ -82,17 +82,17 @@ class ClientMessagePacker extends MessagePacker {
    */
 
   @override
-  InstantMessage? decryptMessage(SecureMessage sMsg) {
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
     try {
-      return super.decryptMessage(sMsg);
+      return await super.decryptMessage(sMsg);
     } catch (e) {
       // check exception thrown by DKD: chat.dim.dkd.EncryptedMessage.decrypt()
       String errMsg = e.toString();
       if (errMsg.contains("failed to decrypt key in msg")) {
         Log.error(errMsg);
         // visa.key not updated?
-        User? user = facebook.currentUser;
-        Visa? visa = user?.visa;
+        User? user = await facebook.currentUser;
+        Visa? visa = await user?.visa;
         if (visa == null || !visa.isValid) {
           // FIXME: user visa not found?
           throw Exception('user visa error: $user');
@@ -108,7 +108,7 @@ class ClientMessagePacker extends MessagePacker {
 
 }
 
-void attachKeyDigest(ReliableMessage rMsg, Messenger messenger) {
+Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
   // check message delegate
   rMsg.delegate ??= messenger;
   // check msg.key
@@ -130,9 +130,9 @@ void attachKeyDigest(ReliableMessage rMsg, Messenger messenger) {
   ID? group = rMsg.group;
   if (group == null) {
     ID receiver = rMsg.receiver;
-    key = messenger.getCipherKey(sender, receiver, generate: false);
+    key = await messenger.getCipherKey(sender, receiver, generate: false);
   } else {
-    key = messenger.getCipherKey(sender, group, generate: false);
+    key = await messenger.getCipherKey(sender, group, generate: false);
   }
   String? digest = _keyDigest(key);
   if (digest == null) {

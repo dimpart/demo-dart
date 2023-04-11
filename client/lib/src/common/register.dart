@@ -54,7 +54,7 @@ class Register {
   /// @param nickname  - user name
   /// @param avatarUrl - photo URL
   /// @return user ID
-  ID createUser({required String name, String? avatar}) {
+  Future<ID> createUser({required String name, String? avatar}) async {
     //
     //  Step 1: generate private key (with asymmetric algorithm)
     //
@@ -77,10 +77,10 @@ class Register {
     //  Step 5: save private key, meta & visa in local storage
     //          don't forget to upload them onto the DIM station
     //
-    database.saveMeta(meta, identifier);
-    database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier);
-    database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier);
-    database.saveDocument(visa);
+    await database.saveMeta(meta, identifier);
+    await database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier);
+    await database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier);
+    await database.saveDocument(visa);
     // OK
     return identifier;
   }
@@ -90,7 +90,7 @@ class Register {
   /// @param founder - group founder
   /// @param title   - group name
   /// @return group ID
-  ID createGroup(ID founder, {required String name, String? seed}) {
+  Future<ID> createGroup(ID founder, {required String name, String? seed}) async {
     if (seed == null) {
       Random random = Random();
       int r = random.nextInt(999990000) + 10000; // 10,000 ~ 999,999,999
@@ -99,7 +99,7 @@ class Register {
     //
     //  Step 1: get private key of founder
     //
-    SignKey privateKey = database.getPrivateKeyForVisaSignature(founder)!;
+    SignKey privateKey = (await database.getPrivateKeyForVisaSignature(founder))!;
     //
     //  Step 2: generate meta with private key (and meta seed)
     //
@@ -116,12 +116,12 @@ class Register {
     //  Step 5: save meta & bulletin in local storage
     //          don't forget to upload then onto the DIM station
     //
-    database.saveMeta(meta, identifier);
-    database.saveDocument(doc);
+    await database.saveMeta(meta, identifier);
+    await database.saveDocument(doc);
     //
     //  Step 6: add founder as first member
     //
-    database.saveMembers([founder], identifier);
+    await database.saveMembers([founder], identifier);
     // OK
     return identifier;
   }

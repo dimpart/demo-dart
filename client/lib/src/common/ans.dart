@@ -94,13 +94,13 @@ class AddressNameServer implements AddressNameService {
   /// @param name       - username
   /// @param identifier - user ID; if empty, means delete this name
   /// @return true on success
-  bool save(String name, ID? identifier) {
+  Future<bool> save(String name, ID? identifier) async {
     // TODO: save new record into database
     return cache(name, identifier);
   }
 
   /// remove the keywords temporary before save new records
-  int fix(Map<String, String> records) {
+  Future<int> fix(Map<String, String> records) async {
     _reserved['assistant'] = false;
     // _reserved['station'] = false;
     int count = 0;
@@ -108,7 +108,7 @@ class AddressNameServer implements AddressNameService {
     for (String alias in records.keys) {
       identifier = ID.parse(records[alias]);
       assert(identifier != null, 'record error: $alias => ${records[alias]}');
-      if (save(alias, identifier)) {
+      if (await save(alias, identifier)) {
         count += 1;
       }
     }

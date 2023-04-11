@@ -43,10 +43,10 @@ class CommonFacebook extends Facebook {
   AccountDBI get database => _database;
 
   @override
-  List<User> get localUsers {
+  Future<List<User>> get localUsers async {
     List<User> users = [];
     User? usr;
-    List<ID> array = database.getLocalUsers();
+    List<ID> array = await database.getLocalUsers();
     if (array.isEmpty) {
       usr = _current;
       if (usr != null) {
@@ -54,7 +54,7 @@ class CommonFacebook extends Facebook {
       }
     } else {
       for (ID item in array) {
-        assert(getPrivateKeyForSignature(item) == null, 'error: $item');
+        assert(await getPrivateKeyForSignature(item) == null, 'error: $item');
         usr = getUser(item);
         assert(usr != null, 'failed to create user: $item');
         users.add(usr!);
@@ -63,11 +63,11 @@ class CommonFacebook extends Facebook {
     return users;
   }
 
-  User? get currentUser {
+  Future<User?> get currentUser async {
     // Get current user (for signing and sending message)
     User? usr = _current;
     if (usr == null) {
-      List<User> users = localUsers;
+      List<User> users = await localUsers;
       if (users.isNotEmpty) {
         usr = users[0];
         _current = usr;
@@ -75,106 +75,110 @@ class CommonFacebook extends Facebook {
     }
     return usr;
   }
-  set currentUser(User? user) {
+  setCurrentUser(User? user) {
     _current = user;
   }
 
   @override
-  bool saveMeta(Meta meta, ID identifier) => database.saveMeta(meta, identifier);
+  Future<bool> saveMeta(Meta meta, ID identifier) async
+  => await database.saveMeta(meta, identifier);
 
   @override
-  bool saveDocument(Document doc) => database.saveDocument(doc);
+  Future<bool> saveDocument(Document doc) async
+  => await database.saveDocument(doc);
 
-  @override
-  User? createUser(ID identifier) {
-    if (!identifier.isBroadcast) {
-      if (getPublicKeyForEncryption(identifier) == null) {
-        // visa.key not found
-        return null;
-      }
-    }
-    return super.createUser(identifier);
-  }
-
-  @override
-  Group? createGroup(ID identifier) {
-    if (!identifier.isBroadcast) {
-      if (getMeta(identifier) == null) {
-        // group meta not found
-        return null;
-      }
-    }
-    return super.createGroup(identifier);
-  }
+  // @override
+  // User? createUser(ID identifier) {
+  //   if (!identifier.isBroadcast) {
+  //     if (getPublicKeyForEncryption(identifier) == null) {
+  //       // visa.key not found
+  //       return null;
+  //     }
+  //   }
+  //   return super.createUser(identifier);
+  // }
+  //
+  // @override
+  // Group? createGroup(ID identifier) {
+  //   if (!identifier.isBroadcast) {
+  //     if (getMeta(identifier) == null) {
+  //       // group meta not found
+  //       return null;
+  //     }
+  //   }
+  //   return super.createGroup(identifier);
+  // }
 
   //
   //  EntityDataSource
   //
 
   @override
-  Meta? getMeta(ID identifier) => database.getMeta(identifier);
+  Future<Meta?> getMeta(ID identifier) async
+  => await database.getMeta(identifier);
 
   @override
-  Document? getDocument(ID identifier, String? docType)
-  => database.getDocument(identifier, docType);
+  Future<Document?> getDocument(ID identifier, String? docType) async
+  => await database.getDocument(identifier, docType);
 
   @override
-  List<ID> getContacts(ID user) => database.getContacts(user);
+  Future<List<ID>> getContacts(ID user) async
+  => await database.getContacts(user);
 
   @override
-  List<DecryptKey> getPrivateKeysForDecryption(ID user)
-  => database.getPrivateKeysForDecryption(user);
+  Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user) async
+  => await database.getPrivateKeysForDecryption(user);
 
   @override
-  SignKey? getPrivateKeyForSignature(ID user)
-  => database.getPrivateKeyForSignature(user);
+  Future<SignKey?> getPrivateKeyForSignature(ID user) async
+  => await database.getPrivateKeyForSignature(user);
 
   @override
-  SignKey? getPrivateKeyForVisaSignature(ID user)
-  => database.getPrivateKeyForVisaSignature(user);
+  Future<SignKey?> getPrivateKeyForVisaSignature(ID user) async
+  => await database.getPrivateKeyForVisaSignature(user);
 
   //
   //  GroupDataSource
   //
 
   @override
-  ID? getFounder(ID group) {
-    ID? user = database.getFounder(group);
+  Future<ID?> getFounder(ID group) async {
+    ID? user = await database.getFounder(group);
     if (user != null) {
       // got from database
       return user;
     }
-    return super.getFounder(group);
+    return await super.getFounder(group);
   }
 
   @override
-  ID? getOwner(ID group) {
-    ID? user = database.getOwner(group);
+  Future<ID?> getOwner(ID group) async {
+    ID? user = await database.getOwner(group);
     if (user != null) {
       // got from database
       return user;
     }
-    return super.getOwner(group);
+    return await super.getOwner(group);
   }
 
   @override
-  List<ID> getMembers(ID group) {
-    List<ID> users = database.getMembers(group);
+  Future<List<ID>> getMembers(ID group) async {
+    List<ID> users = await database.getMembers(group);
     if (users.isNotEmpty) {
       // got from database
       return users;
     }
-    return super.getMembers(group);
+    return await super.getMembers(group);
   }
 
   @override
-  List<ID> getAssistants(ID group) {
-    List<ID> bots = database.getAssistants(group);
+  Future<List<ID>> getAssistants(ID group) async {
+    List<ID> bots = await database.getAssistants(group);
     if (bots.isNotEmpty) {
       // got from database
       return bots;
     }
-    return super.getAssistants(group);
+    return await super.getAssistants(group);
   }
 
 }

@@ -44,25 +44,25 @@ abstract class PrivateKeyDBI {
   /// @param key - private key
   /// @param type - 'M' for matching meta.key; or 'P' for matching profile.key
   /// @return false on error
-  bool savePrivateKey(PrivateKey key, String type, ID user);
+  Future<bool> savePrivateKey(PrivateKey key, String type, ID user);
 
   ///  Get private keys for user
   ///
   /// @param user - user ID
   /// @return all keys marked for decryption
-  List<DecryptKey> getPrivateKeysForDecryption(ID user);
+  Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user);
 
   ///  Get private key for user
   ///
   /// @param user - user ID
   /// @return first key marked for signature
-  PrivateKey? getPrivateKeyForSignature(ID user);
+  Future<PrivateKey?> getPrivateKeyForSignature(ID user);
 
   ///  Get private key for user
   ///
   /// @param user - user ID
   /// @return the private key matched with meta.key
-  PrivateKey? getPrivateKeyForVisaSignature(ID user);
+  Future<PrivateKey?> getPrivateKeyForVisaSignature(ID user);
 
   //
   //  Conveniences
@@ -130,9 +130,9 @@ abstract class PrivateKeyDBI {
 ///  ~~~~~~~~~~~
 abstract class MetaDBI {
 
-  bool saveMeta(Meta meta, ID entity);
+  Future<bool> saveMeta(Meta meta, ID entity);
 
-  Meta? getMeta(ID entity);
+  Future<Meta?> getMeta(ID entity);
 
 }
 
@@ -140,9 +140,9 @@ abstract class MetaDBI {
 ///  ~~~~~~~~~~~
 abstract class DocumentDBI {
 
-  bool saveDocument(Document doc);
+  Future<bool> saveDocument(Document doc);
 
-  Document? getDocument(ID entity, String? type);
+  Future<Document?> getDocument(ID entity, String? type);
 
 }
 
@@ -151,13 +151,13 @@ abstract class DocumentDBI {
 ///  ~~~~~~~~~~~
 abstract class UserDBI {
 
-  List<ID> getLocalUsers();
+  Future<List<ID>> getLocalUsers();
 
-  bool saveLocalUsers(List<ID> users);
+  Future<bool> saveLocalUsers(List<ID> users);
 
-  List<ID> getContacts(ID user);
+  Future<List<ID>> getContacts(ID user);
 
-  bool saveContacts(List<ID> contacts, ID user);
+  Future<bool> saveContacts(List<ID> contacts, ID user);
 
 }
 
@@ -165,21 +165,21 @@ abstract class UserDBI {
 ///  ~~~~~~~~~~~
 abstract class GroupDBI {
 
-  ID? getFounder(ID group);
+  Future<ID?> getFounder(ID group);
 
-  ID? getOwner(ID group);
+  Future<ID?> getOwner(ID group);
 
   //
   //  group members
   //
-  List<ID> getMembers(ID group);
-  bool saveMembers(List<ID> members, ID group);
+  Future<List<ID>> getMembers(ID group);
+  Future<bool> saveMembers(List<ID> members, ID group);
 
   //
   //  bots for group
   //
-  List<ID> getAssistants(ID group);
-  bool saveAssistants(List<ID> bots, ID group);
+  Future<List<ID>> getAssistants(ID group);
+  Future<bool> saveAssistants(List<ID> bots, ID group);
 
 }
 

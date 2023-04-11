@@ -50,13 +50,13 @@ class GroupManager implements GroupDataSource {
   CommonFacebook? get facebook => messenger?.facebook;
 
   // private
-  User? get currentUser => facebook?.currentUser;
+  Future<User?> get currentUser async => await facebook?.currentUser;
 
   ///  Send group message content
   ///
   /// @param content - message content
   /// @return false on no bots found
-  bool sendContent(Content content, ID group) {
+  Future<bool> sendContent(Content content, ID group) async {
     assert(group.isGroup, 'group ID error: $group');
     ID? gid = content.group;
     if (gid == null) {
@@ -64,11 +64,11 @@ class GroupManager implements GroupDataSource {
     } else if (gid != group) {
       throw Exception('group ID not match: $gid, $group');
     }
-    List<ID> assistants = getAssistants(group);
+    List<ID> assistants = await getAssistants(group);
     Pair<InstantMessage, ReliableMessage?> result;
     for (ID bot in assistants) {
       // send to any bot
-      result = messenger!.sendContent(content, sender: null, receiver: bot);
+      result = await messenger!.sendContent(content, sender: null, receiver: bot);
       if (result.second != null) {
         // only send to one bot, let the bot to split and
         // forward this message to all members
@@ -79,14 +79,14 @@ class GroupManager implements GroupDataSource {
   }
 
   // private
-  void sendCommand(Command content, {ID? receiver, List<ID>? members}) {
+  Future<void> sendCommand(Command content, {ID? receiver, List<ID>? members}) async {
     if (receiver != null) {
-      messenger!.sendContent(content, sender: null, receiver: receiver);
+      await messenger!.sendContent(content, sender: null, receiver: receiver);
     }
     if (members != null) {
-      ID? sender = currentUser?.identifier;
+      ID? sender = (await currentUser)?.identifier;
       for (ID item in members) {
-        messenger!.sendContent(content, sender: sender, receiver: item);
+        await messenger!.sendContent(content, sender: sender, receiver: item);
       }
     }
   }
@@ -97,7 +97,7 @@ class GroupManager implements GroupDataSource {
   ///
   /// @param newMembers - new members ID list
   /// @return true on success
-  bool invite(ID group, {ID? member, List<ID>? members}) {
+  Future<bool> invite(ID group, {ID? member, List<ID>? members}) async {
     assert(group.isGroup, 'group ID error: $group');
     List<ID> newMembers = members ?? [member!];
 
@@ -105,11 +105,11 @@ class GroupManager implements GroupDataSource {
     // TODO: make sure current user is a member
 
     // 0. build 'meta/document' command
-    Meta? meta = getMeta(group);
+    Meta? meta = await getMeta(group);
     if (meta == null) {
       throw Exception('failed to get meta for group: $group');
     }
-    Document? doc = getDocument(group, "*");
+    Document? doc = await getDocument(group, "*");
     Command command;
     if (doc == null) {
       // empty document
@@ -117,34 +117,34 @@ class GroupManager implements GroupDataSource {
     } else {
       command = DocumentCommand.response(group, meta, doc);
     }
-    List<ID> bots = getAssistants(group);
+    List<ID> bots = await getAssistants(group);
     // 1. send 'meta/document' command
-    sendCommand(command, members: bots);                // to all assistants
+    await sendCommand(command, members: bots);                // to all assistants
 
     // 2. update local members and notice all bots & members
-    members = getMembers(group);
+    members = await getMembers(group);
     if (members.length <= 2) { // new group?
       // 2.0. update local storage
-      members = addMembers(newMembers, group);
+      members = await addMembers(newMembers, group);
       // 2.1. send 'meta/document' command
-      sendCommand(command, members: members);         // to all members
+      await sendCommand(command, members: members);         // to all members
       // 2.3. send 'invite' command with all members
       command = GroupCommand.invite(group, members: members);
-      sendCommand(command, members: bots);            // to group assistants
-      sendCommand(command, members: members);         // to all members
+      await sendCommand(command, members: bots);            // to group assistants
+      await sendCommand(command, members: members);         // to all members
     } else {
       // 2.1. send 'meta/document' command
       //sendGroupCommand(command, members: members);  // to old members
-      sendCommand(command, members: newMembers);      // to new members
+      await sendCommand(command, members: newMembers);      // to new members
       // 2.2. send 'invite' command with new members only
       command = GroupCommand.invite(group, members: newMembers);
-      sendCommand(command, members: bots);            // to group assistants
-      sendCommand(command, members: members);         // to old members
+      await sendCommand(command, members: bots);            // to group assistants
+      await sendCommand(command, members: members);         // to old members
       // 3. update local storage
-      members = addMembers(newMembers, group);
+      members = await addMembers(newMembers, group);
       // 2.4. send 'invite' command with all members
       command = GroupCommand.invite(group, members: members);
-      sendCommand(command, members: newMembers);      // to new members
+      await sendCommand(command, members: newMembers);      // to new members
     }
 
     return true;
@@ -155,11 +155,11 @@ class GroupManager implements GroupDataSource {
   ///
   /// @param outMembers - existed member ID list
   /// @return true on success
-  bool expel(ID group, {ID? member, List<ID>? members}) {
+  Future<bool> expel(ID group, {ID? member, List<ID>? members}) async {
     assert(group.isGroup, 'group ID error: $group');
     List<ID> outMembers = members ?? [member!];
-    ID? owner = getOwner(group);
-    List<ID> bots = getAssistants(group);
+    ID? owner = await getOwner(group);
+    List<ID> bots = await getAssistants(group);
 
     // TODO: make sure group meta exists
     // TODO: make sure current user is the owner
@@ -175,13 +175,13 @@ class GroupManager implements GroupDataSource {
     }
 
     // 1. update local storage
-    members = removeMembers(outMembers, group);
+    members = await removeMembers(outMembers, group);
 
     // 2. send 'expel' command
     Command command = GroupCommand.expel(group, members: outMembers);
-    sendCommand(command, members: bots);        // to assistants
-    sendCommand(command, members: members);     // to new members
-    sendCommand(command, members: outMembers);  // to expelled members
+    await sendCommand(command, members: bots);        // to assistants
+    await sendCommand(command, members: members);     // to new members
+    await sendCommand(command, members: outMembers);  // to expelled members
 
     return true;
   }
@@ -190,18 +190,18 @@ class GroupManager implements GroupDataSource {
   ///  (only group member can do this)
   ///
   /// @return true on success
-  bool quit(ID group) {
+  Future<bool> quit(ID group) async {
     assert(group.isGroup, 'group ID error: $group');
 
-    User? user = currentUser;
+    User? user = await currentUser;
     if (user == null) {
       throw Exception('failed to get current user');
     }
     ID me = user.identifier;
 
-    ID? owner = getOwner(group);
-    List<ID> bots = getAssistants(group);
-    List<ID> members = getMembers(group);
+    ID? owner = await getOwner(group);
+    List<ID> bots = await getAssistants(group);
+    List<ID> members = await getMembers(group);
 
     // 0. check permission
     if (bots.contains(me)) {
@@ -213,7 +213,7 @@ class GroupManager implements GroupDataSource {
     // 1. update local storage
     bool ok = false;
     if (members.remove(me)) {
-      ok = saveMembers(members, group);
+      ok = await saveMembers(members, group);
       //} else {
       //    // not a member now
       //    return false;
@@ -221,8 +221,8 @@ class GroupManager implements GroupDataSource {
 
     // 2. send 'quit' command
     Command command = GroupCommand.quit(group);
-    sendCommand(command, members: bots);     // to assistants
-    sendCommand(command, members: members);  // to new members
+    await sendCommand(command, members: bots);     // to assistants
+    await sendCommand(command, members: members);  // to new members
 
     return ok;
   }
@@ -230,24 +230,25 @@ class GroupManager implements GroupDataSource {
   ///  Query group info
   ///
   /// @return false on error
-  bool query(ID group) {
-    return messenger!.queryMembers(group);
+  Future<bool> query(ID group) async {
+    return await messenger!.queryMembers(group);
   }
 
   //-------- Data Source
 
   @override
-  Meta? getMeta(ID identifier) => facebook?.getMeta(identifier);
+  Future<Meta?> getMeta(ID identifier) async
+  => await facebook?.getMeta(identifier);
 
   @override
-  Document? getDocument(ID identifier, String? docType)
-  => facebook?.getDocument(identifier, docType);
+  Future<Document?> getDocument(ID identifier, String? docType) async
+  => await facebook?.getDocument(identifier, docType);
 
   @override
-  ID? getFounder(ID group) {
+  Future<ID?> getFounder(ID group) async {
     ID? founder = _cachedGroupFounders[group];
     if (founder == null) {
-      founder = facebook?.getFounder(group);
+      founder = await facebook?.getFounder(group);
       founder ??= ID.kFounder;  // placeholder
       _cachedGroupFounders[group] = founder;
     }
@@ -255,10 +256,10 @@ class GroupManager implements GroupDataSource {
   }
 
   @override
-  ID? getOwner(ID group) {
+  Future<ID?> getOwner(ID group) async {
     ID? owner = _cachedGroupOwners[group];
     if (owner == null) {
-      owner = facebook?.getOwner(group);
+      owner = await facebook?.getOwner(group);
       owner ??= ID.kAnyone;  // placeholder
       _cachedGroupOwners[group] = owner;
     }
@@ -266,20 +267,20 @@ class GroupManager implements GroupDataSource {
   }
 
   @override
-  List<ID> getMembers(ID group) {
+  Future<List<ID>> getMembers(ID group) async {
     List<ID>? members = _cachedGroupMembers[group];
     if (members == null) {
-      members = facebook!.getMembers(group);
+      members = await facebook!.getMembers(group);
       _cachedGroupMembers[group] = members;
     }
     return members;
   }
 
   @override
-  List<ID> getAssistants(ID group) {
+  Future<List<ID>> getAssistants(ID group) async {
     List<ID>? bots = _cachedGroupAssistants[group];
     if (bots == null) {
-      bots = facebook!.getAssistants(group);
+      bots = await facebook!.getAssistants(group);
       _cachedGroupAssistants[group] = bots;
     }
     if (bots.isNotEmpty) {
@@ -296,27 +297,27 @@ class GroupManager implements GroupDataSource {
   //  MemberShip
   //
 
-  bool isFounder(ID member, ID group) {
-    ID? founder = getFounder(group);
+  Future<bool> isFounder(ID member, ID group) async {
+    ID? founder = await getFounder(group);
     if (founder != null) {
       return founder == member;
     }
     // check member's public key with group's meta.key
-    Meta? gMeta = getMeta(group);
+    Meta? gMeta = await getMeta(group);
     assert(gMeta != null, 'failed to get meta for group: $group');
-    Meta? mMeta = getMeta(member);
+    Meta? mMeta = await getMeta(member);
     assert(mMeta != null, 'failed to get meta for member: $member');
     return Meta.matchKey(mMeta!.key, gMeta!);
   }
 
-  bool isOwner(ID member, ID group) {
-    ID? owner = getOwner(group);
+  Future<bool> isOwner(ID member, ID group) async {
+    ID? owner = await getOwner(group);
     if (owner != null) {
       return owner == member;
     }
     if (group.type == EntityType.kGroup ) {
       // this is a polylogue
-      return isFounder(member, group);
+      return await isFounder(member, group);
     }
     throw Exception('only Polylogue so far');
   }
@@ -325,43 +326,43 @@ class GroupManager implements GroupDataSource {
   //  members
   //
 
-  bool containsMember(ID member, ID group) {
+  Future<bool> containsMember(ID member, ID group) async {
     assert(member.isUser && group.isGroup, "ID error: $member, $group");
-    List<ID> allMembers = getMembers(group);
+    List<ID> allMembers = await getMembers(group);
     int pos = allMembers.indexOf(member);
     if (pos >= 0) {
       return true;
     }
-    ID? owner = getOwner(group);
+    ID? owner = await getOwner(group);
     return owner != null && owner == member;
   }
 
-  bool addMember(ID member, ID group) {
+  Future<bool> addMember(ID member, ID group) async {
     assert(member.isUser && group.isGroup, "ID error: $member, $group");
-    List<ID> allMembers = getMembers(group);
+    List<ID> allMembers = await getMembers(group);
     int pos = allMembers.indexOf(member);
     if (pos >= 0) {
       // already exists
       return false;
     }
     allMembers.add(member);
-    return saveMembers(allMembers, group);
+    return await saveMembers(allMembers, group);
   }
-  bool removeMember(ID member, ID group) {
+  Future<bool> removeMember(ID member, ID group) async {
     assert(member.isUser && group.isGroup, "ID error: $member, $group");
-    List<ID> allMembers = getMembers(group);
+    List<ID> allMembers = await getMembers(group);
     int pos = allMembers.indexOf(member);
     if (pos < 0) {
       // not exists
       return false;
     }
     allMembers.removeAt(pos);
-    return saveMembers(allMembers, group);
+    return await saveMembers(allMembers, group);
   }
 
   // private
-  List<ID> addMembers(List<ID> newMembers, ID group) {
-    List<ID> members = getMembers(group);
+  Future<List<ID>> addMembers(List<ID> newMembers, ID group) async {
+    List<ID> members = await getMembers(group);
     int count = 0;
     for (ID member in newMembers) {
       if (members.contains(member)) {
@@ -371,13 +372,13 @@ class GroupManager implements GroupDataSource {
       ++count;
     }
     if (count > 0) {
-      saveMembers(members, group);
+      await saveMembers(members, group);
     }
     return members;
   }
   // private
-  List<ID> removeMembers(List<ID> outMembers, ID group) {
-    List<ID> members = getMembers(group);
+  Future<List<ID>> removeMembers(List<ID> outMembers, ID group) async {
+    List<ID> members = await getMembers(group);
     int count = 0;
     for (ID member in outMembers) {
       if (!members.contains(member)) {
@@ -387,14 +388,14 @@ class GroupManager implements GroupDataSource {
       ++count;
     }
     if (count > 0) {
-      saveMembers(members, group);
+      await saveMembers(members, group);
     }
     return members;
   }
 
-  bool saveMembers(List<ID> members, ID group) {
+  Future<bool> saveMembers(List<ID> members, ID group) async {
     AccountDBI db = facebook!.database;
-    if (db.saveMembers(members, group)) {
+    if (await db.saveMembers(members, group)) {
       // erase cache for reload
       _cachedGroupMembers.remove(group);
       return true;
@@ -407,8 +408,8 @@ class GroupManager implements GroupDataSource {
   //  assistants
   //
 
-  bool containsAssistant(ID user, ID group) {
-    List<ID> assistants = getAssistants(group);
+  Future<bool> containsAssistant(ID user, ID group) async {
+    List<ID> assistants = await getAssistants(group);
     if (assistants == _defaultAssistants) {
       // assistants not found
       return false;
@@ -416,12 +417,12 @@ class GroupManager implements GroupDataSource {
     return assistants.contains(user);
   }
 
-  bool addAssistant(ID bot, ID? group) {
+  Future<bool> addAssistant(ID bot, ID? group) async {
     if (group == null) {
       _defaultAssistants.insert(0, bot);
       return true;
     }
-    List<ID> assistants = getAssistants(group);
+    List<ID> assistants = await getAssistants(group);
     if (assistants == _defaultAssistants) {
       // assistants not found
       assistants = [];
@@ -430,12 +431,12 @@ class GroupManager implements GroupDataSource {
       return false;
     }
     assistants.insert(0, bot);
-    return saveAssistants(assistants, group);
+    return await saveAssistants(assistants, group);
   }
 
-  bool saveAssistants(List<ID> bots, ID group) {
+  Future<bool> saveAssistants(List<ID> bots, ID group) async {
     AccountDBI db = facebook!.database;
-    if (db.saveAssistants(bots, group)) {
+    if (await db.saveAssistants(bots, group)) {
       // erase cache for reload
       _cachedGroupAssistants.remove(group);
       return true;
@@ -444,7 +445,7 @@ class GroupManager implements GroupDataSource {
     }
   }
 
-  bool removeGroup(ID group) {
+  Future<bool> removeGroup(ID group) async {
     // TODO: remove group completely
     //return groupTable.removeGroup(group);
     return false;

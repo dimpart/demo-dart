@@ -38,9 +38,9 @@ import '../utils/tuples.dart';
 ///  ~~~~~~~~~~~
 abstract class LoginDBI {
 
-  Pair<LoginCommand?, ReliableMessage?> getLoginCommandMessage(ID identifier);
+  Future<Pair<LoginCommand?, ReliableMessage?>> getLoginCommandMessage(ID identifier);
 
-  bool saveLoginCommandMessage(ID identifier, LoginCommand content, ReliableMessage rMsg);
+  Future<bool> saveLoginCommandMessage(ID identifier, LoginCommand content, ReliableMessage rMsg);
 
 }
 
@@ -52,13 +52,13 @@ abstract class ProviderDBI {
   ///  get all neighbor stations
   ///
   /// @return a set of (host, port, ID)
-  Set<Triplet<String, int, ID>> allNeighbors();
+  Future<Set<Triplet<String, int, ID?>>> allNeighbors();
 
-  ID? getNeighbor(String ip, int port);
+  Future<ID?> getNeighbor(String host, int port);
 
-  bool addNeighbor(String ip, int port, [ID? station]);
+  Future<bool> addNeighbor(String host, int port, [ID? station]);
 
-  bool removeNeighbor(String ip, int port);
+  Future<bool> removeNeighbor(String host, int port);
 }
 
 

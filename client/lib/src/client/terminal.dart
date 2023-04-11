@@ -28,6 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:io';
+
 import '../dim_common.dart';
 
 import 'messenger.dart';
@@ -91,25 +93,33 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
 
   ClientMessenger? get messenger => _messenger;
 
-  ClientSession? get session => messenger?.session;
+  ClientSession? get session => _messenger?.session;
 
-  ClientMessenger connect(String host, int port) {
-    ClientMessenger? old = messenger;
+  Future<ClientMessenger> connect(String host, int port) async {
+    // 0.
+    ClientMessenger? old = _messenger;
     if (old != null) {
       ClientSession session = old.session;
       if (session.isActive) {
         // current session is active
         Station station = session.station;
-        if (station.host == host && station.port == port) {
+        if (await station.host == host && await station.port == port) {
           // same target
           return old;
         }
       }
       session.stop();
+      _messenger = null;
+    }
+    // create session with remote station
+    Station station = createStation(host, port);
+    ClientSession session = createSession(station, SocketAddress(host, port));
+    User? user = await facebook.currentUser;
+    if (user != null) {
+      // set current user for handshaking
+      session.setIdentifier(user.identifier);
     }
     // create new messenger with session
-    Station station = createStation(host, port);
-    ClientSession session = createSession(station);
     ClientMessenger transceiver = createMessenger(session, facebook);
     _messenger = transceiver;
     // create packer, processor for messenger
@@ -129,14 +139,9 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   }
 
   // protected
-  ClientSession createSession(Station station);
-  // ClientSession createSession(Station station) {
-  //   ClientSession session = ClientSession(station, sdb);
-  //   // set current user for handshaking
-  //   User? user = facebook.currentUser;
-  //   if (user != null) {
-  //     session.setIdentifier(user.identifier);
-  //   }
+  ClientSession createSession(Station station, SocketAddress remote);
+  // ClientSession createSession(Station station, SocketAddress remote) {
+  //   ClientSession session = ClientSession(station, remote, sdb);
   //   session.start();
   //   return session;
   // }
@@ -164,7 +169,7 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     }
   }
 
-  void enterBackground() {
+  Future<void> enterBackground() async {
     ClientMessenger? transceiver = messenger;
     if (transceiver == null) {
       // not connect
@@ -178,15 +183,15 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
       SessionState state = session.state;
       if (state.index == SessionStateOrder.kRunning) {
         // report client state
-        transceiver.reportOffline(uid);
-        /// TODO:
-        // idle(512);
+        await transceiver.reportOffline(uid);
+        // sleep a while for waiting 'report' command sent
+        sleep(Duration(milliseconds: 500));
       }
     }
     // pause the session
     session.pause();
   }
-  void enterForeground() {
+  Future<void> enterForeground() async {
     ClientMessenger? transceiver = messenger;
     if (transceiver == null) {
       // not connect
@@ -199,27 +204,26 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     ID? uid = session.identifier;
     if (uid != null) {
       // already signed in, wait a while to check session state
-      /// TODO:
-      // idle(512);
+      sleep(Duration(milliseconds: 500));
       SessionState state = session.state;
       if (state.index == SessionStateOrder.kRunning) {
         // report client state
-        transceiver.reportOnline(uid);
+        await transceiver.reportOnline(uid);
       }
     }
   }
 
   // protected
-  void keepOnline(ID uid, ClientMessenger messenger) {
+  Future<void> keepOnline(ID uid, ClientMessenger messenger) async {
     if (uid.type == EntityType.kStation) {
       // a station won't login to another station, if here is a station,
       // it must be a station bridge for roaming messages, we just send
       // report command to the target station to keep session online.
-      messenger.reportOnline(uid);
+      await messenger.reportOnline(uid);
     } else {
       // send login command to everyone to provide more information.
       // this command can keep the user online too.
-      messenger.broadcastLogin(uid, userAgent);
+      await messenger.broadcastLogin(uid, userAgent);
     }
   }
 
@@ -228,12 +232,12 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   //
 
   @override
-  void enterState(SessionState next, SessionStateMachine ctx, int now) {
+  Future<void> enterState(SessionState next, SessionStateMachine ctx, int now) async {
     // called before state changed
   }
 
   @override
-  void exitState(SessionState previous, SessionStateMachine ctx, int now) {
+  Future<void> exitState(SessionState previous, SessionStateMachine ctx, int now) async {
     // called after state changed
     SessionState? current = ctx.currentState;
     if (current == null) {
@@ -241,20 +245,20 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     }
     if (current.index == SessionStateOrder.kHandshaking) {
       // start handshake
-      messenger?.handshake(null);
+      await messenger?.handshake(null);
     } else if (current.index == SessionStateOrder.kRunning) {
       // broadcast current meta & visa document to all stations
-      messenger?.handshakeSuccess();
+      await messenger?.handshakeSuccess();
     }
   }
 
   @override
-  void pauseState(SessionState current, SessionStateMachine ctx, int now) {
+  Future<void> pauseState(SessionState current, SessionStateMachine ctx, int now) async {
 
   }
 
   @override
-  void resumeState(SessionState current, SessionStateMachine ctx, int now) {
+  Future<void> resumeState(SessionState current, SessionStateMachine ctx, int now) async {
     // TODO: clear session key for re-login?
   }
 

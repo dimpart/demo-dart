@@ -70,27 +70,27 @@ abstract class GateKeeper implements DockerDelegate {
   //
 
   @override
-  void onDockerStatusChanged(int previous, int current, Docker docker) {
+  Future<void> onDockerStatusChanged(int previous, int current, Docker docker) async {
     Log.info('docker status changed: $previous => $current, $docker');
   }
 
   @override
-  void onDockerReceived(Arrival ship, Docker docker) {
+  Future<void> onDockerReceived(Arrival ship, Docker docker) async {
     Log.debug("docker received a ship: $ship, $docker");
   }
 
   @override
-  void onDockerSent(Departure ship, Docker docker) {
+  Future<void> onDockerSent(Departure ship, Docker docker) async {
     // TODO: remove sent message from local cache
   }
 
   @override
-  void onDockerFailed(Error error, Departure ship, Docker docker) {
+  Future<void> onDockerFailed(Error error, Departure ship, Docker docker) async {
     Log.error("docker failed to send ship: $ship, $docker");
   }
 
   @override
-  void onDockerError(Error error, Departure ship, Docker docker) {
+  Future<void> onDockerError(Error error, Departure ship, Docker docker) async {
     Log.error("docker error while sending ship: $ship, $docker");
   }
 

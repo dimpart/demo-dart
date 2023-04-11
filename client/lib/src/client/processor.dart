@@ -42,9 +42,9 @@ class ClientMessageProcessor extends MessageProcessor {
   CommonFacebook get facebook => super.facebook as CommonFacebook;
 
   @override
-  List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) {
+  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async {
     try {
-      return super.processSecureMessage(sMsg, rMsg);
+      return await super.processSecureMessage(sMsg, rMsg);
     } catch (e) {
       String errMsg = e.toString();
       if (errMsg.startsWith("receiver error")) {
@@ -58,8 +58,8 @@ class ClientMessageProcessor extends MessageProcessor {
   }
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
-    List<Content> responses = super.processContent(content, rMsg);
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+    List<Content> responses = await super.processContent(content, rMsg);
     if (responses.isEmpty) {
       // respond nothing
       return [];
@@ -69,7 +69,7 @@ class ClientMessageProcessor extends MessageProcessor {
     }
     ID sender = rMsg.sender;
     ID receiver = rMsg.receiver;
-    User? user = facebook.selectLocalUser(receiver);
+    User? user = await facebook.selectLocalUser(receiver);
     assert(user != null, "receiver error: $receiver");
     receiver = user!.identifier;
     // check responses
@@ -95,7 +95,7 @@ class ClientMessageProcessor extends MessageProcessor {
         }
       }
       // normal response
-      messenger.sendContent(res, sender: receiver, receiver: sender, priority: 1);
+      await messenger.sendContent(res, sender: receiver, receiver: sender, priority: 1);
     }
     // DON'T respond to station directly
     return [];

@@ -43,12 +43,12 @@ abstract class ClientMessenger extends CommonMessenger {
   ///  Send handshake command to current station
   ///
   /// @param sessionKey - respond session key
-  void handshake(String? sessionKey) {
+  Future<void> handshake(String? sessionKey) async {
     Station station = session.station;
     ID sid = station.identifier;
     if (sessionKey == null) {
       // first handshake
-      User? user = facebook.currentUser;
+      User? user = await facebook.currentUser;
       assert(user != null, 'current user not found');
       ID uid = user!.identifier;
       Envelope env = Envelope.create(sender: uid, receiver: sid);
@@ -57,81 +57,83 @@ abstract class ClientMessenger extends CommonMessenger {
       content.group = Station.kEvery;
       // create instant message with meta & visa
       InstantMessage iMsg = InstantMessage.create(env, content);
-      iMsg.setMap('meta', user.meta);
-      iMsg.setMap('visa', user.visa);
-      sendInstantMessage(iMsg, priority: -1);
+      iMsg.setMap('meta', await user.meta);
+      iMsg.setMap('visa', await user.visa);
+      await sendInstantMessage(iMsg, priority: -1);
     } else {
       // handshake again
       Content content = HandshakeCommand.restart(sessionKey);
-      sendContent(content, sender: null, receiver: sid, priority: -1);
+      await sendContent(content, sender: null, receiver: sid, priority: -1);
     }
   }
 
   ///  Callback for handshake success
-  void handshakeSuccess() {
+  Future<void> handshakeSuccess() async {
     // broadcast current documents after handshake success
-    broadcastDocument();
+    await broadcastDocument();
   }
 
   ///  Broadcast meta & visa document to all stations
-  void broadcastDocument() {
-    User? user = facebook.currentUser;
+  Future<void> broadcastDocument() async {
+    User? user = await facebook.currentUser;
     assert(user != null, 'current user not found');
     ID uid = user!.identifier;
-    Content content = DocumentCommand.response(uid, user.meta, user.visa!);
+    Meta? meta = await user.meta;
+    Visa? visa = await user.visa;
+    Content content = DocumentCommand.response(uid, meta, visa!);
     // broadcast to 'everyone@everywhere'
-    sendContent(content, sender: uid, receiver: ID.kEveryone, priority: 1);
+    await sendContent(content, sender: uid, receiver: ID.kEveryone, priority: 1);
   }
 
   ///  Send login command to keep roaming
-  void broadcastLogin(ID sender, String userAgent) {
+  Future<void> broadcastLogin(ID sender, String userAgent) async {
     Station station = session.station;
     // create login command
     LoginCommand content = LoginCommand.fromID(sender);
     content.agent = userAgent;
     content.station = station;
     // broadcast to 'everyone@everywhere'
-    sendContent(content, sender: sender, receiver: ID.kEveryone, priority: 1);
+    await sendContent(content, sender: sender, receiver: ID.kEveryone, priority: 1);
   }
 
   ///  Send report command to keep user online
-  void reportOnline(ID sender) {
+  Future<void> reportOnline(ID sender) async {
     Content content = ReportCommand.fromTitle(ReportCommand.kOnline);
-    sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
+    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
   }
 
   ///  Send report command to let user offline
-  void reportOffline(ID sender) {
+  Future<void> reportOffline(ID sender) async {
     Content content = ReportCommand.fromTitle(ReportCommand.kOffline);
-    sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
+    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
   }
 
   @override
-  bool queryMeta(ID identifier) {
+  Future<bool> queryMeta(ID identifier) async {
     QueryFrequencyChecker checker = QueryFrequencyChecker();
     if (!checker.isMetaQueryExpired(identifier)) {
       // query not expired yet
       return false;
     }
     Content content = MetaCommand.query(identifier);
-    sendContent(content, sender: null, receiver: Station.kAny, priority: 1);
+    await sendContent(content, sender: null, receiver: Station.kAny, priority: 1);
     return true;
   }
 
   @override
-  bool queryDocument(ID identifier) {
+  Future<bool> queryDocument(ID identifier) async {
     QueryFrequencyChecker checker = QueryFrequencyChecker();
     if (!checker.isDocumentQueryExpired(identifier)) {
       // query not expired yet
       return false;
     }
     Content content = DocumentCommand.query(identifier, null);
-    sendContent(content, sender: null, receiver: Station.kAny, priority: 1);
+    await sendContent(content, sender: null, receiver: Station.kAny, priority: 1);
     return true;
   }
 
   @override
-  bool queryMembers(ID identifier) {
+  Future<bool> queryMembers(ID identifier) async {
     QueryFrequencyChecker checker = QueryFrequencyChecker();
     if (!checker.isMembersQueryExpired(identifier)) {
       // query not expired yet
@@ -139,7 +141,7 @@ abstract class ClientMessenger extends CommonMessenger {
     }
     assert(identifier.isGroup, "group ID error: $identifier");
     GroupManager manager = GroupManager();
-    List<ID> assistants = manager.getAssistants(identifier);
+    List<ID> assistants = await manager.getAssistants(identifier);
     if (assistants.isEmpty) {
       // group assistants not found
       return false;
@@ -147,20 +149,20 @@ abstract class ClientMessenger extends CommonMessenger {
     // querying members from bots
     Content content = GroupCommand.query(identifier);
     for (ID bot in assistants) {
-      sendContent(content, sender: null, receiver: bot, priority: 1);
+      await sendContent(content, sender: null, receiver: bot, priority: 1);
     }
     return true;
   }
 
   @override
-  bool checkReceiverInInstantMessage(InstantMessage iMsg) {
+  Future<bool> checkReceiverInInstantMessage(InstantMessage iMsg) async {
     ID receiver = iMsg.receiver;
     if (receiver.isBroadcast) {
       // broadcast message
       return true;
     } else if (receiver.isGroup) {
       // check group's meta & members
-      List<ID> members = getMembers(receiver);
+      List<ID> members = await getMembers(receiver);
       if (members.isEmpty) {
         // group not ready, suspend message for waiting meta/members
         Map<String, String> error = {
@@ -172,7 +174,7 @@ abstract class ClientMessenger extends CommonMessenger {
       }
       List<ID> waiting = [];
       for (ID item in members) {
-        if (getVisaKey(item) != null) {
+        if (await getVisaKey(item) != null) {
           // member is OK
           continue;
         }
@@ -193,7 +195,7 @@ abstract class ClientMessenger extends CommonMessenger {
       return true;
     }
     // check user's meta & document
-    return super.checkReceiverInInstantMessage(iMsg);
+    return await super.checkReceiverInInstantMessage(iMsg);
   }
 
 }
