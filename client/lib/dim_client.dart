@@ -5,6 +5,7 @@ library dim_client;
 
 export 'src/dim_common.dart';
 export 'src/dim_network.dart';
+export 'src/dim_sqlite.dart';
 
 
 export 'src/client/network/session.dart';
