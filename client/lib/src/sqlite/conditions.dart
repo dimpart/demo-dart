@@ -31,22 +31,23 @@
 import 'values.dart';
 
 class SQLConditions {
-  SQLConditions({required String left, required String comparison, required String right})
+  SQLConditions({required String left, required String comparison, required dynamic right})
       : _condition = _CompareCondition(left, comparison, right);
 
   _Condition _condition;
 
   // const
-  static final SQLConditions any = SQLConditions(left: '1', comparison: '=', right: '1');
+  static final SQLConditions kTrue = SQLConditions(left: '1', comparison: '<>', right: 0);
+  static final SQLConditions kFalse = SQLConditions(left: '1', comparison: '=', right: 0);
 
   // Relation
-  static const String and = ' AND ';
-  static const String or  = ' OR ';
+  static const String kAnd = ' AND ';
+  static const String kOr  = ' OR ';
 
   void appendEscapeValue(StringBuffer sb) => _condition.appendEscapeValue(sb);
 
   void addCondition(String relation,
-      {required String left, required String comparison, required String right}) {
+      {required String left, required String comparison, required dynamic right}) {
     _Condition cond = _CompareCondition(left, comparison, right);
     _condition = _RelatedCondition(_condition, relation, cond);
   }
@@ -68,7 +69,7 @@ class _CompareCondition implements _Condition {
 
   final String _left;
   final String _op;
-  final String _right;
+  final dynamic _right;
 
   @override
   void appendEscapeValue(StringBuffer sb) {
@@ -99,8 +100,8 @@ class _RelatedCondition implements _Condition {
   @override
   void appendEscapeValue(StringBuffer sb) {
     _appendEscapeValue(sb, _left);
-    assert(_relation == SQLConditions.and
-        || _relation == SQLConditions.or, 'relation error: $_relation');
+    assert(_relation == SQLConditions.kAnd
+        || _relation == SQLConditions.kOr, 'relation error: $_relation');
     sb.write(_relation);
     _appendEscapeValue(sb, _right);
   }

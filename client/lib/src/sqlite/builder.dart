@@ -97,6 +97,19 @@ class SQLBuilder {
     return builder.toString();
   }
 
+  static String buildCreateIndex(String table,
+      {required String indexName, required List<String> fields}) {
+    SQLBuilder builder = SQLBuilder(create);
+    builder._append(' INDEX ');
+    builder._append(indexName);
+    builder._append(' ON ');
+    builder._append(table);
+    builder._append('(');
+    builder._appendStringList(fields);
+    builder._append(')');
+    return builder.toString();
+  }
+
   //
   //  DROP TABLE IF EXISTS table;
   //

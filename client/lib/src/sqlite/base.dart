@@ -111,8 +111,5 @@ abstract class DBConnection {
 
 }
 
-abstract class DataRowExtractor<T> {
-
-  T extractRow(ResultSet resultSet, int index);
-
-}
+/// DataRowExtractor<T>
+typedef OnExtractDataRow<T> = T Function(ResultSet resultSet, int index);

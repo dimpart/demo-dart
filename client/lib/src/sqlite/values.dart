@@ -97,12 +97,14 @@ class SQLValues {
 
   static void appendEscapeValue(StringBuffer sb, dynamic value) {
     // TODO: other types?
-    if (value is num) {
+    if (value == null) {
+      return;
+    } else if (value is num) {
       sb.write(value);
     } else if (value is String) {
       _appendEscapeString(sb, value);
     } else {
-      _appendEscapeString(sb, value.toString());
+      _appendEscapeString(sb, '$value');
     }
   }
 
