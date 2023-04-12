@@ -185,7 +185,7 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
         // report client state
         await transceiver.reportOffline(uid);
         // sleep a while for waiting 'report' command sent
-        sleep(Duration(milliseconds: 500));
+        sleep(const Duration(milliseconds: 500));
       }
     }
     // pause the session
@@ -204,7 +204,7 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     ID? uid = session.identifier;
     if (uid != null) {
       // already signed in, wait a while to check session state
-      sleep(Duration(milliseconds: 500));
+      sleep(const Duration(milliseconds: 500));
       SessionState state = session.state;
       if (state.index == SessionStateOrder.kRunning) {
         // report client state

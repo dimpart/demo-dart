@@ -43,9 +43,9 @@ import 'package:dimp/dimp.dart';
 class ReportCommand extends BaseCommand {
   ReportCommand(super.dict);
 
-  static final String kReport  = 'report';
-  static final String kOnline  = 'online';
-  static final String kOffline = 'offline';
+  static const String kReport  = 'report';
+  static const String kOnline  = 'online';
+  static const String kOffline = 'offline';
 
   ReportCommand.fromTitle(String text) : super.fromName(kReport) {
     title = text;

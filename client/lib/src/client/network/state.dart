@@ -35,12 +35,12 @@ import 'session.dart';
 
 class SessionStateOrder {
 
-  static final int kDefault     =  0;
-  static final int kConnecting  =  1;
-  static final int kConnected   =  2;
-  static final int kHandshaking =  3;
-  static final int kRunning     =  4;
-  static final int kError       = -1;
+  static const int kDefault     =  0;
+  static const int kConnecting  =  1;
+  static const int kConnected   =  2;
+  static const int kHandshaking =  3;
+  static const int kRunning     =  4;
+  static const int kError       = -1;
 
 }
 

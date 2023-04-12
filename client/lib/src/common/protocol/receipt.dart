@@ -51,7 +51,7 @@ class ReceiptCommand extends BaseCommand {
   /// original message envelope
   Envelope? _env;
 
-  static final String kReceipt = 'receipt';
+  static const String kReceipt = 'receipt';
 
   ReceiptCommand.from(
       {String? text, Envelope? envelope, int? sn, String? signature})
@@ -85,7 +85,7 @@ class ReceiptCommand extends BaseCommand {
 
   String? get text => getString('text');
 
-  Map? _origin()  => this['origin'];
+  Map? _origin() => this['origin'];
 
   Envelope? get originalEnvelope {
     if (_env == null) {

@@ -237,12 +237,12 @@ class GroupManager implements GroupDataSource {
   //-------- Data Source
 
   @override
-  Future<Meta?> getMeta(ID identifier) async
-  => await facebook?.getMeta(identifier);
+  Future<Meta?> getMeta(ID identifier) async =>
+      await facebook?.getMeta(identifier);
 
   @override
-  Future<Document?> getDocument(ID identifier, String? docType) async
-  => await facebook?.getDocument(identifier, docType);
+  Future<Document?> getDocument(ID identifier, String? docType) async =>
+      await facebook?.getDocument(identifier, docType);
 
   @override
   Future<ID?> getFounder(ID group) async {

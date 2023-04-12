@@ -61,8 +61,8 @@ abstract class BaseSession extends GateKeeper implements Session {
   }
 
   CommonMessenger? get messenger => _transceiver?.target;
-  set messenger(CommonMessenger? transceiver)
-  => _transceiver = transceiver == null ? null : WeakReference(transceiver);
+  set messenger(CommonMessenger? transceiver) =>
+      _transceiver = transceiver == null ? null : WeakReference(transceiver);
 
   //
   //  Transmitter

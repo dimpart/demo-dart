@@ -55,7 +55,7 @@ import 'package:dimsdk/dimsdk.dart';
 class LoginCommand extends BaseCommand {
   LoginCommand(super.dict);
 
-  static final String kLogin = 'login';
+  static const String kLogin = 'login';
 
   LoginCommand.fromID(ID identifier) : super.fromName(kLogin) {
     setString('ID', identifier);

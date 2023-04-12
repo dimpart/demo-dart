@@ -80,12 +80,12 @@ class CommonFacebook extends Facebook {
   }
 
   @override
-  Future<bool> saveMeta(Meta meta, ID identifier) async
-  => await database.saveMeta(meta, identifier);
+  Future<bool> saveMeta(Meta meta, ID identifier) async =>
+      await database.saveMeta(meta, identifier);
 
   @override
-  Future<bool> saveDocument(Document doc) async
-  => await database.saveDocument(doc);
+  Future<bool> saveDocument(Document doc) async =>
+      await database.saveDocument(doc);
 
   // @override
   // User? createUser(ID identifier) {
@@ -114,28 +114,28 @@ class CommonFacebook extends Facebook {
   //
 
   @override
-  Future<Meta?> getMeta(ID identifier) async
-  => await database.getMeta(identifier);
+  Future<Meta?> getMeta(ID identifier) async =>
+      await database.getMeta(identifier);
 
   @override
-  Future<Document?> getDocument(ID identifier, String? docType) async
-  => await database.getDocument(identifier, docType);
+  Future<Document?> getDocument(ID identifier, String? docType) async =>
+      await database.getDocument(identifier, docType);
 
   @override
-  Future<List<ID>> getContacts(ID user) async
-  => await database.getContacts(user);
+  Future<List<ID>> getContacts(ID user) async =>
+      await database.getContacts(user);
 
   @override
-  Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user) async
-  => await database.getPrivateKeysForDecryption(user);
+  Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user) async =>
+      await database.getPrivateKeysForDecryption(user);
 
   @override
-  Future<SignKey?> getPrivateKeyForSignature(ID user) async
-  => await database.getPrivateKeyForSignature(user);
+  Future<SignKey?> getPrivateKeyForSignature(ID user) async =>
+      await database.getPrivateKeyForSignature(user);
 
   @override
-  Future<SignKey?> getPrivateKeyForVisaSignature(ID user) async
-  => await database.getPrivateKeyForVisaSignature(user);
+  Future<SignKey?> getPrivateKeyForVisaSignature(ID user) async =>
+      await database.getPrivateKeyForVisaSignature(user);
 
   //
   //  GroupDataSource

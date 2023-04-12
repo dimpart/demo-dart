@@ -172,15 +172,15 @@ void _registerFactories() {
   registerAllFactories();
 
   // Handshake
-  Command.setFactory(HandshakeCommand.kHandshake, CommandFactoryBuilder(HandshakeCommand));
+  Command.setFactory(HandshakeCommand.kHandshake, CommandParser((dict) => HandshakeCommand(dict)));
   // Receipt
-  Command.setFactory(ReceiptCommand.kReceipt, CommandFactoryBuilder(ReceiptCommand));
+  Command.setFactory(ReceiptCommand.kReceipt, CommandParser((dict) => ReceiptCommand(dict)));
   // Login
-  Command.setFactory(LoginCommand.kLogin, CommandFactoryBuilder(LoginCommand));
+  Command.setFactory(LoginCommand.kLogin, CommandParser((dict) => LoginCommand(dict)));
   // Report
-  Command.setFactory(ReportCommand.kReport, CommandFactoryBuilder(ReportCommand));
+  Command.setFactory(ReportCommand.kReport, CommandParser((dict) => ReportCommand(dict)));
   // Mute
   // Block
   // ANS
-  Command.setFactory(AnsCommand.kANS, CommandFactoryBuilder(AnsCommand));
+  Command.setFactory(AnsCommand.kANS, CommandParser((dict) => AnsCommand(dict)));
 }

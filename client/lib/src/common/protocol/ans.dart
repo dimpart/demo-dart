@@ -44,7 +44,7 @@ import 'package:dimp/dimp.dart';
 class AnsCommand extends BaseCommand {
   AnsCommand(super.dict);
 
-  static final String kANS = 'ans';
+  static const String kANS = 'ans';
 
   AnsCommand.from(String names, Map<String, String>? records) : super.fromName(kANS) {
     assert(names.isNotEmpty, 'query names should not empty');

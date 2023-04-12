@@ -35,10 +35,10 @@ import 'package:dimp/dimp.dart';
 ///  ~~~~~~~~~~~~~~~
 class HandshakeState {
 
-  static final int kStart = 0;    // C -> S, without session key(or session expired)
-  static final int kAgain = 1;    // S -> C, with new session key
-  static final int kRestart = 2;  // C -> S, with new session key
-  static final int kSuccess = 3;  // S -> C, handshake accepted
+  static const int kStart = 0;    // C -> S, without session key(or session expired)
+  static const int kAgain = 1;    // S -> C, with new session key
+  static const int kRestart = 2;  // C -> S, with new session key
+  static const int kSuccess = 3;  // S -> C, handshake accepted
 
   static int checkState(String title, String? session) {
     if (title == 'DIM!'/* || title == 'OK!'*/) {
@@ -65,7 +65,7 @@ class HandshakeState {
 class HandshakeCommand extends BaseCommand {
   HandshakeCommand(super.dict);
 
-  static final String kHandshake = 'handshake';
+  static const String kHandshake = 'handshake';
 
   HandshakeCommand.from(String title, {String? sessionKey})
       : super.fromName(kHandshake) {

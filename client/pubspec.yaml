@@ -1,6 +1,6 @@
 name: dim_client
 description: DIM demo.
-version: 0.1.0-dev.2
+version: 0.1.0-dev.3
 homepage: https://github.com/dimchat/demo-dart
 repository: https://github.com/dimchat/demo-dart
 issue_tracker: https://github.com/dimchat/demo-dart/issues
@@ -11,7 +11,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   dimp: ^0.1.0-dev.3
-  dimsdk: ^0.1.0-dev.3
+  dimsdk: ^0.1.0-dev.4
   dim_plugins: ^0.1.0-dev.1
 
 dev_dependencies:

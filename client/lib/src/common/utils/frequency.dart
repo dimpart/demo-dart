@@ -52,7 +52,7 @@ class FrequencyChecker <K> {
 }
 
 // each query will be expired after 10 minutes
-final int kQueryExpires = 600 * 1000;
+const int kQueryExpires = 600 * 1000;
 
 class QueryFrequencyChecker {
   factory QueryFrequencyChecker() => _instance;

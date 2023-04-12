@@ -35,8 +35,8 @@ import 'package:dimp/dimp.dart';
 ///  ~~~~~~~~~~~
 abstract class PrivateKeyDBI {
 
-  static final String kMeta = 'M';
-  static final String kVisa = 'V';
+  static const String kMeta = 'M';
+  static const String kVisa = 'V';
 
   ///  Save private key for user
   ///
