@@ -78,8 +78,8 @@ class Register {
     //          don't forget to upload them onto the DIM station
     //
     await database.saveMeta(meta, identifier);
-    await database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier);
-    await database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier);
+    await database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier, decrypt: 0);
+    await database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier, decrypt: 1);
     await database.saveDocument(visa);
     // OK
     return identifier;
@@ -121,7 +121,7 @@ class Register {
     //
     //  Step 6: add founder as first member
     //
-    await database.saveMembers([founder], identifier);
+    await database.saveMembers([founder], group: identifier);
     // OK
     return identifier;
   }

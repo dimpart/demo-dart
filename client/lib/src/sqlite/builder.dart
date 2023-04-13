@@ -98,10 +98,10 @@ class SQLBuilder {
   }
 
   static String buildCreateIndex(String table,
-      {required String indexName, required List<String> fields}) {
+      {required String name, required List<String> fields}) {
     SQLBuilder builder = SQLBuilder(create);
     builder._append(' INDEX ');
-    builder._append(indexName);
+    builder._append(name);
     builder._append(' ON ');
     builder._append(table);
     builder._append('(');

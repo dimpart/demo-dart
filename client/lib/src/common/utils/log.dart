@@ -31,6 +31,11 @@
 
 class Log {
 
+  static const String kRed    = '\x1B[95m';
+  static const String kYellow = '\x1B[93m';
+  static const String kGreen  = '\x1B[92m';
+  static const String kClear  = '\x1B[0m';
+
   static const int kDebugFlag   = 1 << 0;
   static const int kInfoFlag    = 1 << 1;
   static const int kWarningFlag = 1 << 2;
@@ -41,6 +46,9 @@ class Log {
   static const int kRelease =                      kWarningFlag|kErrorFlag;
 
   static int level = kRelease;
+
+  static int chunkLength = 1000;
+  static int limitLength = -1;    // -1 means unlimited
 
   static String get _now {
     DateTime current = DateTime.now();
@@ -57,32 +65,55 @@ class Log {
     return '$file:$line';
   }
 
+  static void _print(String body, {String head = '', String tail = ''}) {
+    int size = body.length;
+    if (0 < limitLength && limitLength < size) {
+      body = '${body.substring(0, limitLength - 3)}...';
+      size = limitLength;
+    }
+    int start = 0, end = chunkLength;
+    for (; end < size; start = end, end += chunkLength) {
+      print(head + body.substring(start, end) + tail + _chunked);
+    }
+    if (start >= size) {
+      // all chunks printed
+      assert(start == size, 'should not happen');
+    } else if (start == 0) {
+      // body too short
+      print(head + body + tail);
+    } else {
+      // print last chunk
+      print(head + body.substring(start) + tail);
+    }
+  }
+  static const String _chunked = '↩️';
+
   static void debug(String? msg) {
     if ((level & kDebugFlag) == 0) {
       return;
     }
-    print('\x1B[92m[$_now]  DEBUG  | $_location >\t$msg\x1B[0m');
+    _print('[$_now]  DEBUG  | $_location >\t$msg', head: kGreen, tail: kClear);
   }
 
   static void info(String? msg) {
     if ((level & kInfoFlag) == 0) {
       return;
     }
-    print('[$_now]         | $_location >\t$msg');
+    _print('[$_now]         | $_location >\t$msg');
   }
 
   static void warning(String? msg) {
     if ((level & kWarningFlag) == 0) {
       return;
     }
-    print('\x1B[93m[$_now] WARNING | $_location >\t$msg\x1B[0m');
+    _print('[$_now] WARNING | $_location >\t$msg', head: kYellow, tail: kClear);
   }
 
   static void error(String? msg) {
     if ((level & kErrorFlag) == 0) {
       return;
     }
-    print('\x1B[95m[$_now]  ERROR  | $_location >\t$msg\x1B[0m');
+    _print('[$_now]  ERROR  | $_location >\t$msg', head: kRed, tail: kClear);
   }
 
 }

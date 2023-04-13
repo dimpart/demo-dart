@@ -49,21 +49,94 @@ abstract class LoginDBI {
 ///  ~~~~~~~~~~~
 abstract class ProviderDBI {
 
-  ///  get all neighbor stations
+  /// default service provider
+  static final ID kGSP = Identifier('gsp@everywhere', name: 'gsp', address: Address.kEverywhere);
+
+  ///  Get all providers
   ///
-  /// @return a set of (host, port, ID)
-  Future<Set<Triplet<String, int, ID?>>> allNeighbors();
+  /// @return provider list (ID, chosen)
+  Future<List<Pair<ID, int>>> getProviders();
 
-  Future<ID?> getNeighbor(String host, int port);
+  ///  Add provider info
+  ///
+  /// @param identifier - sp ID
+  /// @param chosen     - whether current sp
+  /// @return false on failed
+  Future<bool> addProvider(ID identifier, {int chosen = 0});
 
-  Future<bool> addNeighbor(String host, int port, [ID? station]);
+  ///  Update provider info
+  ///
+  /// @param identifier - sp ID
+  /// @param chosen     - whether current sp
+  /// @return false on failed
+  Future<bool> updateProvider(ID identifier, {int chosen = 0});
 
-  Future<bool> removeNeighbor(String host, int port);
+  ///  Remove provider info
+  ///
+  /// @param identifier - sp ID
+  /// @return false on failed
+  Future<bool> removeProvider(ID identifier);
+
 }
 
 
 ///  Session DBI
 ///  ~~~~~~~~~~~
-abstract class SessionDBI implements LoginDBI, ProviderDBI {
+abstract class StationDBI {
+
+  ///  Get all stations of this sp
+  ///
+  /// @param provider - sp ID (default is 'gsp@everywhere')
+  /// @return station list (host, port)
+  Future<List<Pair<String, int>>> getStations({ID provider});
+
+  ///  Add station info with sp ID
+  ///
+  /// @param host     - station IP
+  /// @param port     - station port
+  /// @param provider - sp ID
+  /// @param chosen   - whether current station
+  /// @return false on failed
+  Future<bool> addStation(String host, int port, {ID provider, int chosen = 0});
+
+  ///  Update station info
+  ///
+  /// @param host     - station IP
+  /// @param port     - station port
+  /// @param station  - station ID
+  /// @param name     - station name
+  /// @param chosen   - whether current station
+  /// @param provider - sp ID
+  /// @return false on failed
+  Future<bool> updateStation(String host, int port, {ID provider, int chosen});
+
+  ///  Set this station as current station
+  ///
+  /// @param host     - station IP
+  /// @param port     - station port
+  /// @param provider - sp ID
+  /// @return false on failed
+  Future<bool> chooseStation(String host, int port, {ID provider});
+
+  ///  Remove this station
+  ///
+  /// @param host     - station IP
+  /// @param port     - station port
+  /// @param provider - sp ID
+  /// @return false on failed
+  Future<bool> removeStation(String host, int port, {ID provider});
+
+  ///  Remove all station of the sp
+  ///
+  /// @param provider - sp ID
+  /// @return false on failed
+  Future<bool> removeStations({ID provider});
+
+}
+
+
+///  Session DBI
+///  ~~~~~~~~~~~
+abstract class SessionDBI implements LoginDBI, ProviderDBI, StationDBI {
 
 }

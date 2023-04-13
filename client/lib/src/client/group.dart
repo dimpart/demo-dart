@@ -395,7 +395,7 @@ class GroupManager implements GroupDataSource {
 
   Future<bool> saveMembers(List<ID> members, ID group) async {
     AccountDBI db = facebook!.database;
-    if (await db.saveMembers(members, group)) {
+    if (await db.saveMembers(members, group: group)) {
       // erase cache for reload
       _cachedGroupMembers.remove(group);
       return true;
@@ -436,7 +436,7 @@ class GroupManager implements GroupDataSource {
 
   Future<bool> saveAssistants(List<ID> bots, ID group) async {
     AccountDBI db = facebook!.database;
-    if (await db.saveAssistants(bots, group)) {
+    if (await db.saveAssistants(bots, group: group)) {
       // erase cache for reload
       _cachedGroupAssistants.remove(group);
       return true;

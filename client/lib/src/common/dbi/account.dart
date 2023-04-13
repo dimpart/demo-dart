@@ -42,9 +42,12 @@ abstract class PrivateKeyDBI {
   ///
   /// @param user - user ID
   /// @param key - private key
-  /// @param type - 'M' for matching meta.key; or 'P' for matching profile.key
+  /// @param type - 'M' for matching meta.key; or 'V' for matching visa.key
+  /// @param sign - whether use for signature
+  /// @param decrypt - whether use for decryption
   /// @return false on error
-  Future<bool> savePrivateKey(PrivateKey key, String type, ID user);
+  Future<bool> savePrivateKey(PrivateKey key, String type, ID user,
+      {int sign = 1, required int decrypt});
 
   ///  Get private keys for user
   ///
@@ -155,9 +158,28 @@ abstract class UserDBI {
 
   Future<bool> saveLocalUsers(List<ID> users);
 
-  Future<List<ID>> getContacts(ID user);
+  Future<bool> addUser(ID user);
 
-  Future<bool> saveContacts(List<ID> contacts, ID user);
+  Future<bool> removeUser(ID user);
+
+  Future<bool> setCurrentUser(ID user);
+
+  Future<ID?> getCurrentUser();
+
+}
+
+
+///  Account DBI
+///  ~~~~~~~~~~~
+abstract class ContactDBI {
+
+  Future<List<ID>> getContacts({required ID user});
+
+  Future<bool> saveContacts(List<ID> contacts, {required ID user});
+
+  Future<bool> addContact(ID contact, {required ID user});
+
+  Future<bool> removeContact(ID contact, {required ID user});
 
 }
 
@@ -165,27 +187,34 @@ abstract class UserDBI {
 ///  ~~~~~~~~~~~
 abstract class GroupDBI {
 
-  Future<ID?> getFounder(ID group);
+  Future<ID?> getFounder({required ID group});
 
-  Future<ID?> getOwner(ID group);
+  Future<ID?> getOwner({required ID group});
 
   //
   //  group members
   //
-  Future<List<ID>> getMembers(ID group);
-  Future<bool> saveMembers(List<ID> members, ID group);
+  Future<List<ID>> getMembers({required ID group});
+  Future<bool> saveMembers(List<ID> members, {required ID group});
+
+  Future<bool> addMember(ID member, {required ID group});
+
+  Future<bool> removeMember(ID member, {required ID group});
+
+  Future<bool> removeGroup({required ID group});
 
   //
   //  bots for group
   //
-  Future<List<ID>> getAssistants(ID group);
-  Future<bool> saveAssistants(List<ID> bots, ID group);
+  Future<List<ID>> getAssistants({required ID group});
+  Future<bool> saveAssistants(List<ID> bots, {required ID group});
 
 }
 
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI, UserDBI, GroupDBI {
+abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI,
+                                     UserDBI, ContactDBI, GroupDBI {
 
 }

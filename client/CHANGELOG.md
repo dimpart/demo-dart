@@ -1,6 +1,6 @@
 ## 0.1.0-dev.4
 
-- Create index on table.
+- Database interfaces.
 
 ## 0.1.0-dev.3
 

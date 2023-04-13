@@ -54,7 +54,7 @@ class CommonFacebook extends Facebook {
       }
     } else {
       for (ID item in array) {
-        assert(await getPrivateKeyForSignature(item) == null, 'error: $item');
+        assert(await getPrivateKeyForSignature(item) != null, 'error: $item');
         usr = getUser(item);
         assert(usr != null, 'failed to create user: $item');
         users.add(usr!);
@@ -123,7 +123,7 @@ class CommonFacebook extends Facebook {
 
   @override
   Future<List<ID>> getContacts(ID user) async =>
-      await database.getContacts(user);
+      await database.getContacts(user: user);
 
   @override
   Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user) async =>
@@ -143,7 +143,7 @@ class CommonFacebook extends Facebook {
 
   @override
   Future<ID?> getFounder(ID group) async {
-    ID? user = await database.getFounder(group);
+    ID? user = await database.getFounder(group: group);
     if (user != null) {
       // got from database
       return user;
@@ -153,7 +153,7 @@ class CommonFacebook extends Facebook {
 
   @override
   Future<ID?> getOwner(ID group) async {
-    ID? user = await database.getOwner(group);
+    ID? user = await database.getOwner(group: group);
     if (user != null) {
       // got from database
       return user;
@@ -163,7 +163,7 @@ class CommonFacebook extends Facebook {
 
   @override
   Future<List<ID>> getMembers(ID group) async {
-    List<ID> users = await database.getMembers(group);
+    List<ID> users = await database.getMembers(group: group);
     if (users.isNotEmpty) {
       // got from database
       return users;
@@ -173,7 +173,7 @@ class CommonFacebook extends Facebook {
 
   @override
   Future<List<ID>> getAssistants(ID group) async {
-    List<ID> bots = await database.getAssistants(group);
+    List<ID> bots = await database.getAssistants(group: group);
     if (bots.isNotEmpty) {
       // got from database
       return bots;
