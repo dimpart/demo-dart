@@ -31,7 +31,7 @@
 import 'dart:typed_data';
 
 import '../dim_common.dart';
-
+import '../dim_utils.dart';
 import 'docker.dart';
 
 

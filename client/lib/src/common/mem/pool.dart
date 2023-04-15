@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import '../utils/log.dart';
+import '../../dim_utils.dart';
 import 'holder.dart';
 
 class CachePool <K, V> {

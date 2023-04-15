@@ -32,8 +32,8 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../dim_utils.dart';
 import 'dbi/session.dart';
-import 'utils/tuples.dart';
 
 abstract class Transmitter {
 

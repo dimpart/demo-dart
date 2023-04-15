@@ -31,6 +31,7 @@
 import 'dart:typed_data';
 
 import '../dim_common.dart';
+import '../dim_utils.dart';
 
 class ClientMessagePacker extends MessagePacker {
   ClientMessagePacker(super.facebook, super.messenger);
@@ -42,7 +43,7 @@ class ClientMessagePacker extends MessagePacker {
   CommonFacebook get facebook => super.facebook as CommonFacebook;
 
   @override
-  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async {
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
     await attachKeyDigest(rMsg, messenger);
     return await super.serializeMessage(rMsg);
   }
@@ -57,7 +58,7 @@ class ClientMessagePacker extends MessagePacker {
   }
 
   @override
-  Future<ReliableMessage> signMessage(SecureMessage sMsg) async {
+  Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
     if (sMsg is ReliableMessage) {
       // already signed
       return sMsg;
@@ -67,9 +68,9 @@ class ClientMessagePacker extends MessagePacker {
 
   /*
   @override
-  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async {
+  Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
     // make sure visa.key exists before encrypting message
-    SecureMessage sMsg = await super.encryptMessage(iMsg);
+    SecureMessage? sMsg = await super.encryptMessage(iMsg);
     ID receiver = iMsg.receiver;
     if (receiver.isGroup) {
       // reuse group message keys

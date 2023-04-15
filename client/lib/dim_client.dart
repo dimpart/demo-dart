@@ -3,6 +3,7 @@
 /// More dartdocs go here.
 library dim_client;
 
+export 'src/dim_utils.dart';
 export 'src/dim_common.dart';
 export 'src/dim_network.dart';
 export 'src/dim_sqlite.dart';

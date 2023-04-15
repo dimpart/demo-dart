@@ -33,11 +33,10 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../dim_utils.dart';
 import 'dbi/message.dart';
 import 'facebook.dart';
 import 'session.dart';
-import 'utils/log.dart';
-import 'utils/tuples.dart';
 
 abstract class CommonMessenger extends Messenger implements Transmitter {
   CommonMessenger(Session session, CommonFacebook facebook, MessageDBI mdb)
@@ -244,7 +243,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
    */
 
   @override
-  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async {
+  Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
     if (await checkReceiverInInstantMessage(iMsg)) {} else {
       // receiver not ready
       String error = 'receiver not ready: ${iMsg.receiver}';
@@ -293,13 +292,13 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     Log.debug('send instant message (type=${iMsg.content.type}): ${iMsg.sender} -> ${iMsg.receiver}');
     // send message (secured + certified) to target station
-    SecureMessage sMsg = await encryptMessage(iMsg);
-    if (sMsg.isEmpty) {
-      assert(false, 'public key not found?');
+    SecureMessage? sMsg = await encryptMessage(iMsg);
+    if (sMsg == null) {
+      // assert(false, 'public key not found?');
       return null;
     }
-    ReliableMessage rMsg = await signMessage(sMsg);
-    if (rMsg.isEmpty) {
+    ReliableMessage? rMsg = await signMessage(sMsg);
+    if (rMsg == null) {
       // TODO: set msg.state = error
       throw Exception('failed to sign message: ${sMsg.dictionary}');
     }
@@ -314,8 +313,11 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   @override
   Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) async {
     // 1. serialize message
-    Uint8List data = await serializeMessage(rMsg);
-    assert(data.isNotEmpty, 'failed to serialize message: ${rMsg.dictionary}');
+    Uint8List? data = await serializeMessage(rMsg);
+    if (data == null) {
+      assert(false, 'failed to serialize message: ${rMsg.dictionary}');
+      return false;
+    }
     // 2. call gate keeper to send the message data package
     //    put message package into the waiting queue of current session
     return session.queueMessagePackage(rMsg, data, priority: priority);

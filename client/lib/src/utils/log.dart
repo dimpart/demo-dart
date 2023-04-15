@@ -65,6 +65,9 @@ class Log {
     return '$file:$line';
   }
 
+  static void colorPrint(String body, {required String color}) {
+    _print(body, head: color, tail: kClear);
+  }
   static void _print(String body, {String head = '', String tail = ''}) {
     int size = body.length;
     if (0 < limitLength && limitLength < size) {

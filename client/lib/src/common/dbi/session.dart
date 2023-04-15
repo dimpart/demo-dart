@@ -30,8 +30,8 @@
  */
 import 'package:dimp/dimp.dart';
 
+import '../../dim_utils.dart';
 import '../protocol/login.dart';
-import '../utils/tuples.dart';
 
 
 ///  Session DBI
@@ -87,8 +87,8 @@ abstract class StationDBI {
   ///  Get all stations of this sp
   ///
   /// @param provider - sp ID (default is 'gsp@everywhere')
-  /// @return station list (host, port)
-  Future<List<Pair<String, int>>> getStations({ID provider});
+  /// @return station list ((host, port), sp, chosen)
+  Future<List<Triplet<Pair<String, int>, ID, int>>> getStations({required ID provider});
 
   ///  Add station info with sp ID
   ///
@@ -97,7 +97,7 @@ abstract class StationDBI {
   /// @param provider - sp ID
   /// @param chosen   - whether current station
   /// @return false on failed
-  Future<bool> addStation(String host, int port, {ID provider, int chosen = 0});
+  Future<bool> addStation(String host, int port, {required ID provider, int chosen = 0});
 
   ///  Update station info
   ///
@@ -108,15 +108,7 @@ abstract class StationDBI {
   /// @param chosen   - whether current station
   /// @param provider - sp ID
   /// @return false on failed
-  Future<bool> updateStation(String host, int port, {ID provider, int chosen});
-
-  ///  Set this station as current station
-  ///
-  /// @param host     - station IP
-  /// @param port     - station port
-  /// @param provider - sp ID
-  /// @return false on failed
-  Future<bool> chooseStation(String host, int port, {ID provider});
+  Future<bool> updateStation(String host, int port, {required ID provider, int chosen = 0});
 
   ///  Remove this station
   ///
@@ -124,13 +116,13 @@ abstract class StationDBI {
   /// @param port     - station port
   /// @param provider - sp ID
   /// @return false on failed
-  Future<bool> removeStation(String host, int port, {ID provider});
+  Future<bool> removeStation(String host, int port, {required ID provider});
 
   ///  Remove all station of the sp
   ///
   /// @param provider - sp ID
   /// @return false on failed
-  Future<bool> removeStations({ID provider});
+  Future<bool> removeStations({required ID provider});
 
 }
 

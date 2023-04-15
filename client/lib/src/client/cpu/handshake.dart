@@ -29,7 +29,7 @@
  * =============================================================================
  */
 import '../../dim_common.dart';
-
+import '../../dim_utils.dart';
 import '../messenger.dart';
 import '../network/session.dart';
 
@@ -62,11 +62,11 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
       // S -> C: station ask client to handshake again
       if (oldKey == null) {
         // first handshake response with new session key
-        messenger.handshake(newKey);
+        await messenger.handshake(newKey);
       } else if (oldKey == newKey) {
         // duplicated handshake response?
         // or session expired and the station ask to handshake again?
-        messenger.handshake(newKey);
+        await messenger.handshake(newKey);
       } else {
         // connection changed?
         // erase session key to handshake again

@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import '../dim_common.dart';
+import '../dim_utils.dart';
 
 class SQLValues {
 

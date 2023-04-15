@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import '../utils/log.dart';
+import '../../dim_utils.dart';
 
 class CacheHolder <V> {
   CacheHolder(V? cacheValue, int cacheLifeSpan, {int? now})

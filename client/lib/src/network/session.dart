@@ -29,7 +29,7 @@
  * =============================================================================
  */
 import '../dim_common.dart';
-
+import '../dim_utils.dart';
 import 'gate.dart';
 
 abstract class BaseSession extends GateKeeper implements Session {

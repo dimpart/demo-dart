@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import '../../dim_common.dart';
 import '../../dim_network.dart';
 
 import 'state.dart';

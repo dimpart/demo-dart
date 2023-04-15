@@ -5,10 +5,6 @@ export 'package:dimsdk/dimsdk.dart';
 export 'package:dim_plugins/dim_plugins.dart';
 
 
-export 'common/utils/log.dart';
-export 'common/utils/tuples.dart';
-export 'common/utils/frequency.dart';
-
 export 'common/mem/holder.dart';
 export 'common/mem/pool.dart';
 

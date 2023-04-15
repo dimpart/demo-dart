@@ -29,7 +29,7 @@
  * =============================================================================
  */
 import '../dim_common.dart';
-
+import '../dim_utils.dart';
 import 'cpu/creator.dart';
 
 class ClientMessageProcessor extends MessageProcessor {

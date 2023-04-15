@@ -85,13 +85,16 @@ class SessionState {
 ///      +--------------+                +------------------+
 ///
 abstract class SessionStateMachine {
-  SessionStateMachine(this.session);
+  SessionStateMachine(ClientSession session)
+      : _sessionRef = WeakReference(session);
 
-  final ClientSession session;
+  final WeakReference<ClientSession> _sessionRef;
 
-  String? get sessionKey => session.key;
+  ClientSession? get session => _sessionRef.target;
 
-  ID? get sessionID => session.identifier;
+  String? get sessionKey => session?.key;
+
+  ID? get sessionID => session?.identifier;
 
   SessionState? get currentState;
 

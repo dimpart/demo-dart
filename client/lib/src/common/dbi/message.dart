@@ -31,7 +31,7 @@
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 
-import '../utils/tuples.dart';
+import '../../dim_utils.dart';
 
 
 ///  Message DBI
