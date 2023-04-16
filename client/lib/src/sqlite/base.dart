@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimp/dimp.dart';
 
 abstract class ResultSet {
 
@@ -73,13 +74,17 @@ abstract class ResultSet {
   /// @since 1.2
   int get row;
 
-  dynamic getValue(String columnLabel);
+  dynamic getValue(String column);
 
-  String getString(String columnLabel) => getValue(columnLabel);
+  String? getString(String column) => Converter.getString(getValue(column));
 
-  int getInt(String columnLabel) => getValue(columnLabel);
+  bool? getBool(String column) => Converter.getBool(getValue(column));
 
-  double getDouble(String columnLabel) => getValue(columnLabel);
+  int? getInt(String column) => Converter.getInt(getValue(column));
+
+  double? getDouble(String column) => Converter.getDouble(getValue(column));
+
+  DateTime? getTime(String column) => Converter.getTime(getValue(column));
 
   void close();
 

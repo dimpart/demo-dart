@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-import 'log.dart';
+import 'time.dart';
 
 ///  Frequency checker for duplicated queries
 class FrequencyChecker <K> {

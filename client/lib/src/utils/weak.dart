@@ -63,6 +63,9 @@ class WeakSet<E extends Object> implements Set<E> {
   List<E> toList({bool growable = true}) => toSet().toList(growable: growable);
 
   @override
+  String toString() => toSet().toString();
+
+  @override
   Iterator<E> get iterator => toSet().iterator;
 
   @override

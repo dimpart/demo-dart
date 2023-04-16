@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'time.dart';
 
 class Log {
 
@@ -132,25 +133,4 @@ List<String> _caller(StackTrace current) {
   // split 'function' & '(file:line:column)'
   pos = text.lastIndexOf(' ');
   return[text.substring(0, pos), text.substring(pos + 1)];
-}
-
-
-class Time {
-
-  static int get currentTimeMillis => DateTime.now().millisecondsSinceEpoch;
-
-  /// yyyy-MM-dd HH:mm:ss
-  static String getFullTimeString(DateTime time) {
-    String m = _twoDigits(time.month);
-    String d = _twoDigits(time.day);
-    String h = _twoDigits(time.hour);
-    String min = _twoDigits(time.minute);
-    String sec = _twoDigits(time.second);
-    return '${time.year}-$m-$d $h:$min:$sec';
-  }
-
-  static String _twoDigits(int n) {
-    if (n >= 10) return "$n";
-    return "0$n";
-  }
 }

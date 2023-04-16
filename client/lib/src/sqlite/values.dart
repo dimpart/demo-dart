@@ -98,7 +98,7 @@ class SQLValues {
   static void appendEscapeValue(StringBuffer sb, dynamic value) {
     // TODO: other types?
     if (value == null) {
-      return;
+      sb.write('NULL');
     } else if (value is num) {
       sb.write(value);
     } else if (value is String) {

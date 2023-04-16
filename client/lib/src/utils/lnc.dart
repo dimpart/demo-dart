@@ -45,6 +45,13 @@ class Notification {
   final dynamic sender;
   final Map? userInfo;
 
+  @override
+  String toString() {
+    Type clazz = runtimeType;
+    return '<$clazz name="$name">\n\t<sender>$sender</sender>\n'
+        '\t<info>$userInfo</info>\n</$clazz>';
+  }
+
 }
 
 ///  Notification center
