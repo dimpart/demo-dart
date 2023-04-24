@@ -36,7 +36,9 @@ import 'messenger.dart';
 class GroupManager implements GroupDataSource {
   factory GroupManager() => _instance;
   static final GroupManager _instance = GroupManager._internal();
-  GroupManager._internal();
+  GroupManager._internal() {
+    messenger = null;
+  }
 
   final Map<ID, ID>         _cachedGroupFounders = {};
   final Map<ID, ID>           _cachedGroupOwners = {};

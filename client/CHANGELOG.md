@@ -1,3 +1,7 @@
+## 0.1.0-dev.7
+
+- Check receiver error.
+
 ## 0.1.0-dev.6
 
 - Time utils.

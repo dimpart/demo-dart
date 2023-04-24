@@ -20,6 +20,7 @@ export 'src/client/cpu/group/reset.dart';
 export 'src/client/cpu/group.dart';
 export 'src/client/cpu/handshake.dart';
 export 'src/client/cpu/commands.dart';
+export 'src/client/cpu/creator.dart';
 
 export 'src/client/anonymous.dart';
 export 'src/client/facebook.dart';

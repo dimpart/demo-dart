@@ -47,12 +47,14 @@ class ClientMessageProcessor extends MessageProcessor {
       return await super.processSecureMessage(sMsg, rMsg);
     } catch (e) {
       String errMsg = e.toString();
-      if (errMsg.startsWith("receiver error")) {
+      if (errMsg.contains("receiver error")) {
         // not mine? ignore it
         Log.warning('ignore message for: ${sMsg.receiver}');
         return [];
       } else {
-        rethrow;
+        // rethrow;
+        assert(false, 'failed to process message: ${rMsg.sender} -> ${rMsg.receiver}: $e');
+        return [];
       }
     }
   }

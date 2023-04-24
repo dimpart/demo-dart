@@ -102,7 +102,7 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
       if (session.isActive) {
         // current session is active
         Station station = session.station;
-        if (await station.host == host && await station.port == port) {
+        if (station.host == host && station.port == port) {
           // same target
           return old;
         }

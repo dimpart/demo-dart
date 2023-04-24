@@ -35,7 +35,7 @@ import 'dbi/account.dart';
 
 ///  Common Facebook with Database
 class CommonFacebook extends Facebook {
-  CommonFacebook(AccountDBI adb) : _database = adb;
+  CommonFacebook(AccountDBI adb) : _database = adb, _current = null;
 
   final AccountDBI _database;
   User? _current;

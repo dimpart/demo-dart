@@ -90,7 +90,7 @@ class CacheManager {
   static final CacheManager _instance = CacheManager._internal();
   CacheManager._internal();
 
-  final Map<String, CachePool> _poolMap = {};
+  final Map<String, dynamic> _poolMap = {};
 
   ///  Get pool with name
   ///
@@ -98,8 +98,8 @@ class CacheManager {
   /// @param <K>  - key type
   /// @param <V>  - value type
   /// @return CachePool
-  CachePool getPool(String name) {
-    CachePool? pool = _poolMap[name];
+  CachePool<K, V> getPool<K, V>(String name) {
+    CachePool<K, V>? pool = _poolMap[name];
     if (pool == null) {
       pool = CachePool();
       _poolMap[name] = pool;
