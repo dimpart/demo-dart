@@ -52,9 +52,9 @@ class ClientMessageProcessor extends MessageProcessor {
         Log.warning('ignore message for: ${sMsg.receiver}');
         return [];
       } else {
-        // rethrow;
-        assert(false, 'failed to process message: ${rMsg.sender} -> ${rMsg.receiver}: $e');
-        return [];
+        rethrow;
+        // assert(false, 'failed to process message: ${rMsg.sender} -> ${rMsg.receiver}: $e');
+        // return [];
       }
     }
   }

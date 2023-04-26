@@ -146,7 +146,7 @@ class BaseCenter {
   /// @param sender   - notification sender
   /// @param userInfo - extra info
   Future<void> postNotification(String name, dynamic sender, [Map? userInfo]) async {
-    await post(Notification(name, sender, userInfo));
+    return await post(Notification(name, sender, userInfo));
   }
 
   Future<void> post(Notification notification) async {
@@ -157,8 +157,7 @@ class BaseCenter {
     }
     for (Observer item in listeners) {
       try {
-        await item.onReceiveNotification(notification)
-            .onError((error, stackTrace) {
+        item.onReceiveNotification(notification).onError((error, stackTrace) {
           Log.error('observer error: $error');
         });
       } catch (ex) {

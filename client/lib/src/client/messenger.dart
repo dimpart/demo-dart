@@ -76,13 +76,28 @@ abstract class ClientMessenger extends CommonMessenger {
   ///  Broadcast meta & visa document to all stations
   Future<void> broadcastDocument() async {
     User? user = await facebook.currentUser;
-    assert(user != null, 'current user not found');
-    ID uid = user!.identifier;
-    Meta? meta = await user.meta;
+    if (user == null) {
+      assert(false, 'current user not found');
+      return;
+    }
+    ID uid = user.identifier;
+    Meta meta = await user.meta;
     Visa? visa = await user.visa;
-    Content content = DocumentCommand.response(uid, meta, visa!);
+    Command command;
+    if (visa == null) {
+      assert(false, 'visa not found: $user, meta: $meta');
+      return;
+      // command = MetaCommand.response(uid, meta);
+    } else {
+      command = DocumentCommand.response(uid, meta, visa);
+    }
+    // send to all contacts
+    List<ID> contacts = await facebook.getContacts(uid);
+    for (ID item in contacts) {
+      await sendContent(command, sender: uid, receiver: item, priority: 1);
+    }
     // broadcast to 'everyone@everywhere'
-    await sendContent(content, sender: uid, receiver: ID.kEveryone, priority: 1);
+    await sendContent(command, sender: uid, receiver: ID.kEveryone, priority: 1);
   }
 
   ///  Send login command to keep roaming
