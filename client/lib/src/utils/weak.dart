@@ -30,6 +30,132 @@
  */
 
 ///
+///  Weak Value Map
+///
+
+class WeakValueMap<K, V> implements Map<K, V> {
+  WeakValueMap() : _inner = {};
+
+  final Map<K, WeakReference<dynamic>?> _inner;
+
+  Map<K, V> toMap() {
+    // remove empty entry
+    _inner.removeWhere((key, wr) => wr?.target == null);
+    // convert
+    return _inner.map((key, wr) => MapEntry(key, wr?.target));
+  }
+
+  @override
+  String toString() => toMap().toString();
+
+  @override
+  Map<RK, RV> cast<RK, RV>() => toMap().cast();
+
+  @override
+  bool containsValue(Object? value) => toMap().containsValue(value);
+
+  @override
+  bool containsKey(Object? key) => _inner[key]?.target != null;
+
+  @override
+  V? operator [](Object? key) => _inner[key]?.target;
+
+  @override
+  void operator []=(K key, V value) =>
+      _inner[key] = value == null ? null : WeakReference(value);
+
+  @override
+  Iterable<MapEntry<K, V>> get entries => toMap().entries;
+
+  @override
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) convert) =>
+      toMap().map(convert);
+
+  @override
+  void addEntries(Iterable<MapEntry<K, V>> newEntries) {
+    for (var entry in newEntries) {
+      this[entry.key] = entry.value;
+    }
+  }
+
+  @override
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) =>
+      _inner.update(key, (wr) {
+        V val = wr?.target;
+        if (val != null) {
+          val = update(val);
+        } else if (ifAbsent != null) {
+          val = ifAbsent();
+        }
+        return val == null ? null : WeakReference(val);
+      })?.target;
+
+  @override
+  void updateAll(V Function(K key, V value) update) =>
+      _inner.updateAll((key, wr) {
+        V val = wr?.target;
+        if (val == null) {
+          return null;
+        }
+        val = update(key, val);
+        return val == null ? null : WeakReference(val);
+      });
+
+  @override
+  void removeWhere(bool Function(K key, V value) test) =>
+      _inner.removeWhere((key, wr) {
+        V val = wr?.target;
+        return val == null || test(key, val);
+      });
+
+  @override
+  V putIfAbsent(K key, V Function() ifAbsent) {
+    WeakReference<dynamic>? wr = _inner[key];
+    V val = wr?.target;
+    if (val == null) {
+      val = ifAbsent();
+      this[key] = val;
+    }
+    return val;
+  }
+
+  @override
+  void addAll(Map<K, V> other) => other.forEach((key, value) {
+    this[key] = value;
+  });
+
+  @override
+  V? remove(Object? key) => _inner.remove(key)?.target;
+
+  @override
+  void clear() => _inner.clear();
+
+  @override
+  void forEach(void Function(K key, V value) action) => _inner.forEach((key, wr) {
+    V val = wr?.target;
+    if (val != null) {
+      action(key, val);
+    }
+  });
+
+  @override
+  Iterable<K> get keys => toMap().keys;
+
+  @override
+  Iterable<V> get values => toMap().values;
+
+  @override
+  int get length => toMap().length;
+
+  @override
+  bool get isEmpty => toMap().isEmpty;
+
+  @override
+  bool get isNotEmpty => toMap().isNotEmpty;
+
+}
+
+///
 ///  Weak Set
 ///
 
@@ -72,166 +198,57 @@ class WeakSet<E extends Object> implements Set<E> {
   int get length => toSet().length;
 
   @override
-  bool get isEmpty {
-    for (var wr in _inner) {
-      if (wr.target != null) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool get isEmpty => toSet().isEmpty;
 
   @override
-  bool get isNotEmpty => !isEmpty;
+  bool get isNotEmpty => toSet().isNotEmpty;
 
   @override
-  E get first {
-    E? item;
-    for (var wr in _inner) {
-      item = wr.target;
-      if (item != null) {
-        return item;
-      }
-    }
-    throw StateError('empty');
-  }
+  E get first => toSet().first;
 
   @override
-  E get last {
-    E? got;
-    E? item;
-    for (var wr in _inner) {
-      item = wr.target;
-      if (item != null) {
-        got = item;
-      }
-    }
-    if (got == null) {
-      throw StateError('empty');
-    }
-    return got;
-  }
+  E get last => toSet().last;
 
   @override
-  E get single {
-    E? got;
-    E? item;
-    for (var wr in _inner) {
-      item = wr.target;
-      if (item != null) {
-        if (got == null) {
-          // first
-          got = item;
-        } else {
-          // second
-          throw StateError('more then one element');
-        }
-      }
-    }
-    if (got == null) {
-      throw StateError('empty');
-    }
-    return got;
-  }
+  E get single => toSet().single;
 
   @override
   E firstWhere(bool Function(E element) test, {E Function()? orElse}) =>
-      _inner.firstWhere((element) {
-        E? item = element.target;
-        return item != null && test(element.target);
-      }, orElse: orElse == null ? null : () {
-        return WeakReference(orElse());
-      }).target;
+      toSet().firstWhere(test, orElse: orElse);
 
   @override
   E lastWhere(bool Function(E element) test, {E Function()? orElse}) =>
-      _inner.lastWhere((element) {
-        E? item = element.target;
-        return item != null && test(element.target);
-      }, orElse: orElse == null ? null : () {
-        return WeakReference(orElse());
-      }).target;
+      toSet().lastWhere(test, orElse: orElse);
 
   @override
   E singleWhere(bool Function(E element) test, {E Function()? orElse}) =>
-      _inner.singleWhere((element) {
-        E? item = element.target;
-        return item != null && test(element.target);
-      }, orElse: orElse == null ? null : () {
-        return WeakReference(orElse());
-      }).target;
+      toSet().singleWhere(test, orElse: orElse);
 
   @override
-  bool any(bool Function(E element) test) =>
-      _inner.any((element) {
-        E? item = element.target;
-        return item != null && test(element.target);
-      });
+  bool any(bool Function(E element) test) => toSet().any(test);
 
   @override
-  bool every(bool Function(E element) test) =>
-      _inner.every((element) {
-        E? item = element.target;
-        return item != null && test(element.target);
-      });
+  bool every(bool Function(E element) test) => toSet().every(test);
 
   @override
-  E? lookup(Object? object)  {
-    dynamic item;
-    for (var wr in _inner) {
-      item = wr.target;
-      if (item == object) {
-        return item;
-      }
-    }
-    return null;
-  }
+  E? lookup(Object? object) => toSet().lookup(object);
 
   @override
-  bool contains(Object? value) {
-    for (var wr in _inner) {
-      if (wr.target == value) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool contains(Object? value) => toSet().contains(value);
 
   @override
-  bool containsAll(Iterable<Object?> other) {
-    for (var item in other) {
-      if (!contains(item)) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool containsAll(Iterable<Object?> other) => toSet().containsAll(other);
 
   @override
-  E elementAt(int index) {
-    assert(index >= 0, 'out of range: $index');
-    E? item;
-    int pos = -1;
-    for (var wr in _inner) {
-      item = wr.target;
-      if (item == null) {
-        // skip empty item
-      } else if (++pos == index) {
-        // got it
-        break;
-      }
-    }
-    assert(pos == index, 'out of range: $index, size=${pos + 1}');
-    return item!;
-  }
+  E elementAt(int index) => toSet().elementAt(index);
 
   @override
   bool add(E value) => !contains(value) && _inner.add(WeakReference(value));
 
   @override
   void addAll(Iterable<E> elements) {
-    for (var item in elements) {
-      add(item);
+    for (var e in elements) {
+      add(e);
     }
   }
 
@@ -239,8 +256,7 @@ class WeakSet<E extends Object> implements Set<E> {
   bool remove(Object? value) {
     for (var wr in _inner) {
       if (wr.target == value) {
-        _inner.remove(wr);
-        return true;
+        return _inner.remove(wr);
       }
     }
     return false;
@@ -249,9 +265,11 @@ class WeakSet<E extends Object> implements Set<E> {
   @override
   void removeAll(Iterable<Object?> elements) {
     Set<dynamic> removing = {};
-    for (var item in elements) {
+    E? item;
+    for (var e in elements) {
       for (var wr in _inner) {
-        if (wr.target == item) {
+        item = wr.target;
+        if (item == e || item == null) {
           removing.add(wr);
         }
       }
@@ -261,9 +279,9 @@ class WeakSet<E extends Object> implements Set<E> {
 
   @override
   void removeWhere(bool Function(E element) test) =>
-      _inner.removeWhere((element) {
-        E? item = element.target;
-        return item != null && test(element.target);
+      _inner.removeWhere((wr) {
+        E? item = wr.target;
+        return item == null || test(item);
       });
 
   @override
