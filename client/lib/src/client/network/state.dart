@@ -62,6 +62,31 @@ class SessionState {
   /// state order
   final int index;
 
+  @override
+  String toString() {
+    Type clazz = runtimeType;
+    return '<$clazz index=$index name="${_sessionStateName(index)}" />';
+  }
+
+}
+
+String _sessionStateName(int index) {
+  switch (index) {
+    case SessionStateOrder.kDefault:
+      return 'Default';
+    case SessionStateOrder.kConnecting:
+      return 'Connecting';
+    case SessionStateOrder.kConnected:
+      return 'Connected';
+    case SessionStateOrder.kHandshaking:
+      return 'Handshaking';
+    case SessionStateOrder.kRunning:
+      return 'Running';
+    case SessionStateOrder.kError:
+      return 'Error';
+    default:
+      return 'Unknown($index)';
+  }
 }
 
 

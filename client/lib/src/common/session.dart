@@ -67,6 +67,13 @@ class SocketAddress extends Pair<String, int> {
 
   String get host => first;
   int get port => second;
+
+  @override
+  String toString() {
+    Type clazz = runtimeType;
+    return '<$clazz host="$host" port=$port />';
+  }
+
 }
 
 abstract class Session implements Transmitter {

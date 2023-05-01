@@ -65,7 +65,7 @@ class NotificationCenter {
   ///  Add observer with notification name
   ///
   /// @param observer - who will receive notification
-  /// @param name - notification name
+  /// @param name     - notification name
   void addObserver(Observer observer, String name) {
     center.addObserver(observer, name);
   }
@@ -73,18 +73,18 @@ class NotificationCenter {
   ///  Remove observer for notification name
   ///
   /// @param observer - who will receive notification
-  /// @param name - notification name
+  /// @param name     - notification name
   void removeObserver(Observer observer, [String? name]) {
     center.removeObserver(observer, name);
   }
 
   ///  Post a notification with extra info
   ///
-  /// @param name - notification name
+  /// @param name   - notification name
   /// @param sender - who post this notification
-  /// @param userInfo - extra info
-  Future<void> postNotification(String name, dynamic sender, [Map? userInfo]) async {
-    await center.postNotification(name, sender, userInfo);
+  /// @param info   - extra info
+  Future<void> postNotification(String name, dynamic sender, [Map? info]) async {
+    await center.postNotification(name, sender, info);
   }
 
   ///  Post a notification
@@ -144,9 +144,9 @@ class BaseCenter {
   ///
   /// @param name     - notification name
   /// @param sender   - notification sender
-  /// @param userInfo - extra info
-  Future<void> postNotification(String name, dynamic sender, [Map? userInfo]) async {
-    return await post(Notification(name, sender, userInfo));
+  /// @param info     - extra info
+  Future<void> postNotification(String name, dynamic sender, [Map? info]) async {
+    return await post(Notification(name, sender, info));
   }
 
   Future<void> post(Notification notification) async {
@@ -155,15 +155,18 @@ class BaseCenter {
       Log.warning('no listeners for notification: ${notification.name}');
       return;
     }
+    List<Future> tasks = [];
     for (Observer item in listeners) {
       try {
-        item.onReceiveNotification(notification).onError((error, stackTrace) {
-          Log.error('observer error: $error');
-        });
-      } catch (ex) {
-        Log.error('notification observer exception: $ex');
+        tasks.add(item.onReceiveNotification(notification).onError((error, st) =>
+            Log.error('observer error: $error, $st, $notification')
+        ));
+      } catch (ex, stackTrace) {
+        Log.error('sync call observer error: $ex, $stackTrace, $notification');
       }
     }
+    // wait all tasks finished
+    await Future.wait(tasks);
   }
 
 }

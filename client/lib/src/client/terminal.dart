@@ -31,6 +31,7 @@
 import 'dart:io';
 
 import '../dim_common.dart';
+import '../dim_utils.dart';
 import 'messenger.dart';
 import 'network/session.dart';
 import 'network/state.dart';
@@ -99,19 +100,19 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     ClientMessenger? old = _messenger;
     if (old != null) {
       ClientSession session = old.session;
-      if (session.isActive) {
-        // current session is active
-        Station station = session.station;
-        if (station.host == host && station.port == port) {
-          // same target
-          return old;
-        }
+      // TODO: check session active?
+      Station station = session.station;
+      Log.debug('current station: $station');
+      if (station.host == host && station.port == port) {
+        // same target
+        return old;
       }
       session.stop();
       _messenger = null;
     }
     // create session with remote station
     Station station = createStation(host, port);
+    Log.debug('connect to new station: $station');
     ClientSession session = createSession(station, SocketAddress(host, port));
     User? user = await facebook.currentUser;
     if (user != null) {
@@ -242,7 +243,22 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     if (current == null) {
       return;
     }
-    if (current.index == SessionStateOrder.kHandshaking) {
+    if (current.index == SessionStateOrder.kDefault) {
+      // check current user
+      ID? user = ctx.sessionID;
+      if (user == null) {
+        Log.error('current user not set');
+        return;
+      }
+      Log.info('connect for user: $user');
+      SocketAddress? remote = session?.remoteAddress;
+      if (remote == null) {
+        Log.error('failed to get remote address: $session');
+        return;
+      }
+      // TODO: create docker for connecting remote address
+      Log.warning('TODO: trying to connect: $remote');
+    } else if (current.index == SessionStateOrder.kHandshaking) {
       // start handshake
       await messenger?.handshake(null);
     } else if (current.index == SessionStateOrder.kRunning) {
