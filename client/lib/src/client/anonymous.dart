@@ -57,10 +57,10 @@ class Anonymous {
       return 0;
     }
     if (address is BTCAddress) {
-      return _btcNumber(address.string);
+      return _btcNumber(address.toString());
     }
     if (address is ETHAddress) {
-      return _ethNumber(address.string);
+      return _ethNumber(address.toString());
     }
     throw Exception('address error: $address');
   }

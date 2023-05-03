@@ -31,7 +31,6 @@
 import 'dart:typed_data';
 
 import '../dim_common.dart';
-import '../dim_utils.dart';
 
 class ClientMessagePacker extends MessagePacker {
   ClientMessagePacker(super.facebook, super.messenger);
@@ -82,31 +81,6 @@ class ClientMessagePacker extends MessagePacker {
   }
    */
 
-  @override
-  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
-    try {
-      return await super.decryptMessage(sMsg);
-    } catch (e) {
-      // check exception thrown by DKD: chat.dim.dkd.EncryptedMessage.decrypt()
-      String errMsg = e.toString();
-      if (errMsg.contains("failed to decrypt key in msg")) {
-        Log.error(errMsg);
-        // visa.key not updated?
-        User? user = await facebook.currentUser;
-        Visa? visa = await user?.visa;
-        if (visa == null || !visa.isValid) {
-          // FIXME: user visa not found?
-          throw Exception('user visa error: $user');
-        }
-        Content content = DocumentCommand.response(user!.identifier, null, visa);
-        messenger.sendContent(content, sender: user.identifier, receiver: sMsg.sender);
-      } else {
-        rethrow;
-      }
-    }
-    return null;
-  }
-
 }
 
 Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
@@ -118,7 +92,7 @@ Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
     return;
   }
   // check msg.keys
-  Map? keys = rMsg.encryptedKeys;
+  Map? keys = await rMsg.encryptedKeys;
   if (keys == null) {
     keys = {};
   } else if (keys.containsKey("digest")) {

@@ -88,7 +88,7 @@ class LoginCommand extends BaseCommand {
       if (sid.isBroadcast) {
         info = {'host': info.host, 'port': info.port};
       } else {
-        info = {'host': info.host, 'port': info.port, 'ID': sid.string};
+        info = {'host': info.host, 'port': info.port, 'ID': sid.toString()};
       }
       this['station'] = info;
     } else if (info is Map) {
@@ -104,9 +104,9 @@ class LoginCommand extends BaseCommand {
   Map? get provider => this['provider'];
   set provider(dynamic info) {
     if (info is ServiceProvider) {
-      this['provider'] = {'ID': info.identifier.string};
+      this['provider'] = {'ID': info.identifier.toString()};
     } else if (info is ID) {
-      this['provider'] = {'ID': info.string};
+      this['provider'] = {'ID': info.toString()};
     } else if (info is Map) {
       assert(info.containsKey('ID'), 'station info error: $info');
       this['provider'] = info;

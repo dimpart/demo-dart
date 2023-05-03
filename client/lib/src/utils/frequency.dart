@@ -52,19 +52,21 @@ class FrequencyChecker <K> {
 }
 
 // each query will be expired after 10 minutes
-const int kQueryExpires = 600 * 1000;
+const int expires = 600 * 1000;
 
 class QueryFrequencyChecker {
   factory QueryFrequencyChecker() => _instance;
   static final QueryFrequencyChecker _instance = QueryFrequencyChecker._internal();
   QueryFrequencyChecker._internal()
-      : _metaQueries = FrequencyChecker(kQueryExpires),
-        _docQueries = FrequencyChecker(kQueryExpires),
-        _groupQueries = FrequencyChecker(kQueryExpires);
+      : _metaQueries = FrequencyChecker(expires),
+        _docQueries = FrequencyChecker(expires),
+        _groupQueries = FrequencyChecker(expires),
+        _docResponses = FrequencyChecker(expires);
 
   final FrequencyChecker<ID> _metaQueries;   // query for meta
   final FrequencyChecker<ID> _docQueries;    // query for document
   final FrequencyChecker<ID> _groupQueries;  // query for group members
+  final FrequencyChecker<ID> _docResponses;  // response for document
 
   bool isMetaQueryExpired(ID identifier, {int? now}) {
     return _metaQueries.isExpired(identifier, now: now);
@@ -76,6 +78,10 @@ class QueryFrequencyChecker {
 
   bool isMembersQueryExpired(ID identifier, {int? now}) {
     return _groupQueries.isExpired(identifier, now: now);
+  }
+
+  bool isDocumentResponseExpired(ID identifier, {int? now}) {
+    return _docResponses.isExpired(identifier, now: now);
   }
 
 }

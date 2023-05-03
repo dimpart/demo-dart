@@ -10,9 +10,9 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  dimp: ^0.1.0-dev.6
-  dimsdk: ^0.1.0-dev.7
-  dim_plugins: ^0.1.0-dev.4
+  dimp: ^0.1.0-dev.7
+  dimsdk: ^0.1.0-dev.8
+  dim_plugins: ^0.1.0-dev.5
 
 dev_dependencies:
   lints: ^2.0.0

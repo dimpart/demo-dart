@@ -300,7 +300,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
     ReliableMessage? rMsg = await signMessage(sMsg);
     if (rMsg == null) {
       // TODO: set msg.state = error
-      throw Exception('failed to sign message: ${sMsg.dictionary}');
+      throw Exception('failed to sign message: $sMsg');
     }
     if (await sendReliableMessage(rMsg, priority: priority)) {
       return rMsg;
@@ -315,7 +315,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
     // 1. serialize message
     Uint8List? data = await serializeMessage(rMsg);
     if (data == null) {
-      assert(false, 'failed to serialize message: ${rMsg.dictionary}');
+      assert(false, 'failed to serialize message: $rMsg');
       return false;
     }
     // 2. call gate keeper to send the message data package

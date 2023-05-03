@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import '../dim_common.dart';
-import '../dim_utils.dart';
 import 'cpu/creator.dart';
 
 class ClientMessageProcessor extends MessageProcessor {
@@ -40,24 +39,6 @@ class ClientMessageProcessor extends MessageProcessor {
 
   @override
   CommonFacebook get facebook => super.facebook as CommonFacebook;
-
-  @override
-  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async {
-    try {
-      return await super.processSecureMessage(sMsg, rMsg);
-    } catch (e) {
-      String errMsg = e.toString();
-      if (errMsg.contains("receiver error")) {
-        // not mine? ignore it
-        Log.warning('ignore message for: ${sMsg.receiver}');
-        return [];
-      } else {
-        rethrow;
-        // assert(false, 'failed to process message: ${rMsg.sender} -> ${rMsg.receiver}: $e');
-        // return [];
-      }
-    }
-  }
 
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
@@ -72,8 +53,11 @@ class ClientMessageProcessor extends MessageProcessor {
     ID sender = rMsg.sender;
     ID receiver = rMsg.receiver;
     User? user = await facebook.selectLocalUser(receiver);
-    assert(user != null, "receiver error: $receiver");
-    receiver = user!.identifier;
+    if (user == null) {
+      assert(false, "receiver error: $receiver");
+      return [];
+    }
+    receiver = user.identifier;
     // check responses
     for (Content res in responses) {
       if (res.isEmpty) {

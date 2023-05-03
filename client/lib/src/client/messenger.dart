@@ -73,33 +73,6 @@ abstract class ClientMessenger extends CommonMessenger {
     await broadcastDocument();
   }
 
-  ///  Broadcast meta & visa document to all stations
-  Future<void> broadcastDocument() async {
-    User? user = await facebook.currentUser;
-    if (user == null) {
-      assert(false, 'current user not found');
-      return;
-    }
-    ID uid = user.identifier;
-    Meta meta = await user.meta;
-    Visa? visa = await user.visa;
-    Command command;
-    if (visa == null) {
-      assert(false, 'visa not found: $user, meta: $meta');
-      return;
-      // command = MetaCommand.response(uid, meta);
-    } else {
-      command = DocumentCommand.response(uid, meta, visa);
-    }
-    // send to all contacts
-    List<ID> contacts = await facebook.getContacts(uid);
-    for (ID item in contacts) {
-      await sendContent(command, sender: uid, receiver: item, priority: 1);
-    }
-    // broadcast to 'everyone@everywhere'
-    await sendContent(command, sender: uid, receiver: ID.kEveryone, priority: 1);
-  }
-
   ///  Send login command to keep roaming
   Future<void> broadcastLogin(ID sender, String userAgent) async {
     Station station = session.station;
@@ -121,6 +94,44 @@ abstract class ClientMessenger extends CommonMessenger {
   Future<void> reportOffline(ID sender) async {
     Content content = ReportCommand.fromTitle(ReportCommand.kOffline);
     await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
+  }
+
+  ///  Broadcast meta & visa document to all stations
+  Future<void> broadcastDocument() async {
+    User? user = await facebook.currentUser;
+    if (user == null) {
+      assert(false, 'current user not found');
+      return;
+    }
+    ID current = user.identifier;
+    Meta meta = await user.meta;
+    Visa? visa = await user.visa;
+    DocumentCommand command;
+    if (visa == null) {
+      assert(false, 'visa not found: $user, meta: $meta');
+      return;
+      // command = MetaCommand.response(uid, meta);
+    } else {
+      command = DocumentCommand.response(current, meta, visa);
+    }
+    // send to all contacts
+    List<ID> contacts = await facebook.getContacts(current);
+    for (ID item in contacts) {
+      await _sendVisa(command, sender: current, receiver: item);
+    }
+    // broadcast to 'everyone@everywhere'
+    await _sendVisa(command, sender: current, receiver: ID.kEveryone);
+  }
+
+  Future<bool> _sendVisa(DocumentCommand command, {required ID receiver, ID? sender}) async {
+    QueryFrequencyChecker checker = QueryFrequencyChecker();
+    if (!checker.isDocumentResponseExpired(receiver)) {
+      // response not expired yet
+      return false;
+    }
+    var pair = await sendContent(command, sender: sender, receiver: receiver,
+        priority: 1);
+    return pair.second != null;
   }
 
   @override
@@ -211,6 +222,27 @@ abstract class ClientMessenger extends CommonMessenger {
     }
     // check user's meta & document
     return await super.checkReceiverInInstantMessage(iMsg);
+  }
+
+  @override
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
+    InstantMessage? iMsg = await super.decryptMessage(sMsg);
+    if (iMsg == null) {
+      // failed to decrypt message, visa.key changed?
+      // push new visa document to this message sender
+      User? user = await facebook.currentUser;
+      Visa? visa = await user?.visa;
+      if (visa == null || !visa.isValid) {
+        // FIXME: user visa not found?
+        assert(false, 'user visa error: $user');
+      } else {
+        ID current = user!.identifier;
+        Meta meta = await user.meta;
+        var res = DocumentCommand.response(current, meta, visa);
+        await _sendVisa(res, sender: current, receiver: sMsg.sender);
+      }
+    }
+    return iMsg;
   }
 
 }

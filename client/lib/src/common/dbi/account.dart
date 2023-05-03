@@ -93,7 +93,7 @@ abstract class PrivateKeyDBI {
   static List<Map> revertPrivateKeys(List<PrivateKey> privateKeys) {
     List<Map> array = [];
     for (PrivateKey key in privateKeys) {
-      array.add(key.dictionary);
+      array.add(key.toMap());
     }
     return array;
   }

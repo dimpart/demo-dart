@@ -66,7 +66,7 @@ class ReceiptCommand extends BaseCommand {
     if (envelope == null) {
       origin = {};
     } else {
-      origin = envelope.dictionary;
+      origin = envelope.toMap();
     }
     // sn of the message responding to
     if (sn != null) {

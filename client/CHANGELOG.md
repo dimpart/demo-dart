@@ -1,3 +1,7 @@
+## 0.1.0-dev.8
+
+- Push visa on decrypt failed.
+
 ## 0.1.0-dev.7
 
 - Check receiver error.
