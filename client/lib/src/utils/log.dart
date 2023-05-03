@@ -59,10 +59,8 @@ class Log {
   static String get _location {
     List<String> caller = _caller(StackTrace.current);
     // String func = caller[0];
-    String text = caller[1].substring(1, caller[1].lastIndexOf(':'));
-    int pos = text.lastIndexOf(':');
-    String line = text.substring(pos + 1);
-    String file = text.substring(text.lastIndexOf('/') + 1, pos);
+    String file = caller[1];
+    String line = caller[2];
     return '$file:$line';
   }
 
@@ -124,13 +122,33 @@ class Log {
 
 // #0      Log._location (package:dim_client/src/common/utils/log.dart:52:46)
 // #2      main.<anonymous closure> (file:///.../client_test.dart:16:11)
+// #3      Amanuensis.saveInstantMessage (package:sechat/models/conversation.dart:398)
+// <asynchronous suspension>
 // #?      function (path:1:2)
 List<String> _caller(StackTrace current) {
   String text = current.toString().split('\n')[2];
   // skip '#0      '
   int pos = text.indexOf(' ');
-  text = text.substring(pos).trimLeft();
+  text = text.substring(pos + 1).trimLeft();
   // split 'function' & '(file:line:column)'
   pos = text.lastIndexOf(' ');
-  return[text.substring(0, pos), text.substring(pos + 1)];
+  String func = text.substring(0, pos);
+  String tail = text.substring(pos + 1);
+  String file = 'unknown.file';
+  String line = '-1';
+  int pos1 = tail.indexOf(':');
+  if (pos1 > 0) {
+    pos = tail.indexOf(':', pos1 + 1);
+    if (pos > 0) {
+      file = tail.substring(1, pos);
+      pos1 = pos + 1;
+      pos = tail.indexOf(':', pos1);
+      if (pos > 0) {
+        line = tail.substring(pos1, pos);
+      } else if (pos1 < tail.length) {
+        line = tail.substring(pos1, tail.length - 1);
+      }
+    }
+  }
+  return[func, file, line];
 }
