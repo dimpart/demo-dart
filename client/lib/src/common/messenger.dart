@@ -32,8 +32,9 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/lnc.dart';
+import 'package:object_key/object_key.dart';
 
-import '../dim_utils.dart';
 import 'dbi/message.dart';
 import 'facebook.dart';
 import 'session.dart';

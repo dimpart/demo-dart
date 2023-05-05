@@ -29,7 +29,7 @@
  * =============================================================================
  */
 import '../dim_common.dart';
-import '../dim_utils.dart';
+import 'frequency.dart';
 import 'group.dart';
 import 'network/session.dart';
 

@@ -28,8 +28,9 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:lnc/lnc.dart';
+
 import '../../dim_common.dart';
-import '../../dim_utils.dart';
 import '../messenger.dart';
 import '../network/session.dart';
 

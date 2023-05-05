@@ -28,8 +28,9 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:object_key/object_key.dart';
+
 import '../dim_common.dart';
-import '../dim_utils.dart';
 import 'messenger.dart';
 
 ///  This is for sending group message, or managing group members

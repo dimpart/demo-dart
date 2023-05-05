@@ -29,19 +29,18 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-
-import 'time.dart';
+import 'package:object_key/object_key.dart';
 
 ///  Frequency checker for duplicated queries
 class FrequencyChecker <K> {
-  FrequencyChecker(int lifeSpan) : _expires = lifeSpan;
+  FrequencyChecker(double lifeSpan) : _expires = lifeSpan;
 
-  final Map<K, int> _records = {};
-  final int _expires;
+  final Map<K, double> _records = {};
+  final double _expires;
 
-  bool isExpired(K key, {int? now}) {
-    now ??= Time.currentTimeMillis;
-    int? value = _records[key];
+  bool isExpired(K key, {double? now}) {
+    now ??= Time.currentTimestamp;
+    double? value = _records[key];
     if (value != null && value > now) {
       // record exists and not expired yet
       return false;
@@ -52,7 +51,7 @@ class FrequencyChecker <K> {
 }
 
 // each query will be expired after 10 minutes
-const int expires = 600 * 1000;
+const double expires = 600;
 
 class QueryFrequencyChecker {
   factory QueryFrequencyChecker() => _instance;
@@ -68,19 +67,19 @@ class QueryFrequencyChecker {
   final FrequencyChecker<ID> _groupQueries;  // query for group members
   final FrequencyChecker<ID> _docResponses;  // response for document
 
-  bool isMetaQueryExpired(ID identifier, {int? now}) {
+  bool isMetaQueryExpired(ID identifier, {double? now}) {
     return _metaQueries.isExpired(identifier, now: now);
   }
 
-  bool isDocumentQueryExpired(ID identifier, {int? now}) {
+  bool isDocumentQueryExpired(ID identifier, {double? now}) {
     return _docQueries.isExpired(identifier, now: now);
   }
 
-  bool isMembersQueryExpired(ID identifier, {int? now}) {
+  bool isMembersQueryExpired(ID identifier, {double? now}) {
     return _groupQueries.isExpired(identifier, now: now);
   }
 
-  bool isDocumentResponseExpired(ID identifier, {int? now}) {
+  bool isDocumentResponseExpired(ID identifier, {double? now}) {
     return _docResponses.isExpired(identifier, now: now);
   }
 

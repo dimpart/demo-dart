@@ -5,9 +5,6 @@ export 'package:dimsdk/dimsdk.dart';
 export 'package:dim_plugins/dim_plugins.dart';
 
 
-export 'common/mem/holder.dart';
-export 'common/mem/pool.dart';
-
 export 'common/protocol/handshake.dart';
 export 'common/protocol/login.dart';
 export 'common/protocol/receipt.dart';

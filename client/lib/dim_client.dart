@@ -1,9 +1,7 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
 library dim_client;
 
-export 'src/dim_utils.dart';
+export 'package:object_key/object_key.dart';
+
 export 'src/dim_common.dart';
 export 'src/dim_network.dart';
 export 'src/dim_sqlite.dart';

@@ -31,8 +31,8 @@
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
+import 'package:object_key/object_key.dart';
 
-import '../dim_utils.dart';
 import 'dbi/session.dart';
 
 abstract class Transmitter {
@@ -98,9 +98,9 @@ abstract class Session implements Transmitter {
   ///  Update active flag
   ///
   /// @param active - flag
-  /// @param when   - now
+  /// @param when   - now (seconds from Jan 1, 1970 UTC)
   /// @return true on changed
-  bool setActive(bool flag, {int when = 0});
+  bool setActive(bool flag, {double when = 0});
   bool get isActive;
 
   ///  Pack message into a waiting queue

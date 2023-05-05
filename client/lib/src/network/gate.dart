@@ -30,8 +30,10 @@
  */
 import 'dart:typed_data';
 
+import 'package:lnc/lnc.dart';
+import 'package:object_key/object_key.dart';
+
 import '../dim_common.dart';
-import '../dim_utils.dart';
 import 'docker.dart';
 
 
@@ -41,16 +43,16 @@ abstract class GateKeeper implements DockerDelegate {
   final SocketAddress remoteAddress;
 
   bool _active;
-  int _lastActive;  // last update time
+  double _lastActive;  // last update time (seconds from Jan 1, 1970 UTC)
 
   bool get isActive => _active;
-  bool setActive(bool flag, {int when = 0}) {
+  bool setActive(bool flag, {double when = 0}) {
     if (_active == flag) {
       // flag not changed
       return false;
     }
     if (when <= 0) {
-      when = Time.currentTimeMillis;
+      when = Time.currentTimestamp;
     } else if (when <= _lastActive) {
       return false;
     }
