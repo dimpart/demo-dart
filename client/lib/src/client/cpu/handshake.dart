@@ -82,6 +82,8 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
       } else if (oldKey == newKey) {
         // duplicated handshake response?
         Log.warning("duplicated handshake response");
+        // set it again here to invoke the flutter channel
+        session.key = newKey;
       } else {
         // FIXME: handshake error
         // erase session key to handshake again

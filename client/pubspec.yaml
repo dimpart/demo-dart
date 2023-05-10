@@ -11,7 +11,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   object_key: ^0.1.0-dev.2
-  lnc: ^0.1.0-dev.2
+  lnc: ^0.1.0-dev.3
   dimp: ^0.1.0-dev.7
   dimsdk: ^0.1.0-dev.8
   dim_plugins: ^0.1.0-dev.5

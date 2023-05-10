@@ -97,7 +97,7 @@ abstract class ClientMessenger extends CommonMessenger {
   }
 
   ///  Broadcast meta & visa document to all stations
-  Future<void> broadcastDocument() async {
+  Future<void> broadcastDocument({bool updated = false}) async {
     User? user = await facebook.currentUser;
     if (user == null) {
       assert(false, 'current user not found');
@@ -117,15 +117,16 @@ abstract class ClientMessenger extends CommonMessenger {
     // send to all contacts
     List<ID> contacts = await facebook.getContacts(current);
     for (ID item in contacts) {
-      await _sendVisa(command, sender: current, receiver: item);
+      await _sendVisa(command, sender: current, receiver: item, force: updated);
     }
     // broadcast to 'everyone@everywhere'
-    await _sendVisa(command, sender: current, receiver: ID.kEveryone);
+    await _sendVisa(command, sender: current, receiver: ID.kEveryone, force: updated);
   }
 
-  Future<bool> _sendVisa(DocumentCommand command, {required ID receiver, ID? sender}) async {
+  Future<bool> _sendVisa(DocumentCommand command,
+      {required ID receiver, ID? sender, bool force = false}) async {
     QueryFrequencyChecker checker = QueryFrequencyChecker();
-    if (!checker.isDocumentResponseExpired(receiver)) {
+    if (!checker.isDocumentResponseExpired(receiver, force: force)) {
       // response not expired yet
       return false;
     }

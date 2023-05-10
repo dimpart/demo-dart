@@ -38,12 +38,17 @@ class FrequencyChecker <K> {
   final Map<K, double> _records = {};
   final double _expires;
 
-  bool isExpired(K key, {double? now}) {
+  bool isExpired(K key, {double? now, bool force = false}) {
     now ??= Time.currentTimestamp;
-    double? value = _records[key];
-    if (value != null && value > now) {
-      // record exists and not expired yet
-      return false;
+    if (force) {
+      // ignore last updated time, force to update now
+    } else {
+      // check last updated time
+      double? expired = _records[key];
+      if (expired != null && expired > now) {
+        // record exists and not expired yet
+        return false;
+      }
     }
     _records[key] = now + _expires;
     return true;
@@ -79,8 +84,8 @@ class QueryFrequencyChecker {
     return _groupQueries.isExpired(identifier, now: now);
   }
 
-  bool isDocumentResponseExpired(ID identifier, {double? now}) {
-    return _docResponses.isExpired(identifier, now: now);
+  bool isDocumentResponseExpired(ID identifier, {double? now, bool force = false}) {
+    return _docResponses.isExpired(identifier, now: now, force: force);
   }
 
 }

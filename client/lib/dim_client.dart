@@ -10,6 +10,8 @@ export 'src/dim_sqlite.dart';
 export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';
 
+export 'src/client/protocol/search.dart';
+
 export 'src/client/cpu/group/invite.dart';
 export 'src/client/cpu/group/expel.dart';
 export 'src/client/cpu/group/quit.dart';

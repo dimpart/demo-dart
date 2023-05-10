@@ -76,6 +76,7 @@ class CommonFacebook extends Facebook {
     return usr;
   }
   setCurrentUser(User? user) {
+    user?.dataSource ??= this;
     _current = user;
   }
 

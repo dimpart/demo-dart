@@ -69,9 +69,27 @@ class SocketAddress extends Pair<String, int> {
   int get port => second;
 
   @override
-  String toString() {
-    Type clazz = runtimeType;
-    return '<$clazz host="$host" port=$port />';
+  String toString() => '("$host", $port)';
+
+  static SocketAddress? parse(String address) {
+    String string = address;
+    string = string.replaceAll("'", '');
+    string = string.replaceAll('"', '');
+    string = string.replaceAll(' ', '');
+    string = string.replaceAll('/', '');
+    string = string.replaceAll('(', '');
+    string = string.replaceAll(')', '');
+    List<String> pair = string.split(',');
+    if (pair.length == 1) {
+      pair = string.split(':');
+    }
+    if (pair.length == 2) {
+      int? port = Converter.getInt(pair.last);
+      if (port != null && port > 0) {
+        return SocketAddress(pair.first, port);
+      }
+    }
+    return null;
   }
 
 }
