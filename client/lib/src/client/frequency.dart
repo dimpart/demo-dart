@@ -39,7 +39,7 @@ class FrequencyChecker <K> {
   final double _expires;
 
   bool isExpired(K key, {double? now, bool force = false}) {
-    now ??= Time.currentTimestamp;
+    now ??= Time.currentTimeSeconds;
     if (force) {
       // ignore last updated time, force to update now
     } else {

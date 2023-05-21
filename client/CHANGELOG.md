@@ -1,3 +1,7 @@
+## 0.1.0-dev.10
+
+- DIMP core 8 released.
+
 ## 0.1.0-dev.9
 
 - Search command.

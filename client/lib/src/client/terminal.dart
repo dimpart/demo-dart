@@ -233,12 +233,12 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   //
 
   @override
-  Future<void> enterState(SessionState next, SessionStateMachine ctx, int now) async {
+  Future<void> enterState(SessionState next, SessionStateMachine ctx, double now) async {
     // called before state changed
   }
 
   @override
-  Future<void> exitState(SessionState previous, SessionStateMachine ctx, int now) async {
+  Future<void> exitState(SessionState previous, SessionStateMachine ctx, double now) async {
     // called after state changed
     SessionState? current = ctx.currentState;
     if (current == null) {
@@ -269,12 +269,12 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   }
 
   @override
-  Future<void> pauseState(SessionState current, SessionStateMachine ctx, int now) async {
+  Future<void> pauseState(SessionState current, SessionStateMachine ctx, double now) async {
 
   }
 
   @override
-  Future<void> resumeState(SessionState current, SessionStateMachine ctx, int now) async {
+  Future<void> resumeState(SessionState current, SessionStateMachine ctx, double now) async {
     // TODO: clear session key for re-login?
   }
 

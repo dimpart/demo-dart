@@ -52,7 +52,7 @@ abstract class GateKeeper implements DockerDelegate {
       return false;
     }
     if (when <= 0) {
-      when = Time.currentTimestamp;
+      when = Time.currentTimeSeconds;
     } else if (when <= _lastActive) {
       return false;
     }

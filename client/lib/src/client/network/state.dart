@@ -133,29 +133,29 @@ abstract class SessionStateDelegate {
   ///
   /// @param next     - new state
   /// @param ctx      - context (machine)
-  /// @param now      - current time (milliseconds, from Jan 1, 1970 UTC)
-  Future<void> enterState(SessionState next, SessionStateMachine ctx, int now);
+  /// @param now      - current time (seconds, from Jan 1, 1970 UTC)
+  Future<void> enterState(SessionState next, SessionStateMachine ctx, double now);
 
   ///  Called after old state exited
   ///  (get current state from context)
   ///
   /// @param previous - old state
   /// @param ctx      - context (machine)
-  /// @param now      - current time (milliseconds, from Jan 1, 1970 UTC)
-  Future<void> exitState(SessionState previous, SessionStateMachine ctx, int now);
+  /// @param now      - current time (seconds, from Jan 1, 1970 UTC)
+  Future<void> exitState(SessionState previous, SessionStateMachine ctx, double now);
 
   ///  Called after current state paused
   ///
   /// @param current  - current state
   /// @param ctx      - context (machine)
-  /// @param now      - current time (milliseconds, from Jan 1, 1970 UTC)
-  Future<void> pauseState(SessionState current, SessionStateMachine ctx, int now);
+  /// @param now      - current time (seconds, from Jan 1, 1970 UTC)
+  Future<void> pauseState(SessionState current, SessionStateMachine ctx, double now);
 
   ///  Called before current state resumed
   ///
   /// @param current  - current state
   /// @param ctx      - context (machine)
-  /// @param now      - current time (milliseconds, from Jan 1, 1970 UTC)
-  Future<void> resumeState(SessionState current, SessionStateMachine ctx, int now);
+  /// @param now      - current time (seconds, from Jan 1, 1970 UTC)
+  Future<void> resumeState(SessionState current, SessionStateMachine ctx, double now);
 
 }
