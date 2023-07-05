@@ -57,14 +57,15 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
   @override
   ContentProcessor? createCommandProcessor(int msgType, String cmd) {
+    if (cmd == Command.kReceipt) {
+      return ReceiptCommandProcessor(facebook!, messenger!);
+    }
+
     if (cmd == HandshakeCommand.kHandshake) {
       return HandshakeCommandProcessor(facebook!, messenger!);
     }
     if (cmd == LoginCommand.kLogin) {
       return LoginCommandProcessor(facebook!, messenger!);
-    }
-    if (cmd == ReceiptCommand.kReceipt) {
-      return ReceiptCommandProcessor(facebook!, messenger!);
     }
     if (cmd == AnsCommand.kANS) {
       return AnsCommandProcessor(facebook!, messenger!);

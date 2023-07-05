@@ -39,7 +39,6 @@ import 'dbi/account.dart';
 import 'protocol/ans.dart';
 import 'protocol/handshake.dart';
 import 'protocol/login.dart';
-import 'protocol/receipt.dart';
 import 'protocol/report.dart';
 
 class Register {
@@ -171,10 +170,11 @@ void _registerFactories() {
   //
   registerAllFactories();
 
+  // Receipt Command
+  Command.setFactory(Command.kReceipt, CommandParser((dict) => BaseReceiptCommand(dict)));
+
   // Handshake
   Command.setFactory(HandshakeCommand.kHandshake, CommandParser((dict) => HandshakeCommand(dict)));
-  // Receipt
-  Command.setFactory(ReceiptCommand.kReceipt, CommandParser((dict) => ReceiptCommand(dict)));
   // Login
   Command.setFactory(LoginCommand.kLogin, CommandParser((dict) => LoginCommand(dict)));
   // Report

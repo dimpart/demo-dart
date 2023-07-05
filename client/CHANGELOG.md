@@ -1,3 +1,7 @@
+## 0.1.0-dev.11
+
+- Text receipt.
+
 ## 0.1.0-dev.10
 
 - DIMP core 8 released.

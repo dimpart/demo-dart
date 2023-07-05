@@ -131,19 +131,19 @@ class GroupManager implements GroupDataSource {
       members = await addMembers(newMembers, group);
       // 2.1. send 'meta/document' command
       await sendCommand(command, members: members);         // to all members
-      // 2.3. send 'invite' command with all members
+      // 2.2. send 'invite' command with all members
       command = GroupCommand.invite(group, members: members);
       await sendCommand(command, members: bots);            // to group assistants
       await sendCommand(command, members: members);         // to all members
     } else {
       // 2.1. send 'meta/document' command
-      //sendGroupCommand(command, members: members);  // to old members
+      // sendCommand(command, members: members);            // to old members
       await sendCommand(command, members: newMembers);      // to new members
       // 2.2. send 'invite' command with new members only
       command = GroupCommand.invite(group, members: newMembers);
       await sendCommand(command, members: bots);            // to group assistants
       await sendCommand(command, members: members);         // to old members
-      // 3. update local storage
+      // 2.3. update local storage
       members = await addMembers(newMembers, group);
       // 2.4. send 'invite' command with all members
       command = GroupCommand.invite(group, members: members);
@@ -422,6 +422,7 @@ class GroupManager implements GroupDataSource {
 
   Future<bool> addAssistant(ID bot, ID? group) async {
     if (group == null) {
+      assert(!_defaultAssistants.contains(bot), 'duplicated: $bot');
       _defaultAssistants.insert(0, bot);
       return true;
     }

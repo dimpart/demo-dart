@@ -108,7 +108,7 @@ abstract class StationDBI {
   /// @param chosen   - whether current station
   /// @param provider - sp ID
   /// @return false on failed
-  Future<bool> updateStation(String host, int port, {required ID provider, int chosen = 0});
+  Future<bool> updateStation(String host, int port, {required ID provider, int chosen});
 
   ///  Remove this station
   ///

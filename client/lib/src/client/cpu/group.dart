@@ -39,8 +39,13 @@ class HistoryCommandProcessor extends BaseCommandProcessor {
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is HistoryCommand, 'history command error: $content');
     HistoryCommand command = content as HistoryCommand;
-    String text = 'History command (name: ${command.cmd}) not support yet!';
-    return respondText(text, group: content.group);
+    String text = 'Command not support.';
+    return respondText(text, group: content.group, extra: {
+      'template': 'History command (name: \${command}) not support yet!',
+      'replacements': {
+        'command': command.cmd,
+      },
+    });
   }
 
 }
@@ -53,8 +58,13 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is GroupCommand, 'group command error: $content');
     GroupCommand command = content as GroupCommand;
-    String text = 'Group command (name: ${command.cmd}) not support yet!';
-    return respondText(text, group: content.group);
+    String text = 'Command not support.';
+    return respondText(text, group: content.group, extra: {
+      'template': 'Group command (name: \${command}) not support yet!',
+      'replacements': {
+        'command': command.cmd,
+      },
+    });
   }
 
   // protected

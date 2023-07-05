@@ -7,7 +7,6 @@ export 'package:dim_plugins/dim_plugins.dart';
 
 export 'common/protocol/handshake.dart';
 export 'common/protocol/login.dart';
-export 'common/protocol/receipt.dart';
 export 'common/protocol/report.dart';
 export 'common/protocol/ans.dart';
 
