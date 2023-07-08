@@ -77,16 +77,3 @@ class LoginCommandProcessor extends BaseCommandProcessor {
   }
 
 }
-
-
-class ReceiptCommandProcessor extends BaseCommandProcessor {
-  ReceiptCommandProcessor(super.facebook, super.messenger);
-
-  @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    assert(content is ReceiptCommand, 'receipt command error: $content');
-    // no need to response login command
-    return [];
-  }
-
-}

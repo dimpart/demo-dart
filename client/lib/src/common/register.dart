@@ -170,9 +170,6 @@ void _registerFactories() {
   //
   registerAllFactories();
 
-  // Receipt Command
-  Command.setFactory(Command.kReceipt, CommandParser((dict) => BaseReceiptCommand(dict)));
-
   // Handshake
   Command.setFactory(HandshakeCommand.kHandshake, CommandParser((dict) => HandshakeCommand(dict)));
   // Login

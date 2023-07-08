@@ -40,7 +40,7 @@ class HistoryCommandProcessor extends BaseCommandProcessor {
     assert(content is HistoryCommand, 'history command error: $content');
     HistoryCommand command = content as HistoryCommand;
     String text = 'Command not support.';
-    return respondText(text, group: content.group, extra: {
+    return respondReceipt(text, rMsg, group: content.group, extra: {
       'template': 'History command (name: \${command}) not support yet!',
       'replacements': {
         'command': command.cmd,
@@ -59,7 +59,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     assert(content is GroupCommand, 'group command error: $content');
     GroupCommand command = content as GroupCommand;
     String text = 'Command not support.';
-    return respondText(text, group: content.group, extra: {
+    return respondReceipt(text, rMsg, group: content.group, extra: {
       'template': 'Group command (name: \${command}) not support yet!',
       'replacements': {
         'command': command.cmd,
