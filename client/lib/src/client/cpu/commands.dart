@@ -43,9 +43,13 @@ class AnsCommandProcessor extends BaseCommandProcessor {
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is AnsCommand, 'ans command error: $content');
     AnsCommand command = content as AnsCommand;
-    Map<String, String> records = command.records;
-    int count = await ClientFacebook.ans!.fix(records);
-    Log.info('ANS: update $count record(s), $records');
+    Map<String, String>? records = command.records;
+    if (records == null) {
+      Log.info('ANS: querying ${content.names}');
+    } else {
+      int count = await ClientFacebook.ans!.fix(records);
+      Log.info('ANS: update $count record(s), $records');
+    }
     return [];
   }
 

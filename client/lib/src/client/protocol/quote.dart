@@ -30,59 +30,60 @@
  */
 import 'package:dimp/dimp.dart';
 
-
-///  ANS command: {
-///      type : 0x88,
+///  Quote content: {
+///      type : 0x37,
 ///      sn   : 123,
 ///
-///      command : "ans",
-///      names   : "...",        // query with alias(es, separated by ' ')
-///      records : {             // respond with record(s)
-///          "{alias}": "{ID}",
-///      }
+///      quote : {
+///          sender : "{ID}",  // quote sender
+///          content : {...},  // quote content
+///      },
+///      text  : "..."         // comment
 ///  }
-abstract class AnsCommand implements Command {
+abstract class QuoteContent implements Content {
 
-  static const String kANS = 'ans';
+  ID get quoteSender;
+  Content get quoteContent;
 
-  List<String> get names;
-
-  Map<String, String>? get records;
-  set records(Map? info);
+  String get text;
+  set text(String comment);
 
   //
-  //  Factories
+  //  Factory
   //
 
-  static AnsCommand query(String names) => BaseAnsCommand.from(names, null);
-
-  static AnsCommand response(String names, Map<String, String> records) =>
-      BaseAnsCommand.from(names, records);
+  static QuoteContent create(ID sender, Content content) =>
+      BaseQuoteContent.from(sender, content);
 
 }
 
-class BaseAnsCommand extends BaseCommand implements AnsCommand {
-  BaseAnsCommand(super.dict);
+class BaseQuoteContent extends BaseContent implements QuoteContent {
+  BaseQuoteContent(super.dict) : _content = null;
 
-  BaseAnsCommand.from(String names, Map<String, String>? records) :
-        super.fromName(AnsCommand.kANS) {
-    assert(names.isNotEmpty, 'query names should not empty');
-    this['names'] = names;
-    if (records != null) {
-      this['records'] = records;
-    }
+  BaseQuoteContent.from(ID sender, Content content)
+      : super.fromType(ContentType.kQuote) {
+    this['quote'] = {
+      'sender' : sender.toString(),
+      'content': content.toMap(),
+    };
+  }
+
+  Content? _content;
+
+  @override
+  Content get quoteContent {
+    _content ??= Content.parse(this['quote']['content']);
+    assert(_content != null, 'quote content not found: $this');
+    return _content!;
   }
 
   @override
-  List<String> get names {
-    String? string = getString('names');
-    return string == null ? [] : string.split(' ');
-  }
+  ID get quoteSender => ID.parse(this['quote']['sender'])!;
 
   @override
-  Map<String, String>? get records => this['records'];
+  String get text => getString('text')!;
 
   @override
-  set records(Map? info) => this['records'] = info;
+  set text(String comment) => this['text'] = comment;
 
 }

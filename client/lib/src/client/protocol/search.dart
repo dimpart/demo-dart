@@ -31,7 +31,7 @@
 import 'package:dimp/dimp.dart';
 
 
-///  Command message: {
+///  Search command: {
 ///      type : 0x88,
 ///      sn   : 123,
 ///
@@ -44,26 +44,66 @@ import 'package:dimp/dimp.dart';
 ///      station  : "{STATION_ID}",  // station ID
 ///      users    : ["{ID}"]         // user ID list
 ///  }
-class SearchCommand extends BaseCommand {
-  SearchCommand(super.dict);
-
-  SearchCommand.fromKeywords(String keywords)
-      : super.fromName(keywords == kOnlineUsers ? kOnlineUsers : kSearch) {
-    if (keywords != kOnlineUsers) {
-      this['keywords'] = keywords;
-    }
-  }
+abstract class SearchCommand implements Command {
 
   static const String kSearch = 'search';
   static const String kOnlineUsers = 'users';
 
+  String? get keywords;
+  set keywords(String? words);
+  void setKeywords(List<String> keywords);
+
+  int get start;
+  set start(int value);
+
+  int get limit;
+  set limit(int value);
+
+  ID? get station;
+  set station(ID? sid);
+
+  ///  Get user ID list
+  ///
+  /// @return ID string list
+  List<ID> get users;
+
+  //
+  //  Factory
+  //
+
+  static SearchCommand fromKeywords(String keywords) {
+    assert(keywords.isNotEmpty, 'keywords should not be empty');
+    String cmd;
+    if (keywords == SearchCommand.kOnlineUsers) {
+      cmd = SearchCommand.kOnlineUsers;
+      keywords = '';
+    } else {
+      cmd = SearchCommand.kSearch;
+    }
+    return BaseSearchCommand.from(cmd, keywords);
+  }
+
+}
+
+class BaseSearchCommand extends BaseCommand implements SearchCommand {
+  BaseSearchCommand(super.dict);
+
+  BaseSearchCommand.from(String name, String keywords) : super.fromName(name) {
+    if (keywords.isNotEmpty) {
+      this['keywords'] = keywords;
+    }
+  }
+
+  @override
   String? get keywords {
     String? words = getString('keywords');
-    if (words == null && cmd == kOnlineUsers) {
-      words = kOnlineUsers;
+    if (words == null && cmd == SearchCommand.kOnlineUsers) {
+      words = SearchCommand.kOnlineUsers;
     }
     return words;
   }
+
+  @override
   set keywords(String? words) {
     if (words == null) {
       remove('keywords');
@@ -71,6 +111,8 @@ class SearchCommand extends BaseCommand {
       this['keywords'] = keywords;
     }
   }
+
+  @override
   void setKeywords(List<String> keywords) {
     if (keywords.isEmpty) {
       remove('keywords');
@@ -79,13 +121,22 @@ class SearchCommand extends BaseCommand {
     }
   }
 
+  @override
   int get start => getInt('start') ?? 0;
+
+  @override
   set start(int value) => this['start'] = value;
 
+  @override
   int get limit => this['limit'] ?? 20;
+
+  @override
   set limit(int value) => this['limit'] = value;
 
+  @override
   ID? get station => ID.parse(this['station']);
+
+  @override
   set station(ID? sid) {
     if (sid == null) {
       remove('station');
@@ -94,9 +145,7 @@ class SearchCommand extends BaseCommand {
     }
   }
 
-  ///  Get user ID list
-  ///
-  /// @return ID string list
+  @override
   List<ID> get users {
     var array = this['users'];
     return array == null ? [] : ID.convert(array);

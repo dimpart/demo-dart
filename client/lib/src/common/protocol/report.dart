@@ -31,7 +31,7 @@
 import 'package:dimp/dimp.dart';
 
 
-///  Command message: {
+///  Report command: {
 ///      type : 0x88,
 ///      sn   : 123,
 ///
@@ -40,18 +40,34 @@ import 'package:dimp/dimp.dart';
 ///      //---- extra info
 ///      time    : 1234567890,    // timestamp
 ///  }
-class ReportCommand extends BaseCommand {
-  ReportCommand(super.dict);
+abstract class ReportCommand implements Command {
 
   static const String kReport  = 'report';
   static const String kOnline  = 'online';
   static const String kOffline = 'offline';
 
-  ReportCommand.fromTitle(String text) : super.fromName(kReport) {
+  String? get title;
+  set title(String? text);
+
+  //
+  //  Factory
+  //
+
+  static ReportCommand fromTitle(String text) => BaseReportCommand.fromTitle(text);
+
+}
+
+class BaseReportCommand extends BaseCommand implements ReportCommand {
+  BaseReportCommand(super.dict);
+
+  BaseReportCommand.fromTitle(String text) : super.fromName(ReportCommand.kReport) {
     title = text;
   }
 
+  @override
   String? get title => getString('title');
+
+  @override
   set title(String? text) => this['title'] = text;
 
 }

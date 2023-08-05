@@ -54,7 +54,7 @@ class HandshakeState {
 }
 
 
-///  Handshake command message: {
+///  Handshake command: {
 ///      type : 0x88,
 ///      sn   : 123,
 ///
@@ -62,13 +62,38 @@ class HandshakeState {
 ///      title   : "Hello world!", // "DIM?", "DIM!"
 ///      session : "{SESSION_KEY}" // session key
 ///  }
-class HandshakeCommand extends BaseCommand {
-  HandshakeCommand(super.dict);
+abstract class HandshakeCommand implements Command {
 
   static const String kHandshake = 'handshake';
 
-  HandshakeCommand.from(String title, {String? sessionKey})
-      : super.fromName(kHandshake) {
+  String get title;
+  String? get sessionKey;
+
+  int get state;
+
+  //
+  //  Factories
+  //
+
+  static HandshakeCommand start() =>
+      BaseHandshakeCommand.from('Hello world!');
+
+  static HandshakeCommand restart(String session) =>
+      BaseHandshakeCommand.from('Hello world!', sessionKey: session);
+
+  static HandshakeCommand again(String session) =>
+      BaseHandshakeCommand.from('DIM?', sessionKey: session);
+
+  static HandshakeCommand success(String? session) =>
+      BaseHandshakeCommand.from('DIM!', sessionKey: session);
+
+}
+
+class BaseHandshakeCommand extends BaseCommand implements HandshakeCommand {
+  BaseHandshakeCommand(super.dict);
+
+  BaseHandshakeCommand.from(String title, {String? sessionKey})
+      : super.fromName(HandshakeCommand.kHandshake) {
     // text message
     this['title'] = title;
     // session key
@@ -77,25 +102,13 @@ class HandshakeCommand extends BaseCommand {
     }
   }
 
+  @override
   String get title => getString('title')!;
+
+  @override
   String? get sessionKey => getString('session');
 
+  @override
   int get state => HandshakeState.checkState(title, sessionKey);
-
-  //
-  //  Factories
-  //
-
-  HandshakeCommand.start()
-      : this.from('Hello world!');
-
-  HandshakeCommand.restart(String session)
-      : this.from('Hello world!', sessionKey: session);
-
-  HandshakeCommand.again(String session)
-      : this.from('DIM?', sessionKey: session);
-
-  HandshakeCommand.success(String? session)
-      : this.from('DIM!', sessionKey: session);
 
 }

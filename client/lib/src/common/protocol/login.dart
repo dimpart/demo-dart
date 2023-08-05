@@ -32,7 +32,7 @@ import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 
 
-///  Command message: {
+///  Login command: {
 ///      type : 0x88,
 ///      sn   : 123,
 ///
@@ -52,36 +52,70 @@ import 'package:dimsdk/dimsdk.dart';
 ///          ID   : "{SP_ID}"
 ///      }
 ///  }
-class LoginCommand extends BaseCommand {
-  LoginCommand(super.dict);
+abstract class LoginCommand implements Command {
 
   static const String kLogin = 'login';
-
-  LoginCommand.fromID(ID identifier) : super.fromName(kLogin) {
-    setString('ID', identifier);
-  }
 
   //
   //  Client Info
   //
 
   /// user ID
-  ID get identifier => ID.parse(this['ID'])!;
+  ID get identifier;
 
   /// device ID
-  String? get device => getString('device');
-  set device(String? v) => v == null ? remove('device') : this['device'] = v;
+  String? get device;
+  set device(String? v);
 
   /// user-agent
-  String? get agent => getString('agent');
-  set agent(String? ua) => ua == null ? remove('agent') : this['agent'] = ua;
+  String? get agent;
+  set agent(String? ua);
 
   //
   //  Server Info
   //
 
   /// station info
+  Map? get station;
+  set station(dynamic info);
+
+  /// service provider
+  Map? get provider;
+  set provider(dynamic info);
+
+  //
+  //  Factory
+  //
+
+  static LoginCommand fromID(ID identifier) => BaseLoginCommand.fromID(identifier);
+}
+
+class BaseLoginCommand extends BaseCommand implements LoginCommand{
+  BaseLoginCommand(super.dict);
+
+  BaseLoginCommand.fromID(ID identifier) : super.fromName(LoginCommand.kLogin) {
+    setString('ID', identifier);
+  }
+
+  @override
+  ID get identifier => ID.parse(this['ID'])!;
+
+  @override
+  String? get device => getString('device');
+
+  @override
+  set device(String? v) => v == null ? remove('device') : this['device'] = v;
+
+  @override
+  String? get agent => getString('agent');
+
+  @override
+  set agent(String? ua) => ua == null ? remove('agent') : this['agent'] = ua;
+
+  @override
   Map? get station => this['station'];
+
+  @override
   set station(dynamic info) {
     if (info is Station) {
       ID sid = info.identifier;
@@ -100,8 +134,10 @@ class LoginCommand extends BaseCommand {
     }
   }
 
-  /// service provider
+  @override
   Map? get provider => this['provider'];
+
+  @override
   set provider(dynamic info) {
     if (info is ServiceProvider) {
       this['provider'] = {'ID': info.identifier.toString()};

@@ -30,59 +30,61 @@
  */
 import 'package:dimp/dimp.dart';
 
-
-///  ANS command: {
-///      type : 0x88,
+///  Name Card content: {
+///      type : 0x33,
 ///      sn   : 123,
 ///
-///      command : "ans",
-///      names   : "...",        // query with alias(es, separated by ' ')
-///      records : {             // respond with record(s)
-///          "{alias}": "{ID}",
-///      }
+///      ID     : "{ID}",        // contact's ID
+///      name   : "{nickname}}", // contact's name
+///      avatar : "{URL}",       // avatar url
+///      meta   : {...}          // contact's meta (OPTIONAL)
 ///  }
-abstract class AnsCommand implements Command {
+abstract class NameCard implements Content {
 
-  static const String kANS = 'ans';
+  ID get identifier;
 
-  List<String> get names;
+  String get name;
 
-  Map<String, String>? get records;
-  set records(Map? info);
+  String? get avatar;
+
+  Meta? get meta;
 
   //
-  //  Factories
+  //  Factory
   //
 
-  static AnsCommand query(String names) => BaseAnsCommand.from(names, null);
-
-  static AnsCommand response(String names, Map<String, String> records) =>
-      BaseAnsCommand.from(names, records);
+  static NameCard create(ID identifier, {Meta? meta, String? name, String? avatar}) =>
+      NameCardContent.from(identifier, meta: meta, name: name, avatar: avatar);
 
 }
 
-class BaseAnsCommand extends BaseCommand implements AnsCommand {
-  BaseAnsCommand(super.dict);
+class NameCardContent extends BaseContent implements NameCard {
+  NameCardContent(super.dict);
 
-  BaseAnsCommand.from(String names, Map<String, String>? records) :
-        super.fromName(AnsCommand.kANS) {
-    assert(names.isNotEmpty, 'query names should not empty');
-    this['names'] = names;
-    if (records != null) {
-      this['records'] = records;
+  NameCardContent.from(ID identifier, {Meta? meta, String? name, String? avatar})
+      : super.fromType(ContentType.kNameCard) {
+    this['ID'] = identifier.toString();
+    if (meta != null) {
+      this['meta'] = meta.toMap();
+    }
+    if (name != null) {
+      this['name'] = name;
+    }
+    if (avatar != null) {
+      this['avatar'] = avatar;
     }
   }
 
   @override
-  List<String> get names {
-    String? string = getString('names');
-    return string == null ? [] : string.split(' ');
-  }
+  ID get identifier => ID.parse(this['ID'])!;
 
   @override
-  Map<String, String>? get records => this['records'];
+  Meta? get meta => Meta.parse(this['meta']);
 
   @override
-  set records(Map? info) => this['records'] = info;
+  String get name => getString('name') ?? '';
+
+  @override
+  String? get avatar => getString('avatar');
 
 }

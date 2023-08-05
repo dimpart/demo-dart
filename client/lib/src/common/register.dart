@@ -171,13 +171,17 @@ void _registerFactories() {
   registerAllFactories();
 
   // Handshake
-  Command.setFactory(HandshakeCommand.kHandshake, CommandParser((dict) => HandshakeCommand(dict)));
+  Command.setFactory(HandshakeCommand.kHandshake,
+      CommandParser((dict) => BaseHandshakeCommand(dict)));
   // Login
-  Command.setFactory(LoginCommand.kLogin, CommandParser((dict) => LoginCommand(dict)));
+  Command.setFactory(LoginCommand.kLogin,
+      CommandParser((dict) => BaseLoginCommand(dict)));
   // Report
-  Command.setFactory(ReportCommand.kReport, CommandParser((dict) => ReportCommand(dict)));
+  Command.setFactory(ReportCommand.kReport,
+      CommandParser((dict) => BaseReportCommand(dict)));
   // Mute
   // Block
   // ANS
-  Command.setFactory(AnsCommand.kANS, CommandParser((dict) => AnsCommand(dict)));
+  Command.setFactory(AnsCommand.kANS,
+      CommandParser((dict) => BaseAnsCommand(dict)));
 }
