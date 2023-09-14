@@ -114,12 +114,12 @@ abstract class PrivateKeyDBI {
     return privateKeys;
   }
   static int findKey(PrivateKey key, List<PrivateKey> privateKeys) {
-    String? data = key.getString("data");
+    String? data = key.getString("data", null);
     assert(data != null && data.isNotEmpty, 'key data error: $key');
     PrivateKey item;
     for (int index = 0; index < privateKeys.length; ++index) {
       item = privateKeys.elementAt(index);
-      if (item.getString('data') == data) {
+      if (item.getString('data', null) == data) {
         return index;
       }
     }

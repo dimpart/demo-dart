@@ -133,7 +133,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       }
       return [];
     }
-    Group? grp = facebook.getGroup(group);
+    Group? grp = await facebook.getGroup(group);
     List<ID>? members = await grp?.members;
     if (members == null || members.isEmpty) {
       // group not ready, try to query members for it

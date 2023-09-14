@@ -50,8 +50,8 @@ class ClientFacebook extends CommonFacebook {
   }
 
   @override
-  Group? createGroup(ID identifier) {
-    Group? grp = super.createGroup(identifier);
+  Future<Group?> createGroup(ID identifier) async {
+    Group? grp = await super.createGroup(identifier);
     if (grp != null) {
       EntityDataSource? delegate = grp.dataSource;
       if (delegate == null || delegate == this) {

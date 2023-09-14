@@ -310,7 +310,7 @@ class GroupManager implements GroupDataSource {
     assert(gMeta != null, 'failed to get meta for group: $group');
     Meta? mMeta = await getMeta(member);
     assert(mMeta != null, 'failed to get meta for member: $member');
-    return Meta.matchKey(mMeta!.key, gMeta!);
+    return gMeta!.matchPublicKey(mMeta!.publicKey);
   }
 
   Future<bool> isOwner(ID member, ID group) async {

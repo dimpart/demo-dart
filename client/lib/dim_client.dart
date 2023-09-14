@@ -10,6 +10,7 @@ export 'src/dim_sqlite.dart';
 export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';
 
+export 'src/client/protocol/quote.dart';
 export 'src/client/protocol/search.dart';
 
 export 'src/client/cpu/group/invite.dart';
@@ -22,6 +23,7 @@ export 'src/client/cpu/handshake.dart';
 export 'src/client/cpu/commands.dart';
 export 'src/client/cpu/creator.dart';
 
+export 'src/client/frequency.dart';
 export 'src/client/anonymous.dart';
 export 'src/client/facebook.dart';
 export 'src/client/group.dart';

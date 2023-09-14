@@ -88,7 +88,7 @@ class ClientMessageProcessor extends MessageProcessor {
   }
 
   @override
-  ContentProcessorCreator createCreator() {
+  ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger) {
     return ClientContentProcessorCreator(facebook, messenger);
   }
 

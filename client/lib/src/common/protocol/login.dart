@@ -101,13 +101,13 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
   ID get identifier => ID.parse(this['ID'])!;
 
   @override
-  String? get device => getString('device');
+  String? get device => getString('device', null);
 
   @override
   set device(String? v) => v == null ? remove('device') : this['device'] = v;
 
   @override
-  String? get agent => getString('agent');
+  String? get agent => getString('agent', null);
 
   @override
   set agent(String? ua) => ua == null ? remove('agent') : this['agent'] = ua;

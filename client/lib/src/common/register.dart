@@ -61,7 +61,7 @@ class Register {
     //
     //  Step 2: generate meta with private key (and meta seed)
     //
-    Meta meta = Meta.generate(MetaType.kETH, idKey)!;
+    Meta meta = Meta.generate(MetaType.kETH, idKey);
     //
     //  Step 3: generate ID with meta
     //
@@ -102,7 +102,7 @@ class Register {
     //
     //  Step 2: generate meta with private key (and meta seed)
     //
-    Meta meta = Meta.generate(MetaType.kMKM, privateKey, seed: seed)!;
+    Meta meta = Meta.generate(MetaType.kMKM, privateKey, seed: seed);
     //
     //  Step 3: generate ID with meta
     //
@@ -129,10 +129,10 @@ class Register {
   static Visa _visa(ID identifier, EncryptKey visaKey, SignKey idKey,
       {required String name, String? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
-    Visa visa = BaseVisa.fromID(identifier);
+    Visa visa = BaseVisa.from(identifier);
     visa.name = name;
-    visa.avatar = avatar;
-    visa.key = visaKey;
+    visa.avatar = PortableNetworkFile.parse(avatar);
+    visa.publicKey = visaKey;
     Uint8List? sig = visa.sign(idKey);
     assert(sig != null, 'failed to sign visa: $identifier');
     return visa;
@@ -141,7 +141,7 @@ class Register {
   static Bulletin _bulletin(ID identifier, SignKey privateKey,
       {required String name}) {
     assert(identifier.isGroup, 'group ID error: $identifier');
-    Bulletin doc = BaseBulletin.fromID(identifier);
+    Bulletin doc = BaseBulletin.from(identifier);
     doc.name = name;
     Uint8List? sig = doc.sign(privateKey);
     assert(sig != null, 'failed to sign bulletin: $identifier');

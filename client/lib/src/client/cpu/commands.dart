@@ -40,7 +40,7 @@ class AnsCommandProcessor extends BaseCommandProcessor {
   AnsCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is AnsCommand, 'ans command error: $content');
     AnsCommand command = content as AnsCommand;
     Map<String, String>? records = command.records;
@@ -63,7 +63,7 @@ class LoginCommandProcessor extends BaseCommandProcessor {
   ClientMessenger get messenger => super.messenger as ClientMessenger;
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is LoginCommand, 'login command error: $content');
     LoginCommand command = content as LoginCommand;
     ID sender = command.identifier;

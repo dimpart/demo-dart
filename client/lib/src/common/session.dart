@@ -84,7 +84,7 @@ class SocketAddress extends Pair<String, int> {
       pair = string.split(':');
     }
     if (pair.length == 2) {
-      int? port = Converter.getInt(pair.last);
+      int? port = Converter.getInt(pair.last, null);
       if (port != null && port > 0) {
         return SocketAddress(pair.first, port);
       }

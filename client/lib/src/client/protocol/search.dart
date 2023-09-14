@@ -39,7 +39,7 @@ import 'package:dimp/dimp.dart';
 ///      keywords : "{keywords}",    // keyword string
 ///
 ///      start    : 0,
-///      limit    : 20,
+///      limit    : 50,
 ///
 ///      station  : "{STATION_ID}",  // station ID
 ///      users    : ["{ID}"]         // user ID list
@@ -96,7 +96,7 @@ class BaseSearchCommand extends BaseCommand implements SearchCommand {
 
   @override
   String? get keywords {
-    String? words = getString('keywords');
+    String? words = getString('keywords', null);
     if (words == null && cmd == SearchCommand.kOnlineUsers) {
       words = SearchCommand.kOnlineUsers;
     }
@@ -122,13 +122,13 @@ class BaseSearchCommand extends BaseCommand implements SearchCommand {
   }
 
   @override
-  int get start => getInt('start') ?? 0;
+  int get start => getInt('start', 0)!;
 
   @override
   set start(int value) => this['start'] = value;
 
   @override
-  int get limit => this['limit'] ?? 20;
+  int get limit => this['limit'] ?? 0;
 
   @override
   set limit(int value) => this['limit'] = value;

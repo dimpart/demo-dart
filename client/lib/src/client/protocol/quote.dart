@@ -81,7 +81,7 @@ class BaseQuoteContent extends BaseContent implements QuoteContent {
   ID get quoteSender => ID.parse(this['quote']['sender'])!;
 
   @override
-  String get text => getString('text')!;
+  String get text => getString('text', '')!;
 
   @override
   set text(String comment) => this['text'] = comment;

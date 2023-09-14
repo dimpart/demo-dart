@@ -103,10 +103,10 @@ class BaseHandshakeCommand extends BaseCommand implements HandshakeCommand {
   }
 
   @override
-  String get title => getString('title')!;
+  String get title => getString('title', '')!;
 
   @override
-  String? get sessionKey => getString('session');
+  String? get sessionKey => getString('session', null);
 
   @override
   int get state => HandshakeState.checkState(title, sessionKey);

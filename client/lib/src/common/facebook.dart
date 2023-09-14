@@ -55,7 +55,7 @@ class CommonFacebook extends Facebook {
     } else {
       for (ID item in array) {
         assert(await getPrivateKeyForSignature(item) != null, 'error: $item');
-        usr = getUser(item);
+        usr = await getUser(item);
         assert(usr != null, 'failed to create user: $item');
         users.add(usr!);
       }
@@ -88,28 +88,6 @@ class CommonFacebook extends Facebook {
   Future<bool> saveDocument(Document doc) async =>
       await database.saveDocument(doc);
 
-  // @override
-  // User? createUser(ID identifier) {
-  //   if (!identifier.isBroadcast) {
-  //     if (getPublicKeyForEncryption(identifier) == null) {
-  //       // visa.key not found
-  //       return null;
-  //     }
-  //   }
-  //   return super.createUser(identifier);
-  // }
-  //
-  // @override
-  // Group? createGroup(ID identifier) {
-  //   if (!identifier.isBroadcast) {
-  //     if (getMeta(identifier) == null) {
-  //       // group meta not found
-  //       return null;
-  //     }
-  //   }
-  //   return super.createGroup(identifier);
-  // }
-
   //
   //  EntityDataSource
   //
@@ -121,6 +99,10 @@ class CommonFacebook extends Facebook {
   @override
   Future<Document?> getDocument(ID identifier, String? docType) async =>
       await database.getDocument(identifier, docType);
+
+  //
+  //  UserDataSource
+  //
 
   @override
   Future<List<ID>> getContacts(ID user) async =>

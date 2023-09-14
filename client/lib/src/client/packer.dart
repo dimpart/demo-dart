@@ -84,8 +84,6 @@ class ClientMessagePacker extends MessagePacker {
 }
 
 Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
-  // check message delegate
-  rMsg.delegate ??= messenger;
   // check msg.key
   if (rMsg.containsKey("key")) {
     // getEncryptedKey() != null
@@ -115,7 +113,7 @@ Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
     return;
   }
   keys['digest'] = digest;
-  keys['keys'] = keys;
+  rMsg['keys'] = keys;
 }
 
 String? _keyDigest(SymmetricKey? key) {

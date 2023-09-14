@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Default value for getters.
+
 ## 0.1.0
 
 - Version 0.1.0 released.
