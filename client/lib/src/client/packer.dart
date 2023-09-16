@@ -206,15 +206,11 @@ Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
     return;
   }
   // get key with direction
-  SymmetricKey? key;
   ID sender = rMsg.sender;
+  ID receiver = rMsg.receiver;
   ID? group = rMsg.group;
-  if (group == null) {
-    ID receiver = rMsg.receiver;
-    key = await messenger.getCipherKey(sender: sender, receiver: receiver, generate: false);
-  } else {
-    key = await messenger.getCipherKey(sender: sender, receiver: group, generate: false);
-  }
+  ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: group);
+  SymmetricKey? key = await messenger.getCipherKey(sender: sender, receiver: target, generate: false);
   String? digest = _keyDigest(key);
   if (digest == null) {
     // broadcast message has no key
