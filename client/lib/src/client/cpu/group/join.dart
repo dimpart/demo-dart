@@ -32,18 +32,24 @@ import 'package:dimp/dimp.dart';
 
 import '../group.dart';
 
-///  Query Group Command Processor
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///  Join Group Command Processor
+///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ///
-///      1. query for group members-list
-///      2. any existed member or assistant can query group members-list
-class QueryCommandProcessor extends GroupCommandProcessor {
-  QueryCommandProcessor(super.facebook, super.messenger);
+///      1. stranger can join a group
+///      2. only group owner or administrator can review this command
+class JoinCommandProcessor extends GroupCommandProcessor {
+  JoinCommandProcessor(super.facebook, super.messenger);
 
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
-    assert(content is QueryCommand, 'query command error: $content');
+    assert(content is JoinCommand, 'join command error: $content');
     GroupCommand command = content as GroupCommand;
+
+    // 0. check command
+    if (await isCommandExpired(command)) {
+      // ignore expired command
+      return [];
+    }
     ID group = command.group!;
 
     // 1. check group
@@ -61,20 +67,17 @@ class QueryCommandProcessor extends GroupCommandProcessor {
 
     // 2. check membership
     ID sender = rMsg.sender;
-    List<ID> bots = await getAssistants(group);
-    bool canQuery = members.contains(sender) || bots.contains(sender);
-    if (!canQuery) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
-        'template': 'Not allowed to query members of group: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+    if (members.contains(sender)) {
+      // maybe the sender is already a member,
+      // but if it can still receive a 'join' command here,
+      // we should respond the sender with the newest membership again.
+      bool ok = await sendResetCommand(group: group, members: members, receiver: sender);
+      assert(ok, 'failed to send "reset" command for group: $group => $sender');
+    } else {
+      // add 'join' application for waiting review
+      bool ok = await addApplication(command, rMsg);
+      assert(ok, 'failed to add "join" application for group: $group');
     }
-
-    // 3. send the reset command with newest members
-    bool ok = await sendResetCommand(group: group, members: members, receiver: sender);
-    assert(ok, 'failed to send "reset" command for group: $group => $sender');
 
     // no need to response this group command
     return [];

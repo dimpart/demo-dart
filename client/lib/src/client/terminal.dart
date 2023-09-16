@@ -97,29 +97,26 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   ClientSession? get session => _messenger?.session;
 
   Future<ClientMessenger> connect(String host, int port) async {
-    // 0.
+    // check old session
     ClientMessenger? old = _messenger;
     if (old != null) {
       ClientSession session = old.session;
-      // TODO: check session active?
-      Station station = session.station;
-      Log.debug('current station: $station');
-      if (station.host == host && station.port == port) {
-        // same target
-        return old;
+      if (session.isActive) {
+        // current session is active
+        Station station = session.station;
+        Log.debug('current station: $station');
+        if (station.host == host && station.port == port) {
+          // same target
+          return old;
+        }
       }
       session.stop();
       _messenger = null;
     }
-    // create session with remote station
+    Log.info('connecting to $host:$port ...');
+    // create new messenger with session
     Station station = createStation(host, port);
-    Log.debug('connect to new station: $station');
-    ClientSession session = createSession(station, SocketAddress(host, port));
-    User? user = await facebook.currentUser;
-    if (user != null) {
-      // set current user for handshaking
-      session.setIdentifier(user.identifier);
-    }
+    ClientSession session = createSession(station);
     // create new messenger with session
     ClientMessenger transceiver = createMessenger(session, facebook);
     _messenger = transceiver;
@@ -140,10 +137,10 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   }
 
   // protected
-  ClientSession createSession(Station station, SocketAddress remote);
-  // ClientSession createSession(Station station, SocketAddress remote) {
-  //   ClientSession session = ClientSession(station, remote, sdb);
-  //   session.start();
+  ClientSession createSession(Station station);
+  // ClientSession createSession(Station station) {
+  //   ClientSession session = ClientSession(station, sdb);
+  //   session.start(this);
   //   return session;
   // }
 
@@ -244,7 +241,8 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     if (current == null) {
       return;
     }
-    if (current.index == SessionStateOrder.kDefault) {
+    if (current.index == SessionStateOrder.kDefault ||
+        current.index == SessionStateOrder.kConnecting) {
       // check current user
       ID? user = ctx.sessionID;
       if (user == null) {

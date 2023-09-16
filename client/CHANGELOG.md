@@ -1,3 +1,7 @@
+## 0.2.1
+
+- GPU - Group command processors.
+
 ## 0.2.0
 
 - Default value for getters.

@@ -30,20 +30,21 @@
  */
 import 'dart:typed_data';
 
-import '../dim_common.dart';
+import 'package:lnc/lnc.dart';
 
-class ClientMessagePacker extends MessagePacker {
+import '../dim_common.dart';
+import 'facebook.dart';
+import 'frequency.dart';
+
+class ClientMessagePacker extends CommonPacker {
   ClientMessagePacker(super.facebook, super.messenger);
 
   @override
-  CommonMessenger get messenger => super.messenger as CommonMessenger;
-
-  @override
-  CommonFacebook get facebook => super.facebook as CommonFacebook;
+  ClientFacebook? get facebook => super.facebook as ClientFacebook?;
 
   @override
   Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
-    await attachKeyDigest(rMsg, messenger);
+    await attachKeyDigest(rMsg, messenger!);
     return await super.serializeMessage(rMsg);
   }
 
@@ -81,11 +82,118 @@ class ClientMessagePacker extends MessagePacker {
   }
    */
 
+  @override
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
+    InstantMessage? iMsg = await super.decryptMessage(sMsg);
+    if (iMsg == null) {
+      // failed to decrypt message, visa.key changed?
+      // 1. push new visa document to this message sender
+      pushVisa(sMsg.sender);
+      // 2. build 'failed' message
+      iMsg = await getFailedMessage(sMsg);
+    }
+    return iMsg;
+  }
+
+  // protected
+  Future<bool> pushVisa(ID contact) async {
+    QueryFrequencyChecker checker = QueryFrequencyChecker();
+    if (!checker.isDocumentResponseExpired(contact, force: false)) {
+      // response not expired yet
+      Log.debug('visa response not expired yet: $contact');
+      return false;
+    }
+    Log.info('push visa to: $contact');
+    User? user = await facebook?.currentUser;
+    Visa? visa = await user?.visa;
+    if (visa == null || !visa.isValid) {
+      // FIXME: user visa not found?
+      assert(false, 'user visa error: $user');
+      return false;
+    }
+    ID me = user!.identifier;
+    DocumentCommand command = DocumentCommand.response(me, null, visa);
+    messenger?.sendContent(command, sender: me, receiver: contact, priority: 1);
+    return true;
+  }
+
+  // protected
+  Future<InstantMessage?> getFailedMessage(SecureMessage sMsg) async {
+    ID sender = sMsg.sender;
+    ID? group = sMsg.group;
+    String? name = await facebook?.getName(sender);
+    // create text content
+    Content content = TextContent.create('Failed to decrypt message from: $name');
+    content.group = group;
+    // pack instant message
+    Map info = sMsg.copyMap(false);
+    info.remove('data');
+    info['content'] = content.toMap();
+    return InstantMessage.parse(info);
+  }
+
+  @override
+  Future<bool> checkReceiverInInstantMessage(InstantMessage iMsg) async {
+    ID receiver = iMsg.receiver;
+    if (receiver.isBroadcast) {
+      // broadcast message
+      return true;
+    } else if (receiver.isUser) {
+      // check user's meta & document
+      return await super.checkReceiverInInstantMessage(iMsg);
+    }
+    //
+    //  check group's meta & members
+    //
+    List<ID> members = await getMembers(receiver);
+    if (members.isEmpty) {
+      // group not ready, suspend message for waiting meta/members
+      Map<String, String> error = {
+        'message': 'group not found',
+        'group': receiver.toString(),
+      };
+      suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
+      return false;
+    }
+    //
+    //  check group members' visa key
+    //
+    List<ID> waiting = [];
+    for (ID item in members) {
+      if (await getVisaKey(item) == null) {
+        // member not ready
+        waiting.add(item);
+      }
+    }
+    if (waiting.isEmpty) {
+      // all members' visa keys exist
+      return true;
+    }
+    // members not ready, suspend message for waiting document
+    Map<String, Object> error = {
+      'message': 'members not ready',
+      'group': receiver.toString(),
+      'members': ID.revert(waiting),
+    };
+    suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
+    return false;
+  }
+
+  @override
+  void suspendInstantMessage(InstantMessage iMsg, Map info) {
+    // TODO:
+  }
+
+  @override
+  void suspendReliableMessage(ReliableMessage rMsg, Map info) {
+    // TODO:
+  }
+
 }
 
 Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
   // check msg.key
-  if (rMsg.containsKey("key")) {
+  if (rMsg['key'] != null) {
     // getEncryptedKey() != null
     return;
   }
@@ -93,7 +201,7 @@ Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
   Map? keys = await rMsg.encryptedKeys;
   if (keys == null) {
     keys = {};
-  } else if (keys.containsKey("digest")) {
+  } else if (keys['digest'] != null) {
     // key digest already exists
     return;
   }
@@ -103,9 +211,9 @@ Future<void> attachKeyDigest(ReliableMessage rMsg, Messenger messenger) async {
   ID? group = rMsg.group;
   if (group == null) {
     ID receiver = rMsg.receiver;
-    key = await messenger.getCipherKey(sender, receiver, generate: false);
+    key = await messenger.getCipherKey(sender: sender, receiver: receiver, generate: false);
   } else {
-    key = await messenger.getCipherKey(sender, group, generate: false);
+    key = await messenger.getCipherKey(sender: sender, receiver: group, generate: false);
   }
   String? digest = _keyDigest(key);
   if (digest == null) {

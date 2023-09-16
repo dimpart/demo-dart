@@ -28,23 +28,23 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:typed_data';
+
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
-import 'package:object_key/object_key.dart';
 
 import '../group.dart';
 
-///  Quit Group Command Processor
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///  Resign Group Admin Command Processor
+///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ///
-///      1. remove the sender from members of the group
-///      2. owner and administrator cannot quit
-class QuitCommandProcessor extends GroupCommandProcessor {
-  QuitCommandProcessor(super.facebook, super.messenger);
+///      1. remove the sender from administrators of the group
+///      2. administrator can be hired/fired by owner only
+class ResignCommandProcessor extends GroupCommandProcessor {
+  ResignCommandProcessor(super.facebook, super.messenger);
 
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
-    assert(content is QuitCommand, 'quit command error: $content');
+    assert(content is ResignCommand, 'resign command error: $content');
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
@@ -67,54 +67,46 @@ class QuitCommandProcessor extends GroupCommandProcessor {
       });
     }
 
-    // 2. check membership
+    // 2. check permission
     ID sender = rMsg.sender;
     if (owner == sender) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
-        'template': 'Owner cannot quit from group: \${ID}',
+        'template': 'Owner cannot resign from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
         }
       });
     }
     List<ID> admins = await getAdministrators(group);
-    if (admins.contains(sender)) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
-        'template': 'Administrator cannot quit from group: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+
+    // 3. do resign
+    admins = [...admins];
+    bool isAdmin = admins.contains(sender);
+    if (isAdmin) {
+      // admin do exist, remove it and update database
+      admins.remove(sender);
+      bool ok = await saveAdministrators(admins, group);
+      assert(ok, 'failed to save administrators for group: $group');
     }
 
-    // 3. do quit
-    members = [...members];
-    bool isMember = members.contains(sender);
-    if (isMember) {
-      // member do exist, remove it and update database
-      members.remove(sender);
-      if (await saveMembers(members, group)) {
-        command['removed'] = [sender.toString()];
-      }
-    }
-
-    // 4. update 'reset' command
+    // 4. update bulletin property: 'administrators'
     User? user = await facebook?.currentUser;
     assert(user != null, 'failed to get current user');
     ID me = user!.identifier;
-    if (owner == me || admins.contains(me)) {
-      // this is the group owner (or administrator), so
-      // it has permission to reset group members here.
-      bool ok = await _refreshMembers(group: group, admin: me, members: members);
-      assert(ok, 'failed to refresh members for group: $group');
+    if (owner == me) {
+      // maybe the bulletin in the owner's storage not contains this administrator,
+      // but if it can still receive a resign command here, then
+      // the owner should update the bulletin and send it out again.
+      bool ok = await _refreshAdministrators(group: group, owner: owner, admins: admins);
+      assert(ok, 'failed to refresh admins for group: $group');
     } else {
-      // add 'quit' application for waiting admin to update
+      // add 'resign' application for waiting owner to update
       bool ok = await addApplication(command, rMsg);
-      assert(ok, 'failed to add "quit" application for group: $group');
+      assert(ok, 'failed to add "resign" application for group: $group');
     }
-    if (!isMember) {
+    if (!isAdmin) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
-        'template': 'Not a member of group: \${ID}',
+        'template': 'Not a administrator of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
         }
@@ -125,31 +117,48 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     return [];
   }
 
-  Future<bool> _refreshMembers({required ID group, required ID admin, required List<ID> members}) async {
-    // 1. create new 'reset' command
-    Pair<ResetCommand, ReliableMessage?> pair = await createResetCommand(sender: admin, group: group, members: members);
-    ResetCommand cmd = pair.first;
-    ReliableMessage? msg = pair.second;
-    if (msg == null) {
-      assert(false, 'failed to create "reset" command for group: $group');
+  Future<bool> _refreshAdministrators({required ID group, required ID owner, required List<ID> admins}) async {
+    // 1. update bulletin
+    Document? bulletin = await _updateAdministrators(group: group, owner: owner, admins: admins);
+    if (bulletin == null) {
+      assert(false, 'failed to update administrators for group: $group');
       return false;
-    } else if (await updateResetCommandMessage(group: group, content: cmd, rMsg: msg)) {
-      Log.info('update "reset" command for group: $group');
-    } else {
-      assert(false, 'failed to save "reset" command message for group: $group');
+    } else if (await facebook!.saveDocument(bulletin)) {} else {
+      assert(false, 'failed to save document for group: $group');
       return false;
     }
-    Content forward = ForwardContent.create(forward: msg);
-    // 2. forward to assistants
+    Meta? meta = await facebook?.getMeta(group);
+    Content content = DocumentCommand.response(group, meta, bulletin);
+    // 2. send to assistants
     List<ID> bots = await getAssistants(group);
     for (ID receiver in bots) {
-      if (admin == receiver) {
-        assert(false, 'group bot should not be admin: $admin');
+      if (owner == receiver) {
+        assert(false, 'group bot should not be owner: $owner, group: $group');
         continue;
       }
-      messenger?.sendContent(forward, sender: admin, receiver: receiver, priority: 1);
+      messenger?.sendContent(content, sender: owner, receiver: receiver, priority: 1);
     }
     return true;
+  }
+
+  Future<Document?> _updateAdministrators({required ID group, required ID owner, required List<ID> admins}) async {
+    // update document property
+    Document? bulletin = await facebook?.getDocument(group, '*');
+    if (bulletin == null) {
+      assert(false, 'failed to get document for group: $group');
+      return null;
+    }
+    assert(bulletin is Bulletin, 'group document error: $group');
+    bulletin.setProperty('administrators', ID.revert(admins));
+    // sign document
+    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(owner);
+    if (sKey == null) {
+      assert(false, 'failed to get sign key for group owner: $owner, group: $group');
+      return null;
+    }
+    Uint8List? signature = bulletin.sign(sKey);
+    assert(signature != null, 'failed to sign bulletin for group: $group');
+    return bulletin;
   }
 
 }

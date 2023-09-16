@@ -56,8 +56,11 @@ class CommonFacebook extends Facebook {
       for (ID item in array) {
         assert(await getPrivateKeyForSignature(item) != null, 'error: $item');
         usr = await getUser(item);
-        assert(usr != null, 'failed to create user: $item');
-        users.add(usr!);
+        if (usr != null) {
+          users.add(usr);
+        } else {
+          assert(false, 'failed to create user: $item');
+        }
       }
     }
     return users;
@@ -81,12 +84,22 @@ class CommonFacebook extends Facebook {
   }
 
   @override
-  Future<bool> saveMeta(Meta meta, ID identifier) async =>
-      await database.saveMeta(meta, identifier);
+  Future<bool> saveMeta(Meta meta, ID identifier) async {
+    if (!meta.isValid || !meta.matchIdentifier(identifier)) {
+      assert(false, 'meta not valid: $identifier');
+      return false;
+    }
+    return await database.saveMeta(meta, identifier);
+  }
 
   @override
-  Future<bool> saveDocument(Document doc) async =>
-      await database.saveDocument(doc);
+  Future<bool> saveDocument(Document doc) async {
+    if (!doc.isValid) {
+      assert(false, 'document not valid: ${doc.identifier}');
+      return false;
+    }
+    return await database.saveDocument(doc);
+  }
 
   //
   //  EntityDataSource
@@ -146,12 +159,20 @@ class CommonFacebook extends Facebook {
 
   @override
   Future<List<ID>> getMembers(ID group) async {
-    List<ID> users = await database.getMembers(group: group);
-    if (users.isNotEmpty) {
-      // got from database
-      return users;
+    ID? owner = await getOwner(group);
+    if (owner == null) {
+      assert(false, 'group owner not found: $group');
+      return [];
     }
-    return await super.getMembers(group);
+    List<ID> users = await database.getMembers(group: group);
+    if (users.isEmpty) {
+      users = await super.getMembers(group);
+      if (users.isEmpty) {
+        users = [owner];
+      }
+    }
+    assert(users[0] == owner, 'group owner must be the first member: $group');
+    return users;
   }
 
   @override

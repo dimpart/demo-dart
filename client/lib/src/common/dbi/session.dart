@@ -29,18 +29,108 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:object_key/object_key.dart';
 
 import '../protocol/login.dart';
 
 
-///  Session DBI
-///  ~~~~~~~~~~~
-abstract class LoginDBI {
+class ProviderInfo {
+  ProviderInfo(this.identifier, this.chosen);
 
-  Future<Pair<LoginCommand?, ReliableMessage?>> getLoginCommandMessage(ID identifier);
+  final ID identifier;
+  int chosen;
 
-  Future<bool> saveLoginCommandMessage(ID identifier, LoginCommand content, ReliableMessage rMsg);
+  /// default service provider
+  static final ID kGSP = Identifier('gsp@everywhere', name: 'gsp', address: Address.kEverywhere);
+
+  //
+  //  Conveniences
+  //
+
+  static List<ProviderInfo> convert(List<Map> array) {
+    List<ProviderInfo> providers = [];
+    ID? identifier;
+    int chosen;
+    for (var item in array) {
+      identifier = ID.parse(item['ID']);
+      chosen = Converter.getInt(item['chosen'], 0)!;
+      if (identifier == null) {
+        // SP ID error
+        continue;
+      }
+      providers.add(ProviderInfo(identifier, chosen));
+    }
+    return providers;
+  }
+
+  static List<Map> revert(List<ProviderInfo> providers) {
+    List<Map> array = [];
+    for (var info in providers) {
+      array.add({
+        'ID': info.identifier.toString(),
+        'chosen': info.chosen,
+      });
+    }
+    return array;
+  }
+
+}
+
+
+class StationInfo {
+  StationInfo(ID? sid, this.chosen,
+      {required this.host, required this.port, required this.provider}) {
+    identifier = sid ?? Station.kAny;
+  }
+
+  late ID identifier;
+  int chosen;
+
+  final String host;
+  final int port;
+
+  ID? provider;
+
+  //
+  //  Conveniences
+  //
+
+  static List<StationInfo> convert(List<Map> array) {
+    List<StationInfo> stations = [];
+    ID? sid;
+    int chosen;
+    String? host;
+    int port;
+    ID? provider;
+    for (var item in array) {
+      sid = ID.parse(item['ID']);
+      chosen = Converter.getInt(item['chosen'], 0)!;
+      host = Converter.getString(item['host'], null);
+      port = Converter.getInt(item['port'], 0)!;
+      provider = ID.parse(item['provider']);
+      if (host == null || port == 0/* || provider == null*/) {
+        // station socket error
+        continue;
+      }
+      stations.add(StationInfo(sid, chosen, host: host, port: port, provider: provider));
+    }
+    return stations;
+  }
+
+  static List<Map> revert(List<StationInfo> stations) {
+    List<Map> array = [];
+    for (var info in stations) {
+      array.add({
+        'ID': info.identifier.toString(),
+        'chosen': info.chosen,
+        'host': info.host,
+        'port': info.port,
+        'provider': info.provider?.toString(),
+      });
+    }
+    return array;
+  }
 
 }
 
@@ -49,33 +139,30 @@ abstract class LoginDBI {
 ///  ~~~~~~~~~~~
 abstract class ProviderDBI {
 
-  /// default service provider
-  static final ID kGSP = Identifier('gsp@everywhere', name: 'gsp', address: Address.kEverywhere);
-
   ///  Get all providers
   ///
   /// @return provider list (ID, chosen)
-  Future<List<Pair<ID, int>>> getProviders();
+  Future<List<ProviderInfo>> allProviders();
 
   ///  Add provider info
   ///
   /// @param identifier - sp ID
   /// @param chosen     - whether current sp
   /// @return false on failed
-  Future<bool> addProvider(ID identifier, {int chosen = 0});
+  Future<bool> addProvider(ID pid, {int chosen = 0});
 
   ///  Update provider info
   ///
   /// @param identifier - sp ID
   /// @param chosen     - whether current sp
   /// @return false on failed
-  Future<bool> updateProvider(ID identifier, {int chosen = 0});
+  Future<bool> updateProvider(ID pid, {int chosen = 0});
 
   ///  Remove provider info
   ///
   /// @param identifier - sp ID
   /// @return false on failed
-  Future<bool> removeProvider(ID identifier);
+  Future<bool> removeProvider(ID pid);
 
 }
 
@@ -88,7 +175,7 @@ abstract class StationDBI {
   ///
   /// @param provider - sp ID (default is 'gsp@everywhere')
   /// @return station list ((host, port), sp, chosen)
-  Future<List<Triplet<Pair<String, int>, ID, int>>> getStations({required ID provider});
+  Future<List<StationInfo>> allStations({required ID provider});
 
   ///  Add station info with sp ID
   ///
@@ -97,7 +184,8 @@ abstract class StationDBI {
   /// @param provider - sp ID
   /// @param chosen   - whether current station
   /// @return false on failed
-  Future<bool> addStation(String host, int port, {required ID provider, int chosen = 0});
+  Future<bool> addStation(ID? sid, {int chosen = 0,
+    required String host, required int port, required ID provider});
 
   ///  Update station info
   ///
@@ -108,7 +196,8 @@ abstract class StationDBI {
   /// @param chosen   - whether current station
   /// @param provider - sp ID
   /// @return false on failed
-  Future<bool> updateStation(String host, int port, {required ID provider, int chosen});
+  Future<bool> updateStation(ID? sid, {int chosen = 0,
+    required String host, required int port, required ID provider});
 
   ///  Remove this station
   ///
@@ -116,13 +205,24 @@ abstract class StationDBI {
   /// @param port     - station port
   /// @param provider - sp ID
   /// @return false on failed
-  Future<bool> removeStation(String host, int port, {required ID provider});
+  Future<bool> removeStation({required String host, required int port, required ID provider});
 
   ///  Remove all station of the sp
   ///
   /// @param provider - sp ID
   /// @return false on failed
   Future<bool> removeStations({required ID provider});
+
+}
+
+
+///  Session DBI
+///  ~~~~~~~~~~~
+abstract class LoginDBI {
+
+  Future<Pair<LoginCommand?, ReliableMessage?>> getLoginCommandMessage(ID identifier);
+
+  Future<bool> saveLoginCommandMessage(ID identifier, LoginCommand content, ReliableMessage rMsg);
 
 }
 

@@ -28,6 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:lnc/lnc.dart';
+
 import '../dim_common.dart';
 import 'cpu/creator.dart';
 
@@ -39,6 +41,22 @@ class ClientMessageProcessor extends MessageProcessor {
 
   @override
   CommonFacebook get facebook => super.facebook as CommonFacebook;
+
+  @override
+  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async {
+    try {
+      return await super.processSecureMessage(sMsg, rMsg);
+    } catch (e) {
+      String errMsg = e.toString();
+      if (errMsg.startsWith('receiver error')) {
+        // not mine? ignore it
+        Log.warning('ignore message for: ${rMsg.receiver}');
+        return [];
+      } else {
+        rethrow;
+      }
+    }
+  }
 
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
@@ -60,10 +78,7 @@ class ClientMessageProcessor extends MessageProcessor {
     receiver = user.identifier;
     // check responses
     for (Content res in responses) {
-      if (res.isEmpty) {
-        // should not happen
-        continue;
-      } else if (res is ReceiptCommand) {
+      if (res is ReceiptCommand) {
         if (sender.type == EntityType.kStation) {
           // no need to respond receipt to station
           continue;
@@ -88,7 +103,7 @@ class ClientMessageProcessor extends MessageProcessor {
   }
 
   @override
-  ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger) {
+  ContentProcessorCreator createCreator() {
     return ClientContentProcessorCreator(facebook, messenger);
   }
 

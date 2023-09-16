@@ -29,49 +29,39 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
-import 'package:object_key/object_key.dart';
 
+/// Block Protocol
+/// ~~~~~~~~~~~~~~
+/// Ignore all messages in this conversation,
+/// which ID(user/group) contains in 'list'.
+/// If value of 'list' is None, means querying block-list from station
+///
+///  Command message: {
+///      type : 0x88,
+///      sn   : 123,
+///
+///      command : "block",
+///      list    : []       // block-list
+///  }
+class BlockCommand extends BaseCommand {
+  BlockCommand(super.dict);
 
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class ReliableMessageDBI {
+  static const String kBlock  = 'block';
 
-  ///  Get network messages
-  ///
-  /// @param receiver actual receiver
-  /// @param start    start position for loading message
-  /// @param limit    max count for loading message
-  /// @return partial messages and remaining count, 0 means there are all messages cached
-  Future<Pair<List<ReliableMessage>, int>> getReliableMessages(ID receiver,
-      {int start = 0, int? limit});
+  BlockCommand.fromList(List<ID> contacts) : super.fromName(kBlock) {
+    list = contacts;
+  }
 
-  Future<bool> cacheReliableMessage(ID receiver, ReliableMessage rMsg);
+  List<ID> get list {
+    List<ID>? array = this['list'];
+    if (array == null) {
+      return [];
+    }
+    return ID.convert(array);
+  }
 
-  Future<bool> removeReliableMessage(ID receiver, ReliableMessage rMsg);
-}
-
-
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class CipherKeyDBI implements CipherKeyDelegate {
-
-}
-
-
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class GroupKeysDBI {
-
-  Map getGroupKeys({required ID group, required ID sender});
-
-  bool saveGroupKeys({required ID group, required ID sender, required Map keys});
-
-}
-
-
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class MessageDBI implements ReliableMessageDBI, CipherKeyDBI, GroupKeysDBI {
+  set list(List<ID> contacts) {
+    this['list'] = ID.revert(contacts);
+  }
 
 }

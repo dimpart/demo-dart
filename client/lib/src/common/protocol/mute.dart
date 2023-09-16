@@ -29,49 +29,39 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
-import 'package:object_key/object_key.dart';
 
+/// Mute Protocol
+/// ~~~~~~~~~~~~~
+/// Mute all messages(skip Pushing Notification) in this conversation,
+/// which ID(user/group) contains in 'list'.
+/// If value of 'list' is None, means querying mute-list from station
+///
+///  Command message: {
+///      type : 0x88,
+///      sn   : 123,
+///
+///      command : "mute",
+///      list    : []       // mute-list
+///  }
+class MuteCommand extends BaseCommand {
+  MuteCommand(super.dict);
 
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class ReliableMessageDBI {
+  static const String kMute  = 'mute';
 
-  ///  Get network messages
-  ///
-  /// @param receiver actual receiver
-  /// @param start    start position for loading message
-  /// @param limit    max count for loading message
-  /// @return partial messages and remaining count, 0 means there are all messages cached
-  Future<Pair<List<ReliableMessage>, int>> getReliableMessages(ID receiver,
-      {int start = 0, int? limit});
+  MuteCommand.fromList(List<ID> contacts) : super.fromName(kMute) {
+    list = contacts;
+  }
 
-  Future<bool> cacheReliableMessage(ID receiver, ReliableMessage rMsg);
+  List<ID> get list {
+    List<ID>? array = this['list'];
+    if (array == null) {
+      return [];
+    }
+    return ID.convert(array);
+  }
 
-  Future<bool> removeReliableMessage(ID receiver, ReliableMessage rMsg);
-}
-
-
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class CipherKeyDBI implements CipherKeyDelegate {
-
-}
-
-
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class GroupKeysDBI {
-
-  Map getGroupKeys({required ID group, required ID sender});
-
-  bool saveGroupKeys({required ID group, required ID sender, required Map keys});
-
-}
-
-
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract class MessageDBI implements ReliableMessageDBI, CipherKeyDBI, GroupKeysDBI {
+  set list(List<ID> contacts) {
+    this['list'] = ID.revert(contacts);
+  }
 
 }

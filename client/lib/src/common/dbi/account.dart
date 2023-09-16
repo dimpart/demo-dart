@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:object_key/object_key.dart';
 
 
 ///  Account DBI
@@ -158,13 +159,13 @@ abstract class UserDBI {
 
   Future<bool> saveLocalUsers(List<ID> users);
 
-  Future<bool> addUser(ID user);
-
-  Future<bool> removeUser(ID user);
-
-  Future<bool> setCurrentUser(ID user);
-
-  Future<ID?> getCurrentUser();
+  // Future<bool> addUser(ID user);
+  //
+  // Future<bool> removeUser(ID user);
+  //
+  // Future<bool> setCurrentUser(ID user);
+  //
+  // Future<ID?> getCurrentUser();
 
 }
 
@@ -177,9 +178,9 @@ abstract class ContactDBI {
 
   Future<bool> saveContacts(List<ID> contacts, {required ID user});
 
-  Future<bool> addContact(ID contact, {required ID user});
-
-  Future<bool> removeContact(ID contact, {required ID user});
+  // Future<bool> addContact(ID contact, {required ID user});
+  //
+  // Future<bool> removeContact(ID contact, {required ID user});
 
 }
 
@@ -197,11 +198,11 @@ abstract class GroupDBI {
   Future<List<ID>> getMembers({required ID group});
   Future<bool> saveMembers(List<ID> members, {required ID group});
 
-  Future<bool> addMember(ID member, {required ID group});
-
-  Future<bool> removeMember(ID member, {required ID group});
-
-  Future<bool> removeGroup({required ID group});
+  // Future<bool> addMember(ID member, {required ID group});
+  //
+  // Future<bool> removeMember(ID member, {required ID group});
+  //
+  // Future<bool> removeGroup({required ID group});
 
   //
   //  bots for group
@@ -209,12 +210,40 @@ abstract class GroupDBI {
   Future<List<ID>> getAssistants({required ID group});
   Future<bool> saveAssistants(List<ID> bots, {required ID group});
 
+  //
+  //  group admins
+  //
+  Future<List<ID>> getAdministrators({required ID group});
+  Future<bool> saveAdministrators(List<ID> members, {required ID group});
+
+}
+
+///  Account DBI
+///  ~~~~~~~~~~~
+abstract class ResetGroupDBI {
+
+  Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage(ID identifier);
+
+  Future<bool> saveResetCommandMessage(ID identifier, ResetCommand content, ReliableMessage rMsg);
+
 }
 
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
 abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI,
-                                     UserDBI, ContactDBI, GroupDBI {
+                                     UserDBI, ContactDBI, GroupDBI, ResetGroupDBI {
+
+  /// check whether the time with new arrival info is expired
+  ///
+  /// @param oldTime - time in old info loaded in local storage
+  /// @param newTime - time in new info received from network
+  static bool isExpired(DateTime? oldTime, DateTime? newTime) {
+    if (oldTime == null || newTime == null) {
+      return false;
+    }
+    // return newTime.before(oldTime);
+    return newTime.compareTo(oldTime) < 0;
+  }
 
 }

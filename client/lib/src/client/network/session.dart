@@ -56,7 +56,8 @@ import 'state.dart';
 ///          when first handshake responded, and we can trust
 ///          all messages from this ID after that.
 abstract class ClientSession extends BaseSession {
-  ClientSession(this.station, super.remoteAddress, super.database) {
+  ClientSession(this.station, SessionDBI database)
+      : super(SocketAddress(station.host!, station.port), database) {
     _key = null;
   }
 

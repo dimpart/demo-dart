@@ -36,10 +36,12 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:dim_plugins/dim_plugins.dart';
 
 import 'dbi/account.dart';
-import 'protocol/ans.dart';
 import 'protocol/handshake.dart';
 import 'protocol/login.dart';
 import 'protocol/report.dart';
+import 'protocol/mute.dart';
+import 'protocol/block.dart';
+import 'protocol/ans.dart';
 
 class Register {
   Register(AccountDBI adb) : _database = adb;
@@ -70,7 +72,7 @@ class Register {
     //  Step 4: generate visa with ID and sign with private key
     //
     PrivateKey msgKey = PrivateKey.generate(AsymmetricKey.kRSA)!;
-    Visa visa = _visa(identifier, msgKey.publicKey as EncryptKey, idKey,
+    Visa visa = _createVisa(identifier, msgKey.publicKey as EncryptKey, idKey,
         name: name, avatar: avatar);
     //
     //  Step 5: save private key, meta & visa in local storage
@@ -110,7 +112,7 @@ class Register {
     //
     //  Step 4: generate bulletin with ID and sign with founder's private key
     //
-    Bulletin doc = _bulletin(identifier, privateKey, name: name);
+    Bulletin doc = _createBulletin(identifier, privateKey, name: name);
     //
     //  Step 5: save meta & bulletin in local storage
     //          don't forget to upload then onto the DIM station
@@ -126,19 +128,25 @@ class Register {
   }
 
   // create user document
-  static Visa _visa(ID identifier, EncryptKey visaKey, SignKey idKey,
+  static Visa _createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
       {required String name, String? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
     Visa visa = BaseVisa.from(identifier);
+    // nickname
     visa.name = name;
-    visa.avatar = PortableNetworkFile.parse(avatar);
+    // avatar
+    if (avatar != null) {
+      visa.avatar = PortableNetworkFile.parse(avatar);
+    }
+    // public key
     visa.publicKey = visaKey;
+    // sign it
     Uint8List? sig = visa.sign(idKey);
     assert(sig != null, 'failed to sign visa: $identifier');
     return visa;
   }
   // create group document
-  static Bulletin _bulletin(ID identifier, SignKey privateKey,
+  static Bulletin _createBulletin(ID identifier, SignKey privateKey,
       {required String name}) {
     assert(identifier.isGroup, 'group ID error: $identifier');
     Bulletin doc = BaseBulletin.from(identifier);
@@ -171,17 +179,15 @@ void _registerFactories() {
   registerAllFactories();
 
   // Handshake
-  Command.setFactory(HandshakeCommand.kHandshake,
-      CommandParser((dict) => BaseHandshakeCommand(dict)));
+  Command.setFactory(HandshakeCommand.kHandshake, CommandParser((dict) => BaseHandshakeCommand(dict)));
   // Login
-  Command.setFactory(LoginCommand.kLogin,
-      CommandParser((dict) => BaseLoginCommand(dict)));
+  Command.setFactory(LoginCommand.kLogin, CommandParser((dict) => BaseLoginCommand(dict)));
   // Report
-  Command.setFactory(ReportCommand.kReport,
-      CommandParser((dict) => BaseReportCommand(dict)));
+  Command.setFactory(ReportCommand.kReport, CommandParser((dict) => BaseReportCommand(dict)));
   // Mute
+  Command.setFactory(MuteCommand.kMute, CommandParser((dict) => MuteCommand(dict)));
   // Block
+  Command.setFactory(BlockCommand.kBlock, CommandParser((dict) => BlockCommand(dict)));
   // ANS
-  Command.setFactory(AnsCommand.kANS,
-      CommandParser((dict) => BaseAnsCommand(dict)));
+  Command.setFactory(AnsCommand.kANS, CommandParser((dict) => BaseAnsCommand(dict)));
 }

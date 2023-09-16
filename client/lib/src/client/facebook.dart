@@ -30,7 +30,6 @@
  */
 import '../dim_common.dart';
 import 'anonymous.dart';
-import 'group.dart';
 
 ///  Client Facebook with Address Name Service
 class ClientFacebook extends CommonFacebook {
@@ -47,19 +46,6 @@ class ClientFacebook extends CommonFacebook {
     }
     // get name from ID
     return Anonymous.getName(identifier);
-  }
-
-  @override
-  Future<Group?> createGroup(ID identifier) async {
-    Group? grp = await super.createGroup(identifier);
-    if (grp != null) {
-      EntityDataSource? delegate = grp.dataSource;
-      if (delegate == null || delegate == this) {
-        // replace group's data source
-        grp.dataSource = GroupManager();
-      }
-    }
-    return grp;
   }
 
   //

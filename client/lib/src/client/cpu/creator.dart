@@ -28,14 +28,22 @@
  * SOFTWARE.
  * =============================================================================
  */
-import '../../dim_common.dart';
+import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
+
+import '../../common/protocol/ans.dart';
+import '../../common/protocol/handshake.dart';
+import '../../common/protocol/login.dart';
+
 import 'commands.dart';
 import 'group.dart';
 import 'group/expel.dart';
 import 'group/invite.dart';
+import 'group/join.dart';
 import 'group/query.dart';
 import 'group/quit.dart';
 import 'group/reset.dart';
+import 'group/resign.dart';
 import 'handshake.dart';
 
 class ClientContentProcessorCreator extends BaseContentProcessorCreator {
@@ -57,6 +65,9 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
   @override
   ContentProcessor? createCommandProcessor(int msgType, String cmd) {
+    if (cmd == Command.kReceipt) {
+      return ReceiptCommandProcessor(facebook!, messenger!);
+    }
     if (cmd == HandshakeCommand.kHandshake) {
       return HandshakeCommandProcessor(facebook!, messenger!);
     }
@@ -73,12 +84,16 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
       return InviteCommandProcessor(facebook!, messenger!);
     } else if (cmd == GroupCommand.kExpel) {
       return ExpelCommandProcessor(facebook!, messenger!);
+    } else if (cmd == GroupCommand.kJoin) {
+      return JoinCommandProcessor(facebook!, messenger!);
     } else if (cmd == GroupCommand.kQuit) {
       return QuitCommandProcessor(facebook!, messenger!);
     } else if (cmd == GroupCommand.kQuery) {
       return QueryCommandProcessor(facebook!, messenger!);
     } else if (cmd == GroupCommand.kReset) {
       return ResetCommandProcessor(facebook!, messenger!);
+    } else if (cmd == GroupCommand.kResign) {
+      return ResignCommandProcessor(facebook!, messenger!);
     }
     // others
     return super.createCommandProcessor(msgType, cmd);
