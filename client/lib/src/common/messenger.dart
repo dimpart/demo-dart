@@ -93,28 +93,29 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   // protected
   Future<bool> queryMembers(ID identifier);
 
-  /*
   @override
   Future<Uint8List?> serializeKey(SymmetricKey password, InstantMessage iMsg) async {
-    // try to reuse message key
+    // 0. check message key
     Object? reused = password['reused'];
-    if (reused != null) {
-      ID receiver = iMsg.receiver;
-      if (receiver.isGroup) {
-        // reuse key for grouped message
-        return null;
-      }
-      // remove before serialize key
-      password.remove("reused");
+    Object? digest = password['digest'];
+    if (reused == null && digest == null) {
+      // flags not exist, serialize it directly
+      return await super.serializeKey(password, iMsg);
     }
+    // 1. remove before serializing key
+    password.remove('reused');
+    password.remove('digest');
+    // 2. serialize key without flags
     Uint8List? data = await super.serializeKey(password, iMsg);
-    if (reused != null) {
-      // put it back
-      password['reused'] = reused;
+    // 3. put it back after serialized
+    if (Converter.getBool(reused, false)!) {
+      password['reused'] = true;
+    }
+    if (digest != null) {
+      password['digest'] = digest;
     }
     return data;
   }
-   */
 
   //
   //  Interfaces for Transmitting Message

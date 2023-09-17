@@ -28,21 +28,16 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:typed_data';
+
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
-import 'facebook.dart';
 import 'messenger.dart';
 
 abstract class CommonPacker extends MessagePacker {
   CommonPacker(super.facebook, super.messenger);
-
-  @override
-  CommonMessenger? get messenger => super.messenger as CommonMessenger?;
-
-  @override
-  CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
   ///  Add income message in a queue for waiting sender's visa
   ///
@@ -67,7 +62,8 @@ abstract class CommonPacker extends MessagePacker {
       return visaKey;
     }
     // user not ready, try to query document for it
-    if (await messenger!.queryDocument(user)) {
+    CommonMessenger transceiver = messenger as CommonMessenger;
+    if (await transceiver.queryDocument(user)) {
       Log.info('querying document for user: $user');
     }
     return null;
@@ -76,18 +72,20 @@ abstract class CommonPacker extends MessagePacker {
   /// for checking whether group's ready
   // protected
   Future<List<ID>> getMembers(ID group) async {
-    Meta? meta = await facebook?.getMeta(group);
+    Facebook barrack = facebook!;
+    CommonMessenger transceiver = messenger as CommonMessenger;
+    Meta? meta = await barrack.getMeta(group);
     if (meta == null/* || meta.getKey() == null*/) {
       // group not ready, try to query meta for it
-      if (await messenger!.queryMeta(group)) {
+      if (await transceiver.queryMeta(group)) {
         Log.info('querying meta for group: $group');
       }
       return [];
     }
-    List<ID> members = await facebook!.getMembers(group);
+    List<ID> members = await barrack.getMembers(group);
     if (members.isEmpty) {
       // group not ready, try to query members for it
-      if (await messenger!.queryMembers(group)) {
+      if (await transceiver.queryMembers(group)) {
         Log.info('querying members for group: $group');
       }
       return [];
@@ -180,24 +178,9 @@ abstract class CommonPacker extends MessagePacker {
   }
 
   @override
-  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    if (await checkReceiverInReliableMessage(rMsg)) {} else {
-      // receiver (group) not ready
-      String error = 'receiver not ready: ${rMsg.receiver}';
-      Log.warning(error);
-      return null;
-    }
-    if (await checkSenderInReliableMessage(rMsg)) {} else {
-      // sender not ready
-      String error = 'sender not ready: ${rMsg.sender}';
-      Log.warning(error);
-      return null;
-    }
-    return await super.verifyMessage(rMsg);
-  }
-
-  @override
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
+    // 1. check contact info
+    // 2. check group members info
     if (await checkReceiverInInstantMessage(iMsg)) {} else {
       // receiver not ready
       Log.warning('receiver not ready: ${iMsg.receiver}');
@@ -206,4 +189,91 @@ abstract class CommonPacker extends MessagePacker {
     return await super.encryptMessage(iMsg);
   }
 
+  @override
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
+    // 1. check sender's meta
+    if (await checkSenderInReliableMessage(rMsg)) {} else {
+      // sender not ready
+      String error = 'sender not ready: ${rMsg.sender}';
+      Log.warning(error);
+      return null;
+    }
+    // 2. check receiver/group with local user
+    if (await checkReceiverInReliableMessage(rMsg)) {} else {
+      // receiver (group) not ready
+      String error = 'receiver not ready: ${rMsg.receiver}';
+      Log.warning(error);
+      return null;
+    }
+    return await super.verifyMessage(rMsg);
+  }
+
+  @override
+  Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
+    if (sMsg is ReliableMessage) {
+      // already signed
+      return sMsg;
+    }
+    return await super.signMessage(sMsg);
+  }
+
+  @override
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
+    if (data.length < 2) {
+      // message data error
+      return null;
+    // } else if (data.first != '{'.codeUnitAt(0) || data.last != '}'.codeUnitAt(0)) {
+    //   // only support JsON format now
+    //   return null;
+    }
+    return await super.deserializeMessage(data);
+  }
+
+  // @override
+  // Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
+  //   SymmetricKey? key = await messenger?.getDecryptKey(rMsg);
+  //   assert(key != null, 'encrypt key should not empty here');
+  //   String? digest = _getKeyDigest(key);
+  //   if (digest != null) {
+  //     bool reused = key!.getBool('reused', false)!;
+  //     if (reused) {
+  //       // replace key/keys with key digest
+  //       Map keys = {
+  //         'digest': digest,
+  //       };
+  //       rMsg['keys'] = keys;
+  //       rMsg.remove('key');
+  //     } else {
+  //       // reuse it next time
+  //       key['reused'] = true;
+  //     }
+  //   }
+  //   return await super.serializeMessage(rMsg);
+  // }
+
 }
+
+// String? _getKeyDigest(SymmetricKey? key) {
+//   if (key == null) {
+//     // key error
+//     return null;
+//   }
+//   String? value = key.getString('digest', null);
+//   if (value != null) {
+//     return value;
+//   }
+//   Uint8List data = key.data;
+//   if (data.length < 6) {
+//     // plain key?
+//     return null;
+//   }
+//   // get digest for the last 6 bytes of key.data
+//   Uint8List part = data.sublist(data.length - 6);
+//   Uint8List digest = SHA256.digest(part);
+//   String base64 = Base64.encode(digest);
+//   base64 = base64.trim();
+//   int pos = base64.length - 8;
+//   value = base64.substring(pos);
+//   key['digest'] = value;
+//   return value;
+// }

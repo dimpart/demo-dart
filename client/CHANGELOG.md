@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Digest for cipher key.
+
 ## 0.2.1
 
 - GPU - Group command processors.
