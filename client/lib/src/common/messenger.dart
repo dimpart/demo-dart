@@ -95,6 +95,8 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
 
   @override
   Future<Uint8List?> serializeKey(SymmetricKey password, InstantMessage iMsg) async {
+    // TODO: reuse message key
+
     // 0. check message key
     Object? reused = password['reused'];
     Object? digest = password['digest'];

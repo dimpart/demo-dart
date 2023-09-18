@@ -112,7 +112,7 @@ class Register {
     //
     //  Step 4: generate bulletin with ID and sign with founder's private key
     //
-    Bulletin doc = _createBulletin(identifier, privateKey, name: name);
+    Bulletin doc = _createBulletin(identifier, privateKey, name: name, founder: founder);
     //
     //  Step 5: save meta & bulletin in local storage
     //          don't forget to upload then onto the DIM station
@@ -131,26 +131,34 @@ class Register {
   static Visa _createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
       {required String name, String? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
-    Visa visa = BaseVisa.from(identifier);
+    Visa doc = BaseVisa.from(identifier);
+    // App ID
+    doc.setProperty('app_id', 'chat.dim.tarsier');
     // nickname
-    visa.name = name;
+    doc.name = name;
     // avatar
     if (avatar != null) {
-      visa.avatar = PortableNetworkFile.parse(avatar);
+      doc.avatar = PortableNetworkFile.parse(avatar);
     }
     // public key
-    visa.publicKey = visaKey;
+    doc.publicKey = visaKey;
     // sign it
-    Uint8List? sig = visa.sign(idKey);
+    Uint8List? sig = doc.sign(idKey);
     assert(sig != null, 'failed to sign visa: $identifier');
-    return visa;
+    return doc;
   }
   // create group document
   static Bulletin _createBulletin(ID identifier, SignKey privateKey,
-      {required String name}) {
+      {required String name, required ID founder}) {
     assert(identifier.isGroup, 'group ID error: $identifier');
     Bulletin doc = BaseBulletin.from(identifier);
+    // App ID
+    doc.setProperty('app_id', 'chat.dim.tarsier');
+    // group founder
+    doc.setProperty('founder', founder.toString());
+    // group name
     doc.name = name;
+    // sign it
     Uint8List? sig = doc.sign(privateKey);
     assert(sig != null, 'failed to sign bulletin: $identifier');
     return doc;

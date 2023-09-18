@@ -201,6 +201,7 @@ abstract class ClientMessenger extends CommonMessenger {
     //         this means you must send it to the bot directly.
     if (receiver.isGroup) {
       // so this is a group message (not split yet)
+      return await sendGroupMessage(iMsg, priority: priority);
     }
     // this message is sending to a user/member/bot directly
     return await super.sendInstantMessage(iMsg, priority: priority);
@@ -222,6 +223,14 @@ abstract class ClientMessenger extends CommonMessenger {
       // TODO:
       return null;
     }
+
+    // group bots designated, let group bot to split the message, so
+    // here must expose the group ID; this will cause the client to
+    // use a "user-to-group" encrypt key to encrypt the message content,
+    // this key will be encrypted by each member's public key, so
+    // all members will received a message split by the group bot,
+    // but the group bots cannot decrypt it.
+    iMsg.setString('group', group);
 
     // 1. pack message
     SecureMessage? sMsg = await encryptMessage(iMsg);
