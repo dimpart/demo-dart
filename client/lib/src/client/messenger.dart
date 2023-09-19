@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:lnc/lnc.dart';
-import 'package:object_key/object_key.dart';
 
 import '../dim_common.dart';
 import 'frequency.dart';
@@ -190,98 +189,6 @@ abstract class ClientMessenger extends CommonMessenger {
     }
     Log.warning('group not ready: $identifier');
     return false;
-  }
-
-  @override
-  Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
-    ID receiver = iMsg.receiver;
-    // NOTICE: because group assistant (bot) cannot be a member of the group, so
-    //         if you want to send a group command to any assistant, you must
-    //         set the bot ID as 'receiver' and set the group ID in content;
-    //         this means you must send it to the bot directly.
-    if (receiver.isGroup) {
-      // so this is a group message (not split yet)
-      return await sendGroupMessage(iMsg, priority: priority);
-    }
-    // this message is sending to a user/member/bot directly
-    return await super.sendInstantMessage(iMsg, priority: priority);
-  }
-
-  // protected
-  Future<ReliableMessage?> sendGroupMessage(InstantMessage iMsg, {required int priority}) async {
-    assert(iMsg.containsKey('group') == false, 'should not happen');
-    ID group = iMsg.receiver;
-    assert(group.isGroup, 'group ID error: $group');
-
-    // 0. check group bots
-    List<ID> bots = await facebook.getAssistants(group);
-    if (bots.isEmpty) {
-      // no 'assistants' found in group's bulletin document?
-      // split group messages and send to all members one by one
-      int ok = await _splitGroupMessage(group, iMsg, priority: priority);
-      assert(ok > 0, 'failed to split message for group: $group');
-      // TODO:
-      return null;
-    }
-
-    // group bots designated, let group bot to split the message, so
-    // here must expose the group ID; this will cause the client to
-    // use a "user-to-group" encrypt key to encrypt the message content,
-    // this key will be encrypted by each member's public key, so
-    // all members will received a message split by the group bot,
-    // but the group bots cannot decrypt it.
-    iMsg.setString('group', group);
-
-    // 1. pack message
-    SecureMessage? sMsg = await encryptMessage(iMsg);
-    if (sMsg == null) {
-      assert(false, 'failed to encrypt message for group: $group');
-      return null;
-    }
-    ReliableMessage? rMsg = await signMessage(sMsg);
-    if (rMsg == null) {
-      assert(false, 'failed to sign message: ${iMsg.sender} => $group');
-      return null;
-    }
-
-    // 2. forward the group message to any bot
-    ID prime = bots[0];
-    Content content = ForwardContent.create(forward: rMsg);
-    Pair pair = await sendContent(content, sender: null, receiver: prime, priority: priority);
-    return pair.second;
-  }
-
-  /// split group messages and send to all members one by one
-  Future<int> _splitGroupMessage(ID group, InstantMessage iMsg, {required int priority}) async {
-    // get members
-    List<ID> allMembers = await facebook.getMembers(group);
-    if (allMembers.isEmpty) {
-      assert(false, 'group empty: $group');
-      return -1;
-    }
-    int success = 0;
-    // split messages
-    InstantMessage? item;
-    ReliableMessage? res;
-    for (ID member in allMembers) {
-      Log.info('split group message for member: $member, group: $group');
-      Map info = iMsg.copyMap(false);
-      // replace 'receiver' with member ID
-      info['receiver'] = member.toString();
-      item = InstantMessage.parse(info);
-      if (item == null) {
-        assert(false, 'failed to repack message: $member');
-        continue;
-      }
-      res = await super.sendInstantMessage(item, priority: priority);
-      if (res == null) {
-        assert(false, 'failed to send message: $member');
-        continue;
-      }
-      success += 1;
-    }
-    // done!
-    return success;
   }
 
 }

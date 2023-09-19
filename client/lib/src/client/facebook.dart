@@ -44,8 +44,39 @@ class ClientFacebook extends CommonFacebook {
         return name;
       }
     }
+    if (identifier.isGroup) {
+      // build group name from members
+      List<ID> members = await getMembers(identifier);
+      if (members.isNotEmpty) {
+        String name = await getGroupName(members);
+        assert(name.isNotEmpty, 'failed to get name of group: $identifier');
+        return name;
+      }
+    }
     // get name from ID
     return Anonymous.getName(identifier);
+  }
+
+  // protected
+  Future<String> getGroupName(List<ID> members) async {
+    assert(members.isNotEmpty, 'members should not be empty here');
+    String title = await getName(members.first);
+    assert(title.isNotEmpty, 'failed to get name of owner: ${members.first}');
+    int count = members.length;
+    if (count == 1) {
+      return 'Group: $title';
+    }
+    String nickname;
+    for (int i = 1; i < count; ++i) {
+      nickname = await getName(members[i]);
+      assert(nickname.isNotEmpty, 'failed to get name of member: ${members[i]}');
+      title += ', $nickname';
+      if (title.length > 32) {
+        title = '${title.substring(0, 28)} ...';
+        break;
+      }
+    }
+    return title;
   }
 
   //

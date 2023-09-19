@@ -67,18 +67,38 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
 
   // protected
   Future<ID?> getOwner(ID group) async {
+    Document? doc = await facebook?.getDocument(group, '*');
+    if (doc == null) {
+      messenger?.queryDocument(group);
+      return null;
+    }
     return await facebook?.getOwner(group);
   }
   // protected
   Future<List<ID>> getMembers(ID group) async {
+    Document? doc = await facebook?.getDocument(group, '*');
+    if (doc == null) {
+      messenger?.queryDocument(group);
+      return [];
+    }
     return await facebook!.getMembers(group);
   }
   // protected
   Future<List<ID>> getAssistants(ID group) async {
+    Document? doc = await facebook?.getDocument(group, '*');
+    if (doc == null) {
+      messenger?.queryDocument(group);
+      return [];
+    }
     return await facebook!.getAssistants(group);
   }
   // protected
   Future<List<ID>> getAdministrators(ID group) async {
+    Document? doc = await facebook?.getDocument(group, '*');
+    if (doc == null) {
+      messenger?.queryDocument(group);
+      return [];
+    }
     AccountDBI? db = facebook?.database;
     return await db!.getAdministrators(group: group);
   }
