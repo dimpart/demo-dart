@@ -42,7 +42,17 @@ class ClientMessagePacker extends CommonPacker {
 
   @override
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
-    InstantMessage? iMsg = await super.decryptMessage(sMsg);
+    InstantMessage? iMsg;
+    try {
+      iMsg = await super.decryptMessage(sMsg);
+    } catch (e) {
+      String errMsg = e.toString();
+      if (errMsg.contains('failed to decrypt message key')) {
+        // visa.key changed?
+      } else {
+        rethrow;
+      }
+    }
     if (iMsg == null) {
       // failed to decrypt message, visa.key changed?
       // 1. push new visa document to this message sender
@@ -80,9 +90,14 @@ class ClientMessagePacker extends CommonPacker {
   Future<InstantMessage?> getFailedMessage(SecureMessage sMsg) async {
     ID sender = sMsg.sender;
     ID? group = sMsg.group;
+    int? type = sMsg.type;
     String? name = await facebook?.getName(sender);
+    if (type == ContentType.kCommand || type == ContentType.kHistory) {
+      Log.warning('ignore message unable to decrypt (type=$type) from "$name"');
+      return null;
+    }
     // create text content
-    Content content = TextContent.create('Failed to decrypt message from: $name');
+    Content content = TextContent.create('Failed to decrypt message (type=$type) from "$name"');
     content.group = group;
     // pack instant message
     Map info = sMsg.copyMap(false);

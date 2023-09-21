@@ -139,9 +139,10 @@ abstract class ClientMessenger extends CommonMessenger {
       Log.debug('meta query not expired yet: $identifier');
       return false;
     }
-    Log.info('querying meta from any station, ID: $identifier');
+    // build query command for meta
     Content content = MetaCommand.query(identifier);
     await sendContent(content, sender: null, receiver: Station.kAny, priority: 1);
+    Log.info('querying meta from any station, ID: $identifier');
     return true;
   }
 
@@ -153,42 +154,101 @@ abstract class ClientMessenger extends CommonMessenger {
       Log.debug('document query not expired yet: $identifier');
       return false;
     }
-    Log.info('querying document from any station, ID: $identifier');
+    // build query command for document
     Content content = DocumentCommand.query(identifier, null);
     await sendContent(content, sender: null, receiver: Station.kAny, priority: 1);
+    Log.info('querying document from any station, ID: $identifier');
     return true;
   }
 
   @override
   Future<bool> queryMembers(ID identifier) async {
+    assert(identifier.isGroup, "group ID error: $identifier");
+    // 0. check group document
+    Document? bulletin = await facebook.getDocument(identifier, '*');
+    if (bulletin == null) {
+      Log.warning('group document not exists: $identifier');
+      queryDocument(identifier);
+      return false;
+    }
+    User? user = await facebook.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+      return false;
+    }
+    ID me = user.identifier;
+
     QueryFrequencyChecker checker = QueryFrequencyChecker();
     if (!checker.isMembersQueryExpired(identifier)) {
       // query not expired yet
       Log.debug('members query not expired yet: $identifier');
       return false;
     }
-    assert(identifier.isGroup, "group ID error: $identifier");
-    Content content = GroupCommand.query(identifier);
+    // build query command for group members
+    QueryCommand command = GroupCommand.query(identifier);
+    bool ok;
     // 1. check group bots
-    List<ID> bots = await facebook.getAssistants(identifier);
-    if (bots.isNotEmpty) {
-      // querying members from bots
-      Log.info('querying members from bots: $bots, group: $identifier');
-      for (ID receiver in bots) {
-        await sendContent(content, sender: null, receiver: receiver, priority: 1);
-      }
+    ok = await queryFromAssistants(command, sender: me, group: identifier);
+    if (ok) {
       return true;
     }
-    // 2.. check group owner
-    ID? owner = await facebook.getOwner(identifier);
-    if (owner != null) {
-      // querying members from owner
-      Log.info('querying members from owner: $owner, group: $identifier');
-      await sendContent(content, sender: null, receiver: owner, priority: 1);
+    // 2. check administrators
+    ok = await queryFromAdministrators(command, sender: me, group: identifier);
+    if (ok) {
       return true;
     }
-    Log.warning('group not ready: $identifier');
+    // 3. check group owner
+    ok = await queryFromOwner(command, sender: me, group: identifier);
+    if (ok) {
+      return true;
+    }
+    // failed
+    Log.error('group not ready: $identifier');
     return false;
+  }
+
+  // protected
+  Future<bool> queryFromAssistants(QueryCommand command, {ID? sender, required ID group}) async {
+    List<ID> bots = await facebook.getAssistants(group);
+    if (bots.isEmpty) {
+      Log.warning('assistants not designated for group: $group');
+      return false;
+    }
+    // querying members from bots
+    for (ID receiver in bots) {
+      await sendContent(command, sender: sender, receiver: receiver, priority: 1);
+    }
+    Log.info('querying members from bots: $bots, group: $group');
+    return true;
+  }
+
+  // protected
+  Future<bool> queryFromAdministrators(QueryCommand command, {ID? sender, required ID group}) async {
+    AccountDBI? db = facebook.database;
+    List<ID> admins = await db.getAdministrators(group: group);
+    if (admins.isEmpty) {
+      Log.warning('administrators not found for group: $group');
+      return false;
+    }
+    // querying members from admins
+    for (ID receiver in admins) {
+      await sendContent(command, sender: sender, receiver: receiver, priority: 1);
+    }
+    Log.info('querying members from admins: $admins, group: $group');
+    return true;
+  }
+
+  // protected
+  Future<bool> queryFromOwner(QueryCommand command, {ID? sender, required ID group}) async {
+    ID? owner = await facebook.getOwner(group);
+    if (owner == null) {
+      Log.warning('owner not found for group: $group');
+      return false;
+    }
+    // querying members from owner
+    await sendContent(command, sender: sender, receiver: owner, priority: 1);
+    Log.info('querying members from owner: $owner, group: $group');
+    return true;
   }
 
 }
