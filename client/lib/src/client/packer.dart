@@ -34,7 +34,7 @@ import '../dim_common.dart';
 import 'facebook.dart';
 import 'frequency.dart';
 
-class ClientMessagePacker extends CommonPacker {
+abstract class ClientMessagePacker extends CommonPacker {
   ClientMessagePacker(super.facebook, super.messenger);
 
   @override
@@ -160,16 +160,6 @@ class ClientMessagePacker extends CommonPacker {
     };
     suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
     return false;
-  }
-
-  @override
-  void suspendInstantMessage(InstantMessage iMsg, Map info) {
-    // TODO:
-  }
-
-  @override
-  void suspendReliableMessage(ReliableMessage rMsg, Map info) {
-    // TODO:
   }
 
 }

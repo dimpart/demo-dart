@@ -74,11 +74,11 @@ abstract class CommonPacker extends MessagePacker {
   Future<List<ID>> getMembers(ID group) async {
     Facebook barrack = facebook!;
     CommonMessenger transceiver = messenger as CommonMessenger;
-    Meta? meta = await barrack.getMeta(group);
-    if (meta == null/* || meta.getKey() == null*/) {
-      // group not ready, try to query meta for it
-      if (await transceiver.queryMeta(group)) {
-        Log.info('querying meta for group: $group');
+    Document? doc = await barrack.getDocument(group, '*');
+    if (doc == null) {
+      // group not ready, try to query document for it
+      if (await transceiver.queryDocument(group)) {
+        Log.info('querying document for group: $group');
       }
       return [];
     }
@@ -88,9 +88,7 @@ abstract class CommonPacker extends MessagePacker {
       if (await transceiver.queryMembers(group)) {
         Log.info('querying members for group: $group');
       }
-      return [];
     }
-    // group is ready
     return members;
   }
 
@@ -125,23 +123,34 @@ abstract class CommonPacker extends MessagePacker {
   // protected
   Future<bool> checkReceiverInReliableMessage(ReliableMessage sMsg) async {
     ID receiver = sMsg.receiver;
-    if (receiver.isBroadcast) {
-      // broadcast message
-      return true;
-    } else if (receiver.isUser) {
-      // the facebook will select a user from local users to match this receiver,
-      // if no user matched (private key not found), this message will be ignored.
+    // check group
+    ID? group = ID.parse(sMsg['group']);
+    if (group == null && receiver.isGroup) {
+      /// Transform:
+      ///     (B) => (J)
+      ///     (D) => (G)
+      group = receiver;
+    }
+    if (group == null || group.isBroadcast) {
+      /// A, C - personal message (or hidden group message)
+      //      the packer will call the facebook to select a user from local
+      //      for this receiver, if no user matched (private key not found),
+      //      this message will be ignored;
+      /// E, F, G - broadcast group message
+      //      broadcast message is not encrypted, so it can be read by anyone.
       return true;
     }
-    // check for received group message
-    List<ID> members = await getMembers(receiver);
+    /// H, J, K - group message
+    //      check for received group message
+    List<ID> members = await getMembers(group);
     if (members.isNotEmpty) {
+      // group is ready
       return true;
     }
     // group not ready, suspend message for waiting members
     Map<String, String> error = {
       'message': 'group not ready',
-      'group': receiver.toString(),
+      'group': group.toString(),
     };
     suspendReliableMessage(sMsg, error);  // rMsg.put("error", error);
     return false;

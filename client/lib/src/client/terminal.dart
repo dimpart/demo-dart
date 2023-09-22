@@ -36,8 +36,6 @@ import '../dim_common.dart';
 import 'messenger.dart';
 import 'network/session.dart';
 import 'network/state.dart';
-import 'packer.dart';
-import 'processor.dart';
 
 mixin DeviceMixin {
 
@@ -145,14 +143,10 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   // }
 
   // protected
-  Packer createPacker(CommonFacebook facebook, ClientMessenger messenger) {
-    return ClientMessagePacker(facebook, messenger);
-  }
+  Packer createPacker(CommonFacebook facebook, ClientMessenger messenger);
 
   // protected
-  Processor createProcessor(CommonFacebook facebook, ClientMessenger messenger) {
-    return ClientMessageProcessor(facebook, messenger);
-  }
+  Processor createProcessor(CommonFacebook facebook, ClientMessenger messenger);
 
   // protected
   ClientMessenger createMessenger(ClientSession session, CommonFacebook facebook);
