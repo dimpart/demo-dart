@@ -58,11 +58,13 @@ class QueryCommandProcessor extends GroupCommandProcessor {
         }
       });
     }
-
-    // 2. check membership
     ID sender = rMsg.sender;
     List<ID> bots = await getAssistants(group);
-    bool canQuery = members.contains(sender) || bots.contains(sender);
+    bool isMember = members.contains(sender);
+    bool isBot = bots.contains(sender);
+
+    // 2. check membership
+    bool canQuery = isMember || isBot;
     if (!canQuery) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
         'template': 'Not allowed to query members of group: \${ID}',

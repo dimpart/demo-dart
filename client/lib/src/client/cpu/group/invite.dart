@@ -75,10 +75,14 @@ class InviteCommandProcessor extends ResetCommandProcessor {
         }
       });
     }
+    ID sender = rMsg.sender;
+    List<ID> admins = await getAdministrators(group);
+    bool isOwner = owner == sender;
+    bool isAdmin = admins.contains(sender);
+    bool isMember = members.contains(sender);
 
     // 2. check permission
-    ID sender = rMsg.sender;
-    if (!members.contains(sender)) {
+    if (!isMember) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
         'template': 'Not allowed to invite member into group: \${ID}',
         'replacements': {
@@ -86,24 +90,23 @@ class InviteCommandProcessor extends ResetCommandProcessor {
         }
       });
     }
-    List<ID> admins = await getAdministrators(group);
 
     // 3. do invite
     Pair<List<ID>, List<ID>> pair = _calculateInvited(members: members, inviteList: inviteList);
     List<ID> newMembers = pair.first;
     List<ID> addedList = pair.second;
-    if (owner == sender || admins.contains(sender)) {
-      // invited by owner or admin, so
-      // append them directly.
-      if (addedList.isNotEmpty && await saveMembers(newMembers, group)) {
-        command['added'] = ID.revert(addedList);
-      }
-    } else if (addedList.isEmpty) {
-      // maybe the invited users are already become members,
+    if (addedList.isEmpty && !isOwner) {
+      // maybe those users are already become members,
       // but if it can still receive an 'invite' command here,
       // we should respond the sender with the newest membership again.
       bool ok = await sendResetCommand(group: group, members: newMembers, receiver: sender);
       assert(ok, 'failed to send "reset" command for group: $group => $sender');
+    } else if (isOwner || isAdmin) {
+      // invited by owner or admin, so
+      // append them directly.
+      if (await saveMembers(newMembers, group)) {
+        command['added'] = ID.revert(addedList);
+      }
     } else {
       // add 'invite' application for waiting review
       bool ok = await addApplication(command, rMsg);

@@ -74,12 +74,13 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
         }
       });
     }
-
-    // 2. check permission
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
-    bool isAdmin = owner == sender || admins.contains(sender);
-    if (!isAdmin) {
+    bool isOwner = owner == sender;
+    bool isAdmin = admins.contains(sender);
+
+    // 2. check permission
+    if (!isOwner && !isAdmin) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
         'template': 'Not allowed to expel member from group: \${ID}',
         'replacements': {
@@ -117,7 +118,13 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     Pair<List<ID>, List<ID>> pair = _calculateExpelled(members: members, expelList: expelList);
     List<ID> newMembers = pair.first;
     List<ID> removeList = pair.second;
-    if (removeList.isNotEmpty && await saveMembers(newMembers, group)) {
+    if (removeList.isEmpty && !isOwner) {
+      // maybe those users are already expelled,
+      // but if it can still receive an 'expel' command here,
+      // we should respond the sender with the newest membership again.
+      bool ok = await sendResetCommand(group: group, members: newMembers, receiver: sender);
+      assert(ok, 'failed to send "reset" command for group: $group => $sender');
+    } else if (await saveMembers(newMembers, group)) {
       command['removed'] = ID.revert(removeList);
     }
 

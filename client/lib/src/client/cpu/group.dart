@@ -166,6 +166,18 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     return AccountDBI.isExpired(pair.first?.time, content.time);
   }
 
+  Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage(ID group) async {
+    AccountDBI? db = facebook?.database;
+    Pair<ResetCommand?, ReliableMessage?> pair = await db!.getResetCommandMessage(group);
+    if (pair.first == null || pair.second == null) {
+      User? user = await facebook?.currentUser;
+      assert(user != null, 'failed to get current user');
+      // TODO: check whether current user is the owner or an administrator
+      //       if True, create a new 'reset' command with current members
+    }
+    return pair;
+  }
+
   /// attach 'invite', 'join', 'quit' commands to 'reset' command message for owner/admins to review
   Future<bool> addApplication(GroupCommand content, ReliableMessage rMsg) async {
     assert(content is InviteCommand
@@ -173,30 +185,29 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
         || content is QuitCommand
         || content is ResignCommand, 'group command error: $content');
     // TODO: attach 'resign' command to document?
-    AccountDBI? db = facebook?.database;
-    ID group = content.group!;
-    Pair<ResetCommand?, ReliableMessage?>? pair = await db?.getResetCommandMessage(group);
-    if (pair == null || pair.first == null || pair.second == null) {
-      User? user = await facebook?.currentUser;
-      assert(user != null, 'failed to get current user');
-      ID? me = user?.identifier;
-      // TODO: check whether current user is the owner or an administrator
-      //       if True, create a new 'reset' command with current members
-      assert(me!.type == EntityType.kBot, 'failed to get reset command for group: $group');
+    ID? group = content.group;
+    if (group == null) {
+      assert(false, 'group command error: $content');
       return false;
     }
+    Pair<ResetCommand?, ReliableMessage?> pair = await getResetCommandMessage(group);
     ResetCommand? cmd = pair.first;
     ReliableMessage? msg = pair.second;
-    var applications = msg?['applications'];
+    if (cmd == null || msg == null) {
+      assert(false, 'failed to get "reset" command message for group: $group');
+      return false;
+    }
+    var applications = msg['applications'];
     List array;
     if (applications is List) {
       array = applications;
     } else {
       array = [];
-      msg?['applications'] = array;
+      msg['applications'] = array;
     }
     array.add(rMsg.toMap());
-    return await db!.saveResetCommandMessage(group, cmd!, msg!);
+    AccountDBI? db = facebook?.database;
+    return await db!.saveResetCommandMessage(group, cmd, msg);
   }
 
   /// send a reset command with newest members to the receiver

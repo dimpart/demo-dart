@@ -80,12 +80,13 @@ class ResetCommandProcessor extends GroupCommandProcessor {
         }
       });
     }
-
-    // 2. check permission
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
-    bool isAdmin = owner == sender || admins.contains(sender);
-    if (!isAdmin) {
+    bool isOwner = owner == sender;
+    bool isAdmin = admins.contains(sender);
+
+    // 2. check permission
+    if (!isOwner && !isAdmin) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
         'template': 'Not allowed to reset members of group: \${ID}',
         'replacements': {

@@ -48,8 +48,17 @@ class ClientMessagePacker extends CommonPacker {
     } catch (e) {
       String errMsg = e.toString();
       if (errMsg.contains('failed to decrypt message key')) {
+        // Exception from 'SecureMessagePacker::decrypt(sMsg, receiver)'
+        Log.warning('decrypt message error: $e');
         // visa.key changed?
-      } else {
+        // push my newest visa to the sender
+      } else if (errMsg.contains('receiver error')) {
+        // Exception from 'MessagePacker::decryptMessage(sMsg)'
+        Log.error('decrypt message error: $e');
+        // not for you?
+        // just ignore it
+        return null;
+     } else  {
         rethrow;
       }
     }

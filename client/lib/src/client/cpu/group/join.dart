@@ -64,10 +64,12 @@ class JoinCommandProcessor extends GroupCommandProcessor {
         }
       });
     }
+    ID sender = rMsg.sender;
+    bool isOwner = owner == sender;
+    bool isMember = members.contains(sender);
 
     // 2. check membership
-    ID sender = rMsg.sender;
-    if (members.contains(sender)) {
+    if (isMember && !isOwner) {
       // maybe the sender is already a member,
       // but if it can still receive a 'join' command here,
       // we should respond the sender with the newest membership again.

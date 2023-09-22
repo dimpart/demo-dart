@@ -66,10 +66,14 @@ class QuitCommandProcessor extends GroupCommandProcessor {
         }
       });
     }
+    ID sender = rMsg.sender;
+    List<ID> admins = await getAdministrators(group);
+    bool isOwner = owner == sender;
+    bool isAdmin = admins.contains(sender);
+    bool isMember = members.contains(sender);
 
     // 2. check membership
-    ID sender = rMsg.sender;
-    if (owner == sender) {
+    if (isOwner) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
         'template': 'Owner cannot quit from group: \${ID}',
         'replacements': {
@@ -77,8 +81,7 @@ class QuitCommandProcessor extends GroupCommandProcessor {
         }
       });
     }
-    List<ID> admins = await getAdministrators(group);
-    if (admins.contains(sender)) {
+    if (isAdmin) {
       return respondReceipt('Permission denied.', rMsg, group: group, extra: {
         'template': 'Administrator cannot quit from group: \${ID}',
         'replacements': {
@@ -89,7 +92,6 @@ class QuitCommandProcessor extends GroupCommandProcessor {
 
     // 3. do quit
     members = [...members];
-    bool isMember = members.contains(sender);
     if (isMember) {
       // member do exist, remove it and update database
       members.remove(sender);
