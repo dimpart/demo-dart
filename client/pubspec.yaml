@@ -12,8 +12,8 @@ environment:
 dependencies:
   object_key: ^0.1.0
   lnc: ^0.1.0
-  dimp: ^0.2.3
-  dimsdk: ^0.2.2
+  dimp: ^0.2.4
+  dimsdk: ^0.2.3
   dim_plugins: ^0.2.1
 
 dev_dependencies:

@@ -53,13 +53,15 @@ class ResignCommandProcessor extends GroupCommandProcessor {
       return [];
     }
     ID group = command.group!;
+    String text;
 
     // 1. check group
     ID? owner = await getOwner(group);
     List<ID> members = await getMembers(group);
     if (owner == null || members.isEmpty) {
       // TODO: query group members?
-      return respondReceipt('Group empty.', rMsg, group: group, extra: {
+      text = 'Group empty.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -70,7 +72,8 @@ class ResignCommandProcessor extends GroupCommandProcessor {
     // 2. check permission
     ID sender = rMsg.sender;
     if (owner == sender) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Owner cannot resign from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -105,7 +108,8 @@ class ResignCommandProcessor extends GroupCommandProcessor {
       assert(ok, 'failed to add "resign" application for group: $group');
     }
     if (!isAdmin) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not a administrator of group: \${ID}',
         'replacements': {
           'ID': group.toString(),

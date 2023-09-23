@@ -45,13 +45,15 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     assert(content is QueryCommand, 'query command error: $content');
     GroupCommand command = content as GroupCommand;
     ID group = command.group!;
+    String text;
 
     // 1. check group
     ID? owner = await getOwner(group);
     List<ID> members = await getMembers(group);
     if (owner == null || members.isEmpty) {
       // TODO: query group members?
-      return respondReceipt('Group empty.', rMsg, group: group, extra: {
+      text = 'Group empty.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -66,7 +68,8 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     // 2. check membership
     bool canQuery = isMember || isBot;
     if (!canQuery) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to query members of group: \${ID}',
         'replacements': {
           'ID': group.toString(),

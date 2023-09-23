@@ -58,9 +58,11 @@ class ResetCommandProcessor extends GroupCommandProcessor {
       return [];
     }
     ID group = command.group!;
+    String text;
     List<ID> newMembers = getMembersFromCommand(command);
     if (newMembers.isEmpty) {
-      return respondReceipt('Command error.', rMsg, group: group, extra: {
+      text = 'Command error.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'New member list is empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -73,7 +75,8 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     List<ID> members = await getMembers(group);
     if (owner == null/* || members.isEmpty*/) {
       // TODO: query group bulletin document?
-      return respondReceipt('Group empty.', rMsg, group: group, extra: {
+      text = 'Group empty.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -87,7 +90,8 @@ class ResetCommandProcessor extends GroupCommandProcessor {
 
     // 2. check permission
     if (!isOwner && !isAdmin) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to reset members of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -96,7 +100,8 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     }
     // 2.1. check owner
     if (newMembers[0] != owner) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Owner must be the first member of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -112,7 +117,8 @@ class ResetCommandProcessor extends GroupCommandProcessor {
       }
     }
     if (expelAdmin) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel administrator of group: \${ID}',
         'replacements': {
           'ID': group.toString(),

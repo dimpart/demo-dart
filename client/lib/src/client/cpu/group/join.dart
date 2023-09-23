@@ -57,7 +57,8 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     List<ID> members = await getMembers(group);
     if (owner == null || members.isEmpty) {
       // TODO: query group members?
-      return respondReceipt('Group empty.', rMsg, group: group, extra: {
+      String text = 'Group empty.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group empty: \${ID}',
         'replacements': {
           'ID': group.toString(),

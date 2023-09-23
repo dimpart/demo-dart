@@ -100,14 +100,22 @@ abstract class ClientMessagePacker extends CommonPacker {
     ID sender = sMsg.sender;
     ID? group = sMsg.group;
     int? type = sMsg.type;
-    String? name = await facebook?.getName(sender);
     if (type == ContentType.kCommand || type == ContentType.kHistory) {
-      Log.warning('ignore message unable to decrypt (type=$type) from "$name"');
+      Log.warning('ignore message unable to decrypt (type=$type) from "$sender"');
       return null;
     }
     // create text content
-    Content content = TextContent.create('Failed to decrypt message (type=$type) from "$name"');
-    content.group = group;
+    Content content = TextContent.create('Failed to decrypt message.');
+    content.addAll({
+      'template': 'Failed to decrypt message (type=\$type) from "\$sender".',
+      'replacements': {
+        'type': type,
+        'sender': sender.toString(),
+      }
+    });
+    if (group != null) {
+      content.group = group;
+    }
     // pack instant message
     Map info = sMsg.copyMap(false);
     info.remove('data');

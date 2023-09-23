@@ -53,13 +53,15 @@ class QuitCommandProcessor extends GroupCommandProcessor {
       return [];
     }
     ID group = command.group!;
+    String text;
 
     // 1. check group
     ID? owner = await getOwner(group);
     List<ID> members = await getMembers(group);
     if (owner == null || members.isEmpty) {
       // TODO: query group members?
-      return respondReceipt('Group empty.', rMsg, group: group, extra: {
+      text = 'Group empty.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -74,7 +76,8 @@ class QuitCommandProcessor extends GroupCommandProcessor {
 
     // 2. check membership
     if (isOwner) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Owner cannot quit from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -82,7 +85,8 @@ class QuitCommandProcessor extends GroupCommandProcessor {
       });
     }
     if (isAdmin) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Administrator cannot quit from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -115,7 +119,8 @@ class QuitCommandProcessor extends GroupCommandProcessor {
       assert(ok, 'failed to add "quit" application for group: $group');
     }
     if (!isMember) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not a member of group: \${ID}',
         'replacements': {
           'ID': group.toString(),

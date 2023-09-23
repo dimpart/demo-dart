@@ -52,9 +52,11 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
       return [];
     }
     ID group = command.group!;
+    String text;
     List<ID> expelList = getMembersFromCommand(command);
     if (expelList.isEmpty) {
-      return respondReceipt('Command error.', rMsg, group: group, extra: {
+      text = 'Command error.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Expel list is empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -67,7 +69,8 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     List<ID> members = await getMembers(group);
     if (owner == null || members.isEmpty) {
       // TODO: query group members?
-      return respondReceipt('Group empty.', rMsg, group: group, extra: {
+      text = 'Group empty.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -81,7 +84,8 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
 
     // 2. check permission
     if (!isOwner && !isAdmin) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel member from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -90,7 +94,8 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     }
     // 2.1. check owner
     if (expelList.contains(owner)) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel owner of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -106,7 +111,8 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
       }
     }
     if (expelAdmin) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel administrator of group: \${ID}',
         'replacements': {
           'ID': group.toString(),

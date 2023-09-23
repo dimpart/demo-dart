@@ -53,9 +53,11 @@ class InviteCommandProcessor extends ResetCommandProcessor {
       return [];
     }
     ID group = command.group!;
+    String text;
     List<ID> inviteList = getMembersFromCommand(command);
     if (inviteList.isEmpty) {
-      return respondReceipt('Command error.', rMsg, group: group, extra: {
+      text = 'Command error.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Invite list is empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -68,7 +70,8 @@ class InviteCommandProcessor extends ResetCommandProcessor {
     List<ID> members = await getMembers(group);
     if (owner == null || members.isEmpty) {
       // TODO: query group members?
-      return respondReceipt('Group empty.', rMsg, group: group, extra: {
+      text = 'Group empty.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group empty: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -83,7 +86,8 @@ class InviteCommandProcessor extends ResetCommandProcessor {
 
     // 2. check permission
     if (!isMember) {
-      return respondReceipt('Permission denied.', rMsg, group: group, extra: {
+      text = 'Permission denied.';
+      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to invite member into group: \${ID}',
         'replacements': {
           'ID': group.toString(),
