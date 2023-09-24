@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Compatible for old protocol.
+
 ## 0.2.2
 
 - Digest for cipher key.

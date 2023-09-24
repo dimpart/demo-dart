@@ -28,9 +28,12 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:typed_data';
+
 import 'package:lnc/lnc.dart';
 
 import '../dim_common.dart';
+import 'compatible.dart';
 import 'frequency.dart';
 import 'network/session.dart';
 
@@ -40,6 +43,25 @@ abstract class ClientMessenger extends CommonMessenger {
 
   @override
   ClientSession get session => super.session as ClientSession;
+
+  @override
+  Future<Uint8List> serializeContent(Content content,
+      SymmetricKey password, InstantMessage iMsg) async {
+    if (content is Command) {
+      content = Compatible.fixCommand(content);
+    }
+    return await super.serializeContent(content, password, iMsg);
+  }
+
+  @override
+  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password,
+      SecureMessage sMsg) async {
+    Content? content = await super.deserializeContent(data, password, sMsg);
+    if (content is Command) {
+      content = Compatible.fixCommand(content);
+    }
+    return content;
+  }
 
   ///  Send handshake command to current station
   ///
@@ -109,26 +131,30 @@ abstract class ClientMessenger extends CommonMessenger {
     ID me = user!.identifier;
     Meta meta = await user.meta;
     DocumentCommand command = DocumentCommand.response(me, meta, visa);
-    // send to all contacts
+    QueryFrequencyChecker checker = QueryFrequencyChecker();
+    //
+    //  send to all contacts
+    //
     List<ID> contacts = await facebook.getContacts(me);
     for (ID item in contacts) {
-      await _sendVisa(command, sender: me, receiver: item, force: updated);
+      if (checker.isDocumentResponseExpired(item, force: updated)) {
+        Log.info('sending visa to $item');
+        await sendContent(command, sender: me, receiver: item, priority: 1);
+      } else {
+        // not expired yet
+        Log.debug('visa response not expired yet: $item');
+      }
     }
-    // broadcast to 'everyone@everywhere'
-    await _sendVisa(command, sender: me, receiver: ID.kEveryone, force: updated);
-  }
-
-  Future<bool> _sendVisa(DocumentCommand command,
-      {required ID receiver, ID? sender, bool force = false}) async {
-    QueryFrequencyChecker checker = QueryFrequencyChecker();
-    if (!checker.isDocumentResponseExpired(receiver, force: force)) {
-      // response not expired yet
-      Log.debug('visa response not expired yet: $receiver');
-      return false;
+    //
+    //  broadcast to 'everyone@everywhere'
+    //
+    if (checker.isDocumentResponseExpired(ID.kEveryone, force: updated)) {
+      Log.info('sending visa to ${ID.kEveryone}');
+      await sendContent(command, sender: me, receiver: ID.kEveryone, priority: 1);
+    } else {
+      // not expired yet
+      Log.debug('visa response not expired yet: ${ID.kEveryone}');
     }
-    Log.info('push visa to: $receiver');
-    var pair = await sendContent(command, sender: sender, receiver: receiver, priority: 1);
-    return pair.second != null;
   }
 
   @override

@@ -28,11 +28,11 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:lnc/lnc.dart';
+import 'dart:typed_data';
 
 import '../dim_common.dart';
+import 'compatible.dart';
 import 'facebook.dart';
-import 'frequency.dart';
 
 abstract class ClientMessagePacker extends CommonPacker {
   ClientMessagePacker(super.facebook, super.messenger);
@@ -41,86 +41,18 @@ abstract class ClientMessagePacker extends CommonPacker {
   ClientFacebook? get facebook => super.facebook as ClientFacebook?;
 
   @override
-  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
-    InstantMessage? iMsg;
-    try {
-      iMsg = await super.decryptMessage(sMsg);
-    } catch (e) {
-      String errMsg = e.toString();
-      if (errMsg.contains('failed to decrypt message key')) {
-        // Exception from 'SecureMessagePacker::decrypt(sMsg, receiver)'
-        Log.warning('decrypt message error: $e');
-        // visa.key changed?
-        // push my newest visa to the sender
-      } else if (errMsg.contains('receiver error')) {
-        // Exception from 'MessagePacker::decryptMessage(sMsg)'
-        Log.error('decrypt message error: $e');
-        // not for you?
-        // just ignore it
-        return null;
-     } else  {
-        rethrow;
-      }
-    }
-    if (iMsg == null) {
-      // failed to decrypt message, visa.key changed?
-      // 1. push new visa document to this message sender
-      pushVisa(sMsg.sender);
-      // 2. build 'failed' message
-      iMsg = await getFailedMessage(sMsg);
-    }
-    return iMsg;
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
+    Compatible.fixMetaAttachment(rMsg);
+    return await super.serializeMessage(rMsg);
   }
 
-  // protected
-  Future<bool> pushVisa(ID contact) async {
-    QueryFrequencyChecker checker = QueryFrequencyChecker();
-    if (!checker.isDocumentResponseExpired(contact, force: false)) {
-      // response not expired yet
-      Log.debug('visa response not expired yet: $contact');
-      return false;
+  @override
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
+    ReliableMessage? rMsg = await super.deserializeMessage(data);
+    if (rMsg != null) {
+      Compatible.fixMetaAttachment(rMsg);
     }
-    Log.info('push visa to: $contact');
-    User? user = await facebook?.currentUser;
-    Visa? visa = await user?.visa;
-    if (visa == null || !visa.isValid) {
-      // FIXME: user visa not found?
-      assert(false, 'user visa error: $user');
-      return false;
-    }
-    ID me = user!.identifier;
-    DocumentCommand command = DocumentCommand.response(me, null, visa);
-    CommonMessenger transceiver = messenger as CommonMessenger;
-    transceiver.sendContent(command, sender: me, receiver: contact, priority: 1);
-    return true;
-  }
-
-  // protected
-  Future<InstantMessage?> getFailedMessage(SecureMessage sMsg) async {
-    ID sender = sMsg.sender;
-    ID? group = sMsg.group;
-    int? type = sMsg.type;
-    if (type == ContentType.kCommand || type == ContentType.kHistory) {
-      Log.warning('ignore message unable to decrypt (type=$type) from "$sender"');
-      return null;
-    }
-    // create text content
-    Content content = TextContent.create('Failed to decrypt message.');
-    content.addAll({
-      'template': 'Failed to decrypt message (type=\$type) from "\$sender".',
-      'replacements': {
-        'type': type,
-        'sender': sender.toString(),
-      }
-    });
-    if (group != null) {
-      content.group = group;
-    }
-    // pack instant message
-    Map info = sMsg.copyMap(false);
-    info.remove('data');
-    info['content'] = content.toMap();
-    return InstantMessage.parse(info);
+    return rMsg;
   }
 
   @override
