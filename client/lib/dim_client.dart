@@ -27,6 +27,7 @@ export 'src/client/cpu/creator.dart';
 
 export 'src/client/frequency.dart';
 export 'src/client/anonymous.dart';
+export 'src/client/compatible.dart';
 export 'src/client/facebook.dart';
 export 'src/client/messenger.dart';
 export 'src/client/packer.dart';
