@@ -1,3 +1,7 @@
+## 0.2.4
+
+- Group Command Helper.
+
 ## 0.2.3
 
 - Compatible for old protocol.

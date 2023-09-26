@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:object_key/object_key.dart';
 
 import '../group.dart';
 
@@ -44,22 +45,24 @@ class QueryCommandProcessor extends GroupCommandProcessor {
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is QueryCommand, 'query command error: $content');
     GroupCommand command = content as GroupCommand;
-    ID group = command.group!;
-    String text;
+
+    // 0. check command
+    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
+    ID? group = grpPair.first;
+    if (group == null) {
+      // ignore expired command
+      return grpPair.second ?? [];
+    }
 
     // 1. check group
-    ID? owner = await getOwner(group);
-    List<ID> members = await getMembers(group);
+    Triplet<ID?, List<ID>, List<Content>?> trip = await checkGroupMembers(command, rMsg);
+    ID? owner = trip.first;
+    List<ID> members = trip.second;
     if (owner == null || members.isEmpty) {
-      // TODO: query group members?
-      text = 'Group empty.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      return trip.third ?? [];
     }
+    String text;
+
     ID sender = rMsg.sender;
     List<ID> bots = await getAssistants(group);
     bool isMember = members.contains(sender);
@@ -69,7 +72,7 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     bool canQuery = isMember || isBot;
     if (!canQuery) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to query members of group: \${ID}',
         'replacements': {
           'ID': group.toString(),

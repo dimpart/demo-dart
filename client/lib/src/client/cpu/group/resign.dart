@@ -31,6 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
+import 'package:object_key/object_key.dart';
 
 import '../group.dart';
 
@@ -48,73 +49,66 @@ class ResignCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    if (await isCommandExpired(command)) {
+    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
+    ID? group = grpPair.first;
+    if (group == null) {
       // ignore expired command
-      return [];
+      return grpPair.second ?? [];
     }
-    ID group = command.group!;
-    String text;
 
     // 1. check group
-    ID? owner = await getOwner(group);
-    List<ID> members = await getMembers(group);
+    Triplet<ID?, List<ID>, List<Content>?> trip = await checkGroupMembers(command, rMsg);
+    ID? owner = trip.first;
+    List<ID> members = trip.second;
     if (owner == null || members.isEmpty) {
-      // TODO: query group members?
-      text = 'Group empty.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      return trip.third ?? [];
     }
+    String text;
+
+    ID sender = rMsg.sender;
+    List<ID> admins = await getAdministrators(group);
+    bool isOwner = owner == sender;
+    bool isAdmin = admins.contains(sender);
 
     // 2. check permission
-    ID sender = rMsg.sender;
-    if (owner == sender) {
+    if (isOwner) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Owner cannot resign from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
         }
       });
     }
-    List<ID> admins = await getAdministrators(group);
 
     // 3. do resign
-    admins = [...admins];
-    bool isAdmin = admins.contains(sender);
     if (isAdmin) {
       // admin do exist, remove it and update database
+      admins = [...admins];
       admins.remove(sender);
-      bool ok = await saveAdministrators(admins, group);
-      assert(ok, 'failed to save administrators for group: $group');
+      if (await saveAdministrators(group, admins)) {
+        command['removed'] = [sender.toString()];
+      } else {
+        assert(false, 'failed to save administrators for group: $group');
+      }
     }
 
     // 4. update bulletin property: 'administrators'
     User? user = await facebook?.currentUser;
     assert(user != null, 'failed to get current user');
-    ID me = user!.identifier;
+    ID? me = user?.identifier;
     if (owner == me) {
       // maybe the bulletin in the owner's storage not contains this administrator,
       // but if it can still receive a resign command here, then
       // the owner should update the bulletin and send it out again.
       bool ok = await _refreshAdministrators(group: group, owner: owner, admins: admins);
       assert(ok, 'failed to refresh admins for group: $group');
+    } else if (await attachApplication(command, rMsg)) {
+      // add 'resign' application for querying by other members,
+      // if thw owner wakeup, it will broadcast a new bulletin document
+      // with the newest administrators, and this application will be erased.
     } else {
-      // add 'resign' application for waiting owner to update
-      bool ok = await addApplication(command, rMsg);
-      assert(ok, 'failed to add "resign" application for group: $group');
-    }
-    if (!isAdmin) {
-      text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Not a administrator of group: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      assert(false, 'failed to add "resign" application for group: $group');
     }
 
     // no need to response this group command
@@ -127,14 +121,21 @@ class ResignCommandProcessor extends GroupCommandProcessor {
     if (bulletin == null) {
       assert(false, 'failed to update administrators for group: $group');
       return false;
-    } else if (await facebook!.saveDocument(bulletin)) {} else {
+    } else if (await facebook!.saveDocument(bulletin)) {
+      // document updated
+    } else {
       assert(false, 'failed to save document for group: $group');
       return false;
     }
     Meta? meta = await facebook?.getMeta(group);
     Content content = DocumentCommand.response(group, meta, bulletin);
-    // 2. send to assistants
+    // 2. check assistants
     List<ID> bots = await getAssistants(group);
+    if (bots.isEmpty) {
+      // TODO: broadcast to all members?
+      return true;
+    }
+    // 3. broadcast to all group assistants
     for (ID receiver in bots) {
       if (owner == receiver) {
         assert(false, 'group bot should not be owner: $owner, group: $group');
@@ -146,20 +147,15 @@ class ResignCommandProcessor extends GroupCommandProcessor {
   }
 
   Future<Document?> _updateAdministrators({required ID group, required ID owner, required List<ID> admins}) async {
-    // update document property
+    // get document & sign key
     Document? bulletin = await facebook?.getDocument(group, '*');
-    if (bulletin == null) {
-      assert(false, 'failed to get document for group: $group');
-      return null;
-    }
-    assert(bulletin is Bulletin, 'group document error: $group');
-    bulletin.setProperty('administrators', ID.revert(admins));
-    // sign document
     SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(owner);
-    if (sKey == null) {
-      assert(false, 'failed to get sign key for group owner: $owner, group: $group');
+    if (bulletin == null || sKey == null) {
+      assert(false, 'failed to get document & sign key for group: $group, owner: $owner');
       return null;
     }
+    // assert(bulletin is Bulletin, 'group document error: $group');
+    bulletin.setProperty('administrators', ID.revert(admins));
     Uint8List? signature = bulletin.sign(sKey);
     assert(signature != null, 'failed to sign bulletin for group: $group');
     return bulletin;

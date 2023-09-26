@@ -31,7 +31,7 @@
 import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
 
-import 'reset.dart';
+import '../group.dart';
 
 ///  Invite Group Command Processor
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,7 +39,7 @@ import 'reset.dart';
 ///      1. add new member(s) to the group
 ///      2. any member can invite new member
 ///      3. invited by ordinary member should be reviewed by owner/administrator
-class InviteCommandProcessor extends ResetCommandProcessor {
+class InviteCommandProcessor extends GroupCommandProcessor {
   InviteCommandProcessor(super.facebook, super.messenger);
 
   @override
@@ -48,36 +48,28 @@ class InviteCommandProcessor extends ResetCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    if (await isCommandExpired(command)) {
+    Pair<ID?, List<Content>?> expPair = await checkCommandExpired(command, rMsg);
+    ID? group = expPair.first;
+    if (group == null) {
       // ignore expired command
-      return [];
+      return expPair.second ?? [];
     }
-    ID group = command.group!;
-    String text;
-    List<ID> inviteList = getMembersFromCommand(command);
+    Pair<List<ID>, List<Content>?> memPair = await checkCommandMembers(command, rMsg);
+    List<ID> inviteList = memPair.first;
     if (inviteList.isEmpty) {
-      text = 'Command error.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Invite list is empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      // command error
+      return memPair.second ?? [];
     }
 
     // 1. check group
-    ID? owner = await getOwner(group);
-    List<ID> members = await getMembers(group);
+    Triplet<ID?, List<ID>, List<Content>?> trip = await checkGroupMembers(command, rMsg);
+    ID? owner = trip.first;
+    List<ID> members = trip.second;
     if (owner == null || members.isEmpty) {
-      // TODO: query group members?
-      text = 'Group empty.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      return trip.third ?? [];
     }
+    String text;
+
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
     bool isOwner = owner == sender;
@@ -87,41 +79,50 @@ class InviteCommandProcessor extends ResetCommandProcessor {
     // 2. check permission
     if (!isMember) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to invite member into group: \${ID}',
         'replacements': {
           'ID': group.toString(),
         }
       });
     }
+    bool canReset = isOwner || isAdmin;
 
     // 3. do invite
-    Pair<List<ID>, List<ID>> pair = _calculateInvited(members: members, inviteList: inviteList);
+    Pair<List<ID>, List<ID>> pair = calculateInvited(members: members, inviteList: inviteList);
     List<ID> newMembers = pair.first;
     List<ID> addedList = pair.second;
-    if (addedList.isEmpty && !isOwner) {
+    if (addedList.isEmpty) {
       // maybe those users are already become members,
       // but if it can still receive an 'invite' command here,
       // we should respond the sender with the newest membership again.
-      bool ok = await sendResetCommand(group: group, members: newMembers, receiver: sender);
-      assert(ok, 'failed to send "reset" command for group: $group => $sender');
-    } else if (isOwner || isAdmin) {
-      // invited by owner or admin, so
-      // append them directly.
-      if (await saveMembers(newMembers, group)) {
-        command['added'] = ID.revert(addedList);
+      User? user = await facebook?.currentUser;
+      if (!canReset && owner == user?.identifier) {
+        // invited by ordinary member, and I am the owner, so
+        // send a 'reset' command to update members in the sender's memory
+        bool ok = await sendResetCommand(group: group, members: newMembers, receiver: sender);
+        assert(ok, 'failed to send "reset" command for group: $group => $sender');
       }
-    } else {
+    } else if (!canReset) {
+      // invited by ordinary member
       // add 'invite' application for waiting review
-      bool ok = await addApplication(command, rMsg);
-      assert(ok, 'failed to add "invite" application for group: $group');
-    }
+      if (await attachApplication(command, rMsg)) {
+        command['added'] = ID.revert(addedList);
+      } else {
+        assert(false, 'failed to add "invite" application for group: $group');
+      }
+    } else if (await saveMembers(group, newMembers)) {
+      // invited by owner or admin, so
+      // append the new members directly.
+      command['added'] = ID.revert(addedList);
+  }
 
     // no need to response this group command
     return [];
   }
 
-  Pair<List<ID>, List<ID>> _calculateInvited({required List<ID> members, required List<ID> inviteList}) {
+  // protected
+  static Pair<List<ID>, List<ID>> calculateInvited({required List<ID> members, required List<ID> inviteList}) {
     List<ID> newMembers = [...members];
     List<ID> addedList = [];
     for (ID item in inviteList) {

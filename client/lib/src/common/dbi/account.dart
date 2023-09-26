@@ -222,9 +222,9 @@ abstract class GroupDBI {
 ///  ~~~~~~~~~~~
 abstract class ResetGroupDBI {
 
-  Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage(ID identifier);
+  Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage({required ID group});
 
-  Future<bool> saveResetCommandMessage(ID identifier, ResetCommand content, ReliableMessage rMsg);
+  Future<bool> saveResetCommandMessage(ResetCommand content, ReliableMessage rMsg, {required ID group});
 
 }
 
@@ -242,8 +242,8 @@ abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI,
     if (oldTime == null || newTime == null) {
       return false;
     }
-    // return newTime.before(oldTime);
-    return newTime.compareTo(oldTime) < 0;
+    return newTime.isBefore(oldTime);
+    // return newTime.compareTo(oldTime) < 0;
   }
 
 }

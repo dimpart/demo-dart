@@ -31,6 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:lnc/lnc.dart';
+import 'package:object_key/object_key.dart';
 
 import '../dim_common.dart';
 import 'compatible.dart';
@@ -234,47 +235,69 @@ abstract class ClientMessenger extends CommonMessenger {
   }
 
   // protected
-  Future<bool> queryFromAssistants(QueryCommand command, {ID? sender, required ID group}) async {
+  Future<bool> queryFromAssistants(QueryCommand command, {required ID sender, required ID group}) async {
     List<ID> bots = await facebook.getAssistants(group);
     if (bots.isEmpty) {
       Log.warning('assistants not designated for group: $group');
       return false;
     }
+    int success = 0;
+    Pair<InstantMessage, ReliableMessage?> pair;
     // querying members from bots
     for (ID receiver in bots) {
-      await sendContent(command, sender: sender, receiver: receiver, priority: 1);
+      if (sender == receiver) {
+        Log.warning('ignore cycled querying: $sender, group: $group');
+        continue;
+      }
+      pair = await sendContent(command, sender: sender, receiver: receiver, priority: 1);
+      if (pair.second != null) {
+        success += 1;
+      }
     }
     Log.info('querying members from bots: $bots, group: $group');
-    return true;
+    return success > 0;
   }
 
   // protected
-  Future<bool> queryFromAdministrators(QueryCommand command, {ID? sender, required ID group}) async {
+  Future<bool> queryFromAdministrators(QueryCommand command, {required ID sender, required ID group}) async {
     AccountDBI? db = facebook.database;
     List<ID> admins = await db.getAdministrators(group: group);
     if (admins.isEmpty) {
       Log.warning('administrators not found for group: $group');
       return false;
     }
+    int success = 0;
+    Pair<InstantMessage, ReliableMessage?> pair;
     // querying members from admins
     for (ID receiver in admins) {
-      await sendContent(command, sender: sender, receiver: receiver, priority: 1);
+      if (sender == receiver) {
+        Log.warning('ignore cycled querying: $sender, group: $group');
+        continue;
+      }
+      pair = await sendContent(command, sender: sender, receiver: receiver, priority: 1);
+      if (pair.second != null) {
+        success += 1;
+      }
     }
     Log.info('querying members from admins: $admins, group: $group');
-    return true;
+    return success > 0;
   }
 
   // protected
-  Future<bool> queryFromOwner(QueryCommand command, {ID? sender, required ID group}) async {
+  Future<bool> queryFromOwner(QueryCommand command, {required ID sender, required ID group}) async {
     ID? owner = await facebook.getOwner(group);
     if (owner == null) {
       Log.warning('owner not found for group: $group');
       return false;
+    } else if (owner == sender) {
+      Log.error('you are the owner of group: $group');
+      return false;
     }
+    Pair<InstantMessage, ReliableMessage?> pair;
     // querying members from owner
-    await sendContent(command, sender: sender, receiver: owner, priority: 1);
+    pair = await sendContent(command, sender: sender, receiver: owner, priority: 1);
     Log.info('querying members from owner: $owner, group: $group');
-    return true;
+    return pair.second != null;
   }
 
 }

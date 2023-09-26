@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -39,11 +38,6 @@ import '../group.dart';
 ///
 ///      1. reset group members
 ///      2. only group owner or assistant can reset group members
-///
-///      3. specially, if the group members info lost,
-///         means you may not known who's the group owner immediately (and he may be not online),
-///         so we accept the new members-list temporary, and find out who is the owner,
-///         after that, we will send 'query' to the owner to get the newest members-list.
 class ResetCommandProcessor extends GroupCommandProcessor {
   ResetCommandProcessor(super.facebook, super.messenger);
 
@@ -53,45 +47,38 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     ResetCommand command = content as ResetCommand;
 
     // 0. check command
-    if (await isCommandExpired(command)) {
+    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
+    ID? group = grpPair.first;
+    if (group == null) {
       // ignore expired command
-      return [];
+      return grpPair.second ?? [];
     }
-    ID group = command.group!;
-    String text;
-    List<ID> newMembers = getMembersFromCommand(command);
+    Pair<List<ID>, List<Content>?> memPair = await checkCommandMembers(command, rMsg);
+    List<ID> newMembers = memPair.first;
     if (newMembers.isEmpty) {
-      text = 'Command error.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'New member list is empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      // command error
+      return memPair.second ?? [];
     }
 
     // 1. check group
-    ID? owner = await getOwner(group);
-    List<ID> members = await getMembers(group);
-    if (owner == null/* || members.isEmpty*/) {
-      // TODO: query group bulletin document?
-      text = 'Group empty.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+    Triplet<ID?, List<ID>, List<Content>?> trip = await checkGroupMembers(command, rMsg);
+    ID? owner = trip.first;
+    List<ID> members = trip.second;
+    if (owner == null || members.isEmpty) {
+      return trip.third ?? [];
     }
+    String text;
+
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
     bool isOwner = owner == sender;
     bool isAdmin = admins.contains(sender);
 
     // 2. check permission
-    if (!isOwner && !isAdmin) {
+    bool canReset = isOwner || isAdmin;
+    if (!canReset) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to reset members of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -101,7 +88,7 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     // 2.1. check owner
     if (newMembers[0] != owner) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Owner must be the first member of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -118,7 +105,7 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     }
     if (expelAdmin) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel administrator of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -126,18 +113,19 @@ class ResetCommandProcessor extends GroupCommandProcessor {
       });
     }
 
-    // 3. try to save 'reset' command
-    if (await updateResetCommandMessage(group: group, content: command, rMsg: rMsg)) {
-      Log.info('updated "reset" command for group: $group');
-    } else {
-      // newer 'reset' command exists, drop this command
-      return [];
-    }
-
-    // 4. do reset
-    Pair<List<ID>, List<ID>> pair = await _resetMembers(group: group, oldMembers: members, newMembers: newMembers);
+    // 3. do reset
+    Pair<List<ID>, List<ID>> pair = calculateReset(oldMembers: members, newMembers: newMembers);
     List<ID> addList = pair.first;
     List<ID> removeList = pair.second;
+    if (addList.isEmpty && removeList.isEmpty) {
+      // nothing changed
+    } else if (await saveMembers(group, newMembers)) {
+      // members updated
+    } else {
+      assert(false, 'failed to save members in group: $group');
+      addList.clear();
+      removeList.clear();
+    }
     if (addList.isNotEmpty) {
       command['added'] = ID.revert(addList);
     }
@@ -149,9 +137,7 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     return [];
   }
 
-  Future<Pair<List<ID>, List<ID>>> _resetMembers({required ID group,
-                                                  required List<ID> oldMembers,
-                                                  required List<ID> newMembers}) async {
+  static Pair<List<ID>, List<ID>> calculateReset({required List<ID> oldMembers, required List<ID> newMembers}) {
     List<ID> addList = [];
     List<ID> removeList = [];
     // build invited-list
@@ -167,13 +153,6 @@ class ResetCommandProcessor extends GroupCommandProcessor {
         continue;
       }
       removeList.add(item);
-    }
-    if (addList.isNotEmpty || removeList.isNotEmpty) {
-      if (await saveMembers(newMembers, group)) {} else {
-        assert(false, 'failed to save members in group: $group');
-        addList.clear();
-        removeList.clear();
-      }
     }
     return Pair(addList, removeList);
   }

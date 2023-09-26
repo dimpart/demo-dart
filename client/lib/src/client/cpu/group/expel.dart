@@ -47,45 +47,38 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    if (await isCommandExpired(command)) {
+    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
+    ID? group = grpPair.first;
+    if (group == null) {
       // ignore expired command
-      return [];
+      return grpPair.second ?? [];
     }
-    ID group = command.group!;
-    String text;
-    List<ID> expelList = getMembersFromCommand(command);
+    Pair<List<ID>, List<Content>?> memPair = await checkCommandMembers(command, rMsg);
+    List<ID> expelList = memPair.first;
     if (expelList.isEmpty) {
-      text = 'Command error.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Expel list is empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      // command error
+      return memPair.second ?? [];
     }
 
     // 1. check group
-    ID? owner = await getOwner(group);
-    List<ID> members = await getMembers(group);
+    Triplet<ID?, List<ID>, List<Content>?> trip = await checkGroupMembers(command, rMsg);
+    ID? owner = trip.first;
+    List<ID> members = trip.second;
     if (owner == null || members.isEmpty) {
-      // TODO: query group members?
-      text = 'Group empty.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      return trip.third ?? [];
     }
+    String text;
+
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
     bool isOwner = owner == sender;
     bool isAdmin = admins.contains(sender);
 
     // 2. check permission
-    if (!isOwner && !isAdmin) {
+    bool canExpel = isOwner || isAdmin;
+    if (!canExpel) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel member from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -95,7 +88,7 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     // 2.1. check owner
     if (expelList.contains(owner)) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel owner of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -112,7 +105,7 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     }
     if (expelAdmin) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Not allowed to expel administrator of group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -121,16 +114,12 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     // 3. do expel
-    Pair<List<ID>, List<ID>> pair = _calculateExpelled(members: members, expelList: expelList);
+    Pair<List<ID>, List<ID>> pair = calculateExpelled(members: members, expelList: expelList);
     List<ID> newMembers = pair.first;
     List<ID> removeList = pair.second;
-    if (removeList.isEmpty && !isOwner) {
-      // maybe those users are already expelled,
-      // but if it can still receive an 'expel' command here,
-      // we should respond the sender with the newest membership again.
-      bool ok = await sendResetCommand(group: group, members: newMembers, receiver: sender);
-      assert(ok, 'failed to send "reset" command for group: $group => $sender');
-    } else if (await saveMembers(newMembers, group)) {
+    if (removeList.isEmpty) {
+      // nothing changed
+    } else if (await saveMembers(group, newMembers)) {
       command['removed'] = ID.revert(removeList);
     }
 
@@ -138,7 +127,8 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
     return [];
   }
 
-  Pair<List<ID>, List<ID>> _calculateExpelled({required List<ID> members, required List<ID> expelList}) {
+  // protected
+  static Pair<List<ID>, List<ID>> calculateExpelled({required List<ID> members, required List<ID> expelList}) {
     List<ID> newMembers = [];
     List<ID> removeList = [];
     for (ID item in members) {

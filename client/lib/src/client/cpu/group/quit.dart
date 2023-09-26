@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -48,36 +47,32 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    if (await isCommandExpired(command)) {
+    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
+    ID? group = grpPair.first;
+    if (group == null) {
       // ignore expired command
-      return [];
+      return grpPair.second ?? [];
     }
-    ID group = command.group!;
-    String text;
 
     // 1. check group
-    ID? owner = await getOwner(group);
-    List<ID> members = await getMembers(group);
+    Triplet<ID?, List<ID>, List<Content>?> trip = await checkGroupMembers(command, rMsg);
+    ID? owner = trip.first;
+    List<ID> members = trip.second;
     if (owner == null || members.isEmpty) {
-      // TODO: query group members?
-      text = 'Group empty.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      return trip.third ?? [];
     }
+    String text;
+
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
     bool isOwner = owner == sender;
     bool isAdmin = admins.contains(sender);
     bool isMember = members.contains(sender);
 
-    // 2. check membership
+    // 2. check permissions
     if (isOwner) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Owner cannot quit from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -86,7 +81,7 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     }
     if (isAdmin) {
       text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Administrator cannot quit from group: \${ID}',
         'replacements': {
           'ID': group.toString(),
@@ -95,68 +90,34 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     }
 
     // 3. do quit
-    members = [...members];
     if (isMember) {
       // member do exist, remove it and update database
+      members = [...members];
       members.remove(sender);
-      if (await saveMembers(members, group)) {
+      if (await saveMembers(group, members)) {
         command['removed'] = [sender.toString()];
+      } else {
+        assert(false, 'failed to save members for group: $group');
       }
     }
 
     // 4. update 'reset' command
     User? user = await facebook?.currentUser;
     assert(user != null, 'failed to get current user');
-    ID me = user!.identifier;
+    ID? me = user?.identifier;
     if (owner == me || admins.contains(me)) {
       // this is the group owner (or administrator), so
       // it has permission to reset group members here.
-      bool ok = await _refreshMembers(group: group, admin: me, members: members);
-      assert(ok, 'failed to refresh members for group: $group');
+    } else if (await attachApplication(command, rMsg)) {
+      // add 'quit' application for querying by other members,
+      // if the owner/admin wakeup, they will broadcast a new 'reset' command
+      // with the newest members, and this local 'reset' command will be erased.
     } else {
-      // add 'quit' application for waiting admin to update
-      bool ok = await addApplication(command, rMsg);
-      assert(ok, 'failed to add "quit" application for group: $group');
-    }
-    if (!isMember) {
-      text = 'Permission denied.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Not a member of group: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      assert(false, 'failed to add "quit" application for group: $group');
     }
 
     // no need to response this group command
     return [];
-  }
-
-  Future<bool> _refreshMembers({required ID group, required ID admin, required List<ID> members}) async {
-    // 1. create new 'reset' command
-    Pair<ResetCommand, ReliableMessage?> pair = await createResetCommand(sender: admin, group: group, members: members);
-    ResetCommand cmd = pair.first;
-    ReliableMessage? msg = pair.second;
-    if (msg == null) {
-      assert(false, 'failed to create "reset" command for group: $group');
-      return false;
-    } else if (await updateResetCommandMessage(group: group, content: cmd, rMsg: msg)) {
-      Log.info('update "reset" command for group: $group');
-    } else {
-      assert(false, 'failed to save "reset" command message for group: $group');
-      return false;
-    }
-    Content forward = ForwardContent.create(forward: msg);
-    // 2. forward to assistants
-    List<ID> bots = await getAssistants(group);
-    for (ID receiver in bots) {
-      if (admin == receiver) {
-        assert(false, 'group bot should not be admin: $admin');
-        continue;
-      }
-      messenger?.sendContent(forward, sender: admin, receiver: receiver, priority: 1);
-    }
-    return true;
   }
 
 }

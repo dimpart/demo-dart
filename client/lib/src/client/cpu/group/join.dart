@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:object_key/object_key.dart';
 
 import '../group.dart';
 
@@ -46,40 +47,52 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    if (await isCommandExpired(command)) {
+    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
+    ID? group = grpPair.first;
+    if (group == null) {
       // ignore expired command
-      return [];
+      return grpPair.second ?? [];
     }
-    ID group = command.group!;
 
     // 1. check group
-    ID? owner = await getOwner(group);
-    List<ID> members = await getMembers(group);
+    Triplet<ID?, List<ID>, List<Content>?> trip = await checkGroupMembers(command, rMsg);
+    ID? owner = trip.first;
+    List<ID> members = trip.second;
     if (owner == null || members.isEmpty) {
-      // TODO: query group members?
-      String text = 'Group empty.';
-      return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
-        'replacements': {
-          'ID': group.toString(),
-        }
-      });
+      return trip.third ?? [];
     }
+    User? user = await facebook?.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+      return [];
+    }
+    ID me = user.identifier;
+
     ID sender = rMsg.sender;
+    List<ID> admins = await getAdministrators(group);
     bool isOwner = owner == sender;
+    bool isAdmin = admins.contains(sender);
     bool isMember = members.contains(sender);
+    bool canReset = isOwner || isAdmin;
 
     // 2. check membership
-    if (isMember && !isOwner) {
-      // maybe the sender is already a member,
+    if (!isMember) {
+      bool iCanReset = owner == me || admins.contains(me);
+      if (iCanReset && await attachApplication(command, rMsg)) {
+        // add 'join' application for waiting review
+      } else {
+        assert(false, 'failed to add "join" application for group: $group');
+      }
+    } else if (canReset || owner != me) {
+      // maybe the command sender is already become a member,
       // but if it can still receive a 'join' command here,
-      // we should respond the sender with the newest membership again.
-      bool ok = await sendResetCommand(group: group, members: members, receiver: sender);
-      assert(ok, 'failed to send "reset" command for group: $group => $sender');
+      // and I am the owner, here we should respond the sender
+      // with the newest membership again.
+    } else if (await sendResetCommand(group: group, members: members, receiver: sender)) {
+      // the sender is an ordinary member, and I am the owner, so
+      // send a 'reset' command to update members in the sender's memory
     } else {
-      // add 'join' application for waiting review
-      bool ok = await addApplication(command, rMsg);
-      assert(ok, 'failed to add "join" application for group: $group');
+      assert(false, 'failed to send "reset" command for group: $group => $sender');
     }
 
     // no need to response this group command

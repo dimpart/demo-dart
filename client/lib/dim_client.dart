@@ -20,6 +20,7 @@ export 'src/client/cpu/group/quit.dart';
 export 'src/client/cpu/group/query.dart';
 export 'src/client/cpu/group/reset.dart';
 export 'src/client/cpu/group/resign.dart';
+export 'src/client/cpu/group_helper.dart';
 export 'src/client/cpu/group.dart';
 export 'src/client/cpu/handshake.dart';
 export 'src/client/cpu/commands.dart';
