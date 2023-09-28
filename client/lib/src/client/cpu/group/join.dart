@@ -47,11 +47,11 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
-    ID? group = grpPair.first;
+    Pair<ID?, List<Content>?> pair = await checkCommandExpired(command, rMsg);
+    ID? group = pair.first;
     if (group == null) {
       // ignore expired command
-      return grpPair.second ?? [];
+      return pair.second ?? [];
     }
 
     // 1. check group
@@ -80,8 +80,8 @@ class JoinCommandProcessor extends GroupCommandProcessor {
       bool iCanReset = owner == me || admins.contains(me);
       if (iCanReset && await attachApplication(command, rMsg)) {
         // add 'join' application for waiting review
-      } else {
-        assert(false, 'failed to add "join" application for group: $group');
+      // } else {
+      //   assert(false, 'failed to add "join" application for group: $group');
       }
     } else if (canReset || owner != me) {
       // maybe the command sender is already become a member,

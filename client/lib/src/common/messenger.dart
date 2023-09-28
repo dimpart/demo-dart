@@ -76,21 +76,18 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   ///
   /// @param identifier - entity ID
   /// @return false on duplicated
-  // protected
   Future<bool> queryMeta(ID identifier);
 
   ///  Request for meta & visa document with entity ID
   ///
   /// @param identifier - entity ID
   /// @return false on duplicated
-  // protected
   Future<bool> queryDocument(ID identifier);
 
   ///  Request for group members with group ID
   ///
   /// @param identifier - group ID
   /// @return false on duplicated
-  // protected
   Future<bool> queryMembers(ID identifier);
 
   @override

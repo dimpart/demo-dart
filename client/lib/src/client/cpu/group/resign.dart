@@ -49,11 +49,11 @@ class ResignCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
-    ID? group = grpPair.first;
+    Pair<ID?, List<Content>?> pair = await checkCommandExpired(command, rMsg);
+    ID? group = pair.first;
     if (group == null) {
       // ignore expired command
-      return grpPair.second ?? [];
+      return pair.second ?? [];
     }
 
     // 1. check group

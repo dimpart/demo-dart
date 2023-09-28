@@ -47,11 +47,11 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
-    ID? group = grpPair.first;
+    Pair<ID?, List<Content>?> pair = await checkCommandExpired(command, rMsg);
+    ID? group = pair.first;
     if (group == null) {
       // ignore expired command
-      return grpPair.second ?? [];
+      return pair.second ?? [];
     }
 
     // 1. check group
@@ -99,21 +99,6 @@ class QuitCommandProcessor extends GroupCommandProcessor {
       } else {
         assert(false, 'failed to save members for group: $group');
       }
-    }
-
-    // 4. update 'reset' command
-    User? user = await facebook?.currentUser;
-    assert(user != null, 'failed to get current user');
-    ID? me = user?.identifier;
-    if (owner == me || admins.contains(me)) {
-      // this is the group owner (or administrator), so
-      // it has permission to reset group members here.
-    } else if (await attachApplication(command, rMsg)) {
-      // add 'quit' application for querying by other members,
-      // if the owner/admin wakeup, they will broadcast a new 'reset' command
-      // with the newest members, and this local 'reset' command will be erased.
-    } else {
-      assert(false, 'failed to add "quit" application for group: $group');
     }
 
     // no need to response this group command

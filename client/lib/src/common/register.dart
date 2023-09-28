@@ -78,9 +78,9 @@ class Register {
     //  Step 5: save private key, meta & visa in local storage
     //          don't forget to upload them onto the DIM station
     //
-    await database.saveMeta(meta, identifier);
     await database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier, decrypt: 0);
     await database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier, decrypt: 1);
+    await database.saveMeta(meta, identifier);
     await database.saveDocument(visa);
     // OK
     return identifier;
@@ -92,7 +92,7 @@ class Register {
   /// @param title   - group name
   /// @return group ID
   Future<ID> createGroup(ID founder, {required String name, String? seed}) async {
-    if (seed == null) {
+    if (seed == null || seed.isEmpty) {
       Random random = Random();
       int r = random.nextInt(999990000) + 10000; // 10,000 ~ 999,999,999
       seed = 'Group-$r';
@@ -122,7 +122,8 @@ class Register {
     //
     //  Step 6: add founder as first member
     //
-    await database.saveMembers([founder], group: identifier);
+    List<ID> members = [founder];
+    await database.saveMembers(members, group: identifier);
     // OK
     return identifier;
   }

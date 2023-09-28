@@ -103,23 +103,12 @@ class GroupCommandHelper extends TwinsHelper {
   /// reset command message
   Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage(ID group) async {
     AccountDBI? db = facebook?.database;
-    if (db == null) {
-      assert(false, 'account database not set yet');
-      return Pair(null, null);
-    }
-    return await db.getResetCommandMessage(group: group);
+    return await db!.getResetCommandMessage(group: group);
   }
   Future<bool> saveResetCommandMessage(ID group, ResetCommand content, ReliableMessage rMsg) async {
+    assert(group == content.group, 'group ID error: $group, $content');
     AccountDBI? db = facebook?.database;
-    if (db == null) {
-      assert(false, 'account database not set yet');
-      return false;
-    }
-    if (group != content.group) {
-      assert(false, 'group ID error: $group, $content');
-      return false;
-    }
-    return await db.saveResetCommandMessage(content, rMsg, group: group);
+    return await db!.saveResetCommandMessage(content, rMsg, group: group);
   }
 
   /// command time
@@ -134,7 +123,8 @@ class GroupCommandHelper extends TwinsHelper {
       // administrator command, check with document time
       Document? bulletin = await getDocument(group);
       if (bulletin == null) {
-        return false;
+        assert(false, 'group document not exists: $group');
+        return true;
       }
       return AccountDBI.isExpired(bulletin.time, content.time);
     }
@@ -155,9 +145,9 @@ class GroupCommandHelper extends TwinsHelper {
     if (members == null) {
       members = [];
       // get from 'member'
-      ID? member = content.member;
-      if (member != null) {
-        members.add(member);
+      ID? single = content.member;
+      if (single != null) {
+        members.add(single);
       }
     }
     return members;

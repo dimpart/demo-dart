@@ -47,17 +47,17 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     ResetCommand command = content as ResetCommand;
 
     // 0. check command
-    Pair<ID?, List<Content>?> grpPair = await checkCommandExpired(command, rMsg);
-    ID? group = grpPair.first;
+    Pair<ID?, List<Content>?> pair = await checkCommandExpired(command, rMsg);
+    ID? group = pair.first;
     if (group == null) {
       // ignore expired command
-      return grpPair.second ?? [];
+      return pair.second ?? [];
     }
-    Pair<List<ID>, List<Content>?> memPair = await checkCommandMembers(command, rMsg);
-    List<ID> newMembers = memPair.first;
+    Pair<List<ID>, List<Content>?> pair1 = await checkCommandMembers(command, rMsg);
+    List<ID> newMembers = pair1.first;
     if (newMembers.isEmpty) {
       // command error
-      return memPair.second ?? [];
+      return pair1.second ?? [];
     }
 
     // 1. check group
@@ -86,7 +86,7 @@ class ResetCommandProcessor extends GroupCommandProcessor {
       });
     }
     // 2.1. check owner
-    if (newMembers[0] != owner) {
+    if (newMembers.first != owner) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
         'template': 'Owner must be the first member of group: \${ID}',
@@ -114,9 +114,9 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     // 3. do reset
-    Pair<List<ID>, List<ID>> pair = calculateReset(oldMembers: members, newMembers: newMembers);
-    List<ID> addList = pair.first;
-    List<ID> removeList = pair.second;
+    Pair<List<ID>, List<ID>> memPair = calculateReset(oldMembers: members, newMembers: newMembers);
+    List<ID> addList = memPair.first;
+    List<ID> removeList = memPair.second;
     if (addList.isEmpty && removeList.isEmpty) {
       // nothing changed
     } else if (await saveMembers(group, newMembers)) {

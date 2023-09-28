@@ -97,29 +97,6 @@ abstract class ClientMessenger extends CommonMessenger {
     await broadcastDocument();
   }
 
-  ///  Send login command to keep roaming
-  Future<void> broadcastLogin(ID sender, String userAgent) async {
-    Station station = session.station;
-    // create login command
-    LoginCommand content = LoginCommand.fromID(sender);
-    content.agent = userAgent;
-    content.station = station;
-    // broadcast to 'everyone@everywhere'
-    await sendContent(content, sender: sender, receiver: ID.kEveryone, priority: 1);
-  }
-
-  ///  Send report command to keep user online
-  Future<void> reportOnline(ID sender) async {
-    Content content = ReportCommand.fromTitle(ReportCommand.kOnline);
-    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
-  }
-
-  ///  Send report command to let user offline
-  Future<void> reportOffline(ID sender) async {
-    Content content = ReportCommand.fromTitle(ReportCommand.kOffline);
-    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
-  }
-
   ///  Broadcast meta & visa document to all stations
   Future<void> broadcastDocument({bool updated = false}) async {
     User? user = await facebook.currentUser;
@@ -156,6 +133,29 @@ abstract class ClientMessenger extends CommonMessenger {
       // not expired yet
       Log.debug('visa response not expired yet: ${ID.kEveryone}');
     }
+  }
+
+  ///  Send login command to keep roaming
+  Future<void> broadcastLogin(ID sender, String userAgent) async {
+    Station station = session.station;
+    // create login command
+    LoginCommand content = LoginCommand.fromID(sender);
+    content.agent = userAgent;
+    content.station = station;
+    // broadcast to 'everyone@everywhere'
+    await sendContent(content, sender: sender, receiver: ID.kEveryone, priority: 1);
+  }
+
+  ///  Send report command to keep user online
+  Future<void> reportOnline(ID sender) async {
+    Content content = ReportCommand.fromTitle(ReportCommand.kOnline);
+    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
+  }
+
+  ///  Send report command to let user offline
+  Future<void> reportOffline(ID sender) async {
+    Content content = ReportCommand.fromTitle(ReportCommand.kOffline);
+    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
   }
 
   @override

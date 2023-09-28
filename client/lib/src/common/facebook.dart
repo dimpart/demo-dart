@@ -72,14 +72,14 @@ class CommonFacebook extends Facebook {
     if (usr == null) {
       List<User> users = await localUsers;
       if (users.isNotEmpty) {
-        usr = users[0];
+        usr = users.first;
         _current = usr;
       }
     }
     return usr;
   }
-  setCurrentUser(User? user) {
-    user?.dataSource ??= this;
+  setCurrentUser(User user) {
+    user.dataSource ??= this;
     _current = user;
   }
 
@@ -171,7 +171,7 @@ class CommonFacebook extends Facebook {
         users = [owner];
       }
     }
-    assert(users[0] == owner, 'group owner must be the first member: $group');
+    assert(users.first == owner, 'group owner must be the first member: $group');
     return users;
   }
 

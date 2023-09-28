@@ -83,6 +83,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
     } else if (cmd == GroupCommand.kInvite) {
       return InviteCommandProcessor(facebook!, messenger!);
     } else if (cmd == GroupCommand.kExpel) {
+      /// Deprecated (use 'reset' instead)
       return ExpelCommandProcessor(facebook!, messenger!);
     } else if (cmd == GroupCommand.kJoin) {
       return JoinCommandProcessor(facebook!, messenger!);

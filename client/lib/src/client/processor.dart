@@ -45,8 +45,8 @@ class ClientMessageProcessor extends MessageProcessor {
     List<Content> responses = await super.processContent(content, rMsg);
     if (responses.isEmpty) {
       // respond nothing
-      return [];
-    } else if (responses[0] is HandshakeCommand) {
+      return responses;
+    } else if (responses.first is HandshakeCommand) {
       // urgent command
       return responses;
     }

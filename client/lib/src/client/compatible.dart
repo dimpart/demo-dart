@@ -35,7 +35,7 @@ abstract class Compatible {
   static void fixMetaAttachment(ReliableMessage rMsg) {
     Map? meta = rMsg['meta'];
     if (meta != null) {
-
+      fixMetaVersion(meta);
     }
   }
 

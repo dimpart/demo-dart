@@ -159,14 +159,6 @@ abstract class UserDBI {
 
   Future<bool> saveLocalUsers(List<ID> users);
 
-  // Future<bool> addUser(ID user);
-  //
-  // Future<bool> removeUser(ID user);
-  //
-  // Future<bool> setCurrentUser(ID user);
-  //
-  // Future<ID?> getCurrentUser();
-
 }
 
 
@@ -177,10 +169,6 @@ abstract class ContactDBI {
   Future<List<ID>> getContacts({required ID user});
 
   Future<bool> saveContacts(List<ID> contacts, {required ID user});
-
-  // Future<bool> addContact(ID contact, {required ID user});
-  //
-  // Future<bool> removeContact(ID contact, {required ID user});
 
 }
 
@@ -197,12 +185,6 @@ abstract class GroupDBI {
   //
   Future<List<ID>> getMembers({required ID group});
   Future<bool> saveMembers(List<ID> members, {required ID group});
-
-  // Future<bool> addMember(ID member, {required ID group});
-  //
-  // Future<bool> removeMember(ID member, {required ID group});
-  //
-  // Future<bool> removeGroup({required ID group});
 
   //
   //  bots for group

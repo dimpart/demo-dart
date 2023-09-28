@@ -190,7 +190,9 @@ abstract class CommonPacker extends MessagePacker {
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
     // 1. check contact info
     // 2. check group members info
-    if (await checkReceiverInInstantMessage(iMsg)) {} else {
+    if (await checkReceiverInInstantMessage(iMsg)) {
+      // receiver is ready
+    } else {
       // receiver not ready
       Log.warning('receiver not ready: ${iMsg.receiver}');
       return null;
@@ -201,14 +203,18 @@ abstract class CommonPacker extends MessagePacker {
   @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
     // 1. check sender's meta
-    if (await checkSenderInReliableMessage(rMsg)) {} else {
+    if (await checkSenderInReliableMessage(rMsg)) {
+      // sender is ready
+    } else {
       // sender not ready
       String error = 'sender not ready: ${rMsg.sender}';
       Log.warning(error);
       return null;
     }
     // 2. check receiver/group with local user
-    if (await checkReceiverInReliableMessage(rMsg)) {} else {
+    if (await checkReceiverInReliableMessage(rMsg)) {
+      // receiver is ready
+    } else {
       // receiver (group) not ready
       String error = 'receiver not ready: ${rMsg.receiver}';
       Log.warning(error);

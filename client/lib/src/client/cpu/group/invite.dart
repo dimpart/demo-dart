@@ -48,17 +48,17 @@ class InviteCommandProcessor extends GroupCommandProcessor {
     GroupCommand command = content as GroupCommand;
 
     // 0. check command
-    Pair<ID?, List<Content>?> expPair = await checkCommandExpired(command, rMsg);
-    ID? group = expPair.first;
+    Pair<ID?, List<Content>?> pair = await checkCommandExpired(command, rMsg);
+    ID? group = pair.first;
     if (group == null) {
       // ignore expired command
-      return expPair.second ?? [];
+      return pair.second ?? [];
     }
-    Pair<List<ID>, List<Content>?> memPair = await checkCommandMembers(command, rMsg);
-    List<ID> inviteList = memPair.first;
+    Pair<List<ID>, List<Content>?> pair1 = await checkCommandMembers(command, rMsg);
+    List<ID> inviteList = pair1.first;
     if (inviteList.isEmpty) {
       // command error
-      return memPair.second ?? [];
+      return pair1.second ?? [];
     }
 
     // 1. check group
@@ -89,9 +89,9 @@ class InviteCommandProcessor extends GroupCommandProcessor {
     bool canReset = isOwner || isAdmin;
 
     // 3. do invite
-    Pair<List<ID>, List<ID>> pair = calculateInvited(members: members, inviteList: inviteList);
-    List<ID> newMembers = pair.first;
-    List<ID> addedList = pair.second;
+    Pair<List<ID>, List<ID>> memPair = calculateInvited(members: members, inviteList: inviteList);
+    List<ID> newMembers = memPair.first;
+    List<ID> addedList = memPair.second;
     if (addedList.isEmpty) {
       // maybe those users are already become members,
       // but if it can still receive an 'invite' command here,
@@ -115,7 +115,9 @@ class InviteCommandProcessor extends GroupCommandProcessor {
       // invited by owner or admin, so
       // append the new members directly.
       command['added'] = ID.revert(addedList);
-  }
+    } else {
+      assert(false, 'failed to save members for group: $group');
+    }
 
     // no need to response this group command
     return [];

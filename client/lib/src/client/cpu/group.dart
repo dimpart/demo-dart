@@ -126,7 +126,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     if (expired) {
       String text = 'Command expired.';
       return Pair(null, respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group Command expired: \${ID}',
+        'template': 'Group command expired: \${ID}',
         'replacements': {
           'ID': content.group?.toString(),
         }
@@ -267,9 +267,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       assert(false, 'failed to encrypt message: $me => $group');
     } else {
       rMsg = await messenger?.signMessage(sMsg);
-      if (rMsg == null) {
-        assert(false, 'failed to sign message: $me => $group');
-      }
+      assert(rMsg != null, 'failed to sign message: $me => $group');
     }
     return Pair(body, rMsg);
   }
