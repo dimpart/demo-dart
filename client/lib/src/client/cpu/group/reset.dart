@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -119,18 +120,21 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     List<ID> removeList = memPair.second;
     if (addList.isEmpty && removeList.isEmpty) {
       // nothing changed
+    } else if (!await saveGroupHistory(group, command, rMsg)) {
+      // here try to save the 'reset' command to local storage as group history
+      // it should not failed unless the command is expired
+      Log.error('failed to save "reset" command for group: $group');
     } else if (await saveMembers(group, newMembers)) {
       // members updated
+      if (addList.isNotEmpty) {
+        command['added'] = ID.revert(addList);
+      }
+      if (removeList.isNotEmpty) {
+        command['removed'] = ID.revert(removeList);
+      }
     } else {
+      // DB error?
       assert(false, 'failed to save members in group: $group');
-      addList.clear();
-      removeList.clear();
-    }
-    if (addList.isNotEmpty) {
-      command['added'] = ID.revert(addList);
-    }
-    if (removeList.isNotEmpty) {
-      command['removed'] = ID.revert(removeList);
     }
 
     // no need to response this group command

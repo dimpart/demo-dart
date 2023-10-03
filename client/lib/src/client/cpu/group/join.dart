@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -61,12 +62,6 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     if (owner == null || members.isEmpty) {
       return trip.third ?? [];
     }
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return [];
-    }
-    ID me = user.identifier;
 
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
@@ -76,23 +71,24 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     bool canReset = isOwner || isAdmin;
 
     // 2. check membership
-    if (!isMember) {
-      bool iCanReset = owner == me || admins.contains(me);
-      if (iCanReset && await attachApplication(command, rMsg)) {
-        // add 'join' application for waiting review
-      // } else {
-      //   assert(false, 'failed to add "join" application for group: $group');
-      }
-    } else if (canReset || owner != me) {
+    if (isMember) {
       // maybe the command sender is already become a member,
       // but if it can still receive a 'join' command here,
-      // and I am the owner, here we should respond the sender
-      // with the newest membership again.
-    } else if (await sendResetCommand(group: group, members: members, receiver: sender)) {
-      // the sender is an ordinary member, and I am the owner, so
-      // send a 'reset' command to update members in the sender's memory
+      // we should notify the sender that the member list was updated.
+      User? user = await facebook?.currentUser;
+      if (!canReset && owner == user?.identifier) {
+        // the sender cannot reset the group, means it's an ordinary member now,
+        // and if I am the owner, then send the group history commands
+        // to update the sender's memory.
+        bool ok = await sendGroupHistories(group: group, receiver: sender);
+        assert(ok, 'failed to send history for group: $group => $sender');
+      }
+    } else if (!await saveGroupHistory(group, command, rMsg)) {
+      // here try to append the 'join' command to local storage as group history
+      // it should not failed unless the command is expired
+      Log.error('failed to save "join" command for group: $group');
     } else {
-      assert(false, 'failed to send "reset" command for group: $group => $sender');
+      // the 'join' command was saved, now waiting for review.
     }
 
     // no need to response this group command

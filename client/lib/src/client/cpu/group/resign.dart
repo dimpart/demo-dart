@@ -28,9 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dimp/dimp.dart';
+import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -82,83 +81,23 @@ class ResignCommandProcessor extends GroupCommandProcessor {
     }
 
     // 3. do resign
-    if (isAdmin) {
-      // admin do exist, remove it and update database
-      admins = [...admins];
-      admins.remove(sender);
-      if (await saveAdministrators(group, admins)) {
-        command['removed'] = [sender.toString()];
-      } else {
-        assert(false, 'failed to save administrators for group: $group');
-      }
-    }
-
-    // 4. update bulletin property: 'administrators'
-    User? user = await facebook?.currentUser;
-    assert(user != null, 'failed to get current user');
-    ID? me = user?.identifier;
-    if (owner == me) {
-      // maybe the bulletin in the owner's storage not contains this administrator,
-      // but if it can still receive a resign command here, then
-      // the owner should update the bulletin and send it out again.
-      bool ok = await _refreshAdministrators(group: group, owner: owner, admins: admins);
-      assert(ok, 'failed to refresh admins for group: $group');
-    } else if (await attachApplication(command, rMsg)) {
-      // add 'resign' application for querying by other members,
-      // if thw owner wakeup, it will broadcast a new bulletin document
-      // with the newest administrators, and this application will be erased.
+    if (!isAdmin) {
+      // the sender is not an administrator now, shall we notify the sender that
+      // the administrators list was updated?
+    } else if (!await saveGroupHistory(group, command, rMsg)) {
+      // here try to append the 'resign' command to local storage as group history
+      // it should not failed unless the command is expired
+      Log.error('failed to save "resign" command for group: $group');
+    } else if (await saveAdministrators(group, [...admins]..remove(sender))) {
+      // here try to remove the sender from admin list
+      command['removed'] = [sender.toString()];
     } else {
-      assert(false, 'failed to add "resign" application for group: $group');
+      // DB error?
+      assert(false, 'failed to save administrators for group: $group');
     }
 
     // no need to response this group command
     return [];
-  }
-
-  Future<bool> _refreshAdministrators({required ID group, required ID owner, required List<ID> admins}) async {
-    // 1. update bulletin
-    Document? bulletin = await _updateAdministrators(group: group, owner: owner, admins: admins);
-    if (bulletin == null) {
-      assert(false, 'failed to update administrators for group: $group');
-      return false;
-    } else if (await facebook!.saveDocument(bulletin)) {
-      // document updated
-    } else {
-      assert(false, 'failed to save document for group: $group');
-      return false;
-    }
-    Meta? meta = await facebook?.getMeta(group);
-    Content content = DocumentCommand.response(group, meta, bulletin);
-    // 2. check assistants
-    List<ID> bots = await getAssistants(group);
-    if (bots.isEmpty) {
-      // TODO: broadcast to all members?
-      return true;
-    }
-    // 3. broadcast to all group assistants
-    for (ID receiver in bots) {
-      if (owner == receiver) {
-        assert(false, 'group bot should not be owner: $owner, group: $group');
-        continue;
-      }
-      messenger?.sendContent(content, sender: owner, receiver: receiver, priority: 1);
-    }
-    return true;
-  }
-
-  Future<Document?> _updateAdministrators({required ID group, required ID owner, required List<ID> admins}) async {
-    // get document & sign key
-    Document? bulletin = await facebook?.getDocument(group, '*');
-    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(owner);
-    if (bulletin == null || sKey == null) {
-      assert(false, 'failed to get document & sign key for group: $group, owner: $owner');
-      return null;
-    }
-    // assert(bulletin is Bulletin, 'group document error: $group');
-    bulletin.setProperty('administrators', ID.revert(admins));
-    Uint8List? signature = bulletin.sign(sKey);
-    assert(signature != null, 'failed to sign bulletin for group: $group');
-    return bulletin;
   }
 
 }

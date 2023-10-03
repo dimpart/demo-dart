@@ -202,11 +202,40 @@ abstract class GroupDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class ResetGroupDBI {
+abstract class GroupHistoryDBI {
 
+  /// save group commands:
+  ///     invite
+  ///     expel (deprecated)
+  ///     join
+  ///     quit
+  ///     reset
+  ///     resign
+  Future<bool> saveGroupHistory(GroupCommand content, ReliableMessage rMsg, {required ID group});
+
+  /// load group commands:
+  ///     invite
+  ///     expel (deprecated)
+  ///     join
+  ///     quit
+  ///     reset
+  ///     resign
+  Future<List<Pair<GroupCommand, ReliableMessage>>> getGroupHistories({required ID group});
+
+  /// load last 'reset' group command
   Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage({required ID group});
 
-  Future<bool> saveResetCommandMessage(ResetCommand content, ReliableMessage rMsg, {required ID group});
+  /// clean group commands for members:
+  ///     invite
+  ///     expel (deprecated)
+  ///     join
+  ///     quit
+  ///     reset
+  Future<bool> clearGroupMemberHistories({required ID group});
+
+  /// clean group commands for administrators:
+  ///     resign
+  Future<bool> clearGroupAdminHistories({required ID group});
 
 }
 
@@ -214,7 +243,7 @@ abstract class ResetGroupDBI {
 ///  Account DBI
 ///  ~~~~~~~~~~~
 abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI,
-                                     UserDBI, ContactDBI, GroupDBI, ResetGroupDBI {
+                                     UserDBI, ContactDBI, GroupDBI, GroupHistoryDBI {
 
   /// check whether the time with new arrival info is expired
   ///

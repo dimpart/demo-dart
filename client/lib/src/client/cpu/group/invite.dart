@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -98,24 +99,29 @@ class InviteCommandProcessor extends GroupCommandProcessor {
       // we should respond the sender with the newest membership again.
       User? user = await facebook?.currentUser;
       if (!canReset && owner == user?.identifier) {
-        // invited by ordinary member, and I am the owner, so
-        // send a 'reset' command to update members in the sender's memory
-        bool ok = await sendResetCommand(group: group, members: newMembers, receiver: sender);
-        assert(ok, 'failed to send "reset" command for group: $group => $sender');
+        // the sender cannot reset the group, means it's an ordinary member now,
+        // and if I am the owner, then send the group history commands
+        // to update the sender's memory.
+        bool ok = await sendGroupHistories(group: group, receiver: sender);
+        assert(ok, 'failed to send history for group: $group => $sender');
       }
+    } else if (!await saveGroupHistory(group, command, rMsg)) {
+      // here try to append the 'invite' command to local storage as group history
+      // it should not failed unless the command is expired
+      Log.error('failed to save "invite" command for group: $group');
     } else if (!canReset) {
-      // invited by ordinary member
-      // add 'invite' application for waiting review
-      if (await attachApplication(command, rMsg)) {
-        command['added'] = ID.revert(addedList);
-      } else {
-        assert(false, 'failed to add "invite" application for group: $group');
-      }
+      // the sender cannot reset the group, means it's invited by ordinary member,
+      // and the 'invite' command was saved, now waiting for review.
     } else if (await saveMembers(group, newMembers)) {
-      // invited by owner or admin, so
-      // append the new members directly.
+      // FIXME: this sender has permission to reset the group,
+      //        means it must be the owner or an administrator,
+      //        usually it should send a 'reset' command instead;
+      //        if we received the 'invite' command here, maybe it was confused,
+      //        anyway, we just append the new members directly.
+      Log.warning('invited by administrator: $sender, group: $group');
       command['added'] = ID.revert(addedList);
     } else {
+      // DB error?
       assert(false, 'failed to save members for group: $group');
     }
 

@@ -30,15 +30,23 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../../common/facebook.dart';
 import '../../common/messenger.dart';
+import 'group_builder.dart';
 import 'group_helper.dart';
 
 
 class HistoryCommandProcessor extends BaseCommandProcessor {
   HistoryCommandProcessor(super.facebook, super.messenger);
+
+  @override
+  CommonFacebook? get facebook => super.facebook as CommonFacebook?;
+
+  @override
+  CommonMessenger? get messenger => super.messenger as CommonMessenger?;
 
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
@@ -53,30 +61,38 @@ class HistoryCommandProcessor extends BaseCommandProcessor {
     });
   }
 
+  //
+  //  Group Command Delegates
+  //
+
+  GroupCommandHelper? _helper;
+  GroupHistoryBuilder? _builder;
+
+  GroupCommandHelper get helper {
+    GroupCommandHelper? delegate = _helper;
+    if (delegate == null) {
+      _helper = delegate = createGroupCommandHelper();
+    }
+    return delegate;
+  }
+  /// override for customized helper
+  GroupCommandHelper createGroupCommandHelper() => GroupCommandHelper(facebook!, messenger!);
+
+  GroupHistoryBuilder get builder {
+    GroupHistoryBuilder? delegate = _builder;
+    if (delegate == null) {
+      _builder = delegate = createGroupHistoryBuilder();
+    }
+    return delegate;
+  }
+  /// override for customized builder
+  GroupHistoryBuilder createGroupHistoryBuilder() => GroupHistoryBuilder(helper);
+
 }
 
 
 class GroupCommandProcessor extends HistoryCommandProcessor {
   GroupCommandProcessor(super.facebook, super.messenger);
-
-  GroupCommandHelper? _handler;
-
-  GroupCommandHelper get helper {
-    GroupCommandHelper? helper = _handler;
-    if (helper == null) {
-      _handler = helper = createGroupCommandHelper();
-    }
-    return helper;
-  }
-  /// override for customized helper
-  GroupCommandHelper createGroupCommandHelper() =>
-      GroupCommandHelper(facebook!, messenger!);
-
-  @override
-  CommonMessenger? get messenger => super.messenger as CommonMessenger?;
-
-  @override
-  CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
   // protected
   Future<ID?> getOwner(ID group) async =>
@@ -101,11 +117,12 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       await helper.saveMembers(group, members);
 
   // protected
-  Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage(ID group) async =>
-      await helper.getResetCommandMessage(group);
-  // protected
-  Future<bool> saveResetCommandMessage(ID group, ResetCommand content, ReliableMessage rMsg) async =>
-      await helper.saveResetCommandMessage(group, content, rMsg);
+  Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async =>
+      await helper.saveGroupHistory(group, content, rMsg);
+  // // protected
+  // Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage(ID group,
+  //     {required bool generate}) async =>
+  //     await helper.getResetCommandMessage(group, generate: generate);
 
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
@@ -123,22 +140,22 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
   // protected
   Future<Pair<ID?, List<Content>?>> checkCommandExpired(GroupCommand content, ReliableMessage rMsg) async {
     bool expired = await helper.isCommandExpired(content);
-    if (expired) {
-      String text = 'Command expired.';
-      return Pair(null, respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group command expired: \${ID}',
-        'replacements': {
-          'ID': content.group?.toString(),
-        }
-      }));
+    if (!expired) {
+      // group ID must not empty here
+      return Pair(content.group, null);
     }
-    // group ID must not empty here
-    return Pair(content.group, null);
+    String text = 'Command expired.';
+    return Pair(null, respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      'template': 'Group command expired: \${ID}',
+      'replacements': {
+        'ID': content.group?.toString(),
+      }
+    }));
   }
 
   // protected
   Future<Pair<List<ID>, List<Content>?>> checkCommandMembers(GroupCommand content, ReliableMessage rMsg) async {
-    List<ID> members = GroupCommandHelper.getMembersFromCommand(content);
+    List<ID> members = await helper.getMembersFromCommand(content);
     if (members.isNotEmpty) {
       // group is ready
       return Pair(members, null);
@@ -175,101 +192,16 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     }));
   }
 
-  /// attach 'invite', 'join', 'quit', 'resign' commands to 'reset' command message
-  /// for owner/admins to review
-  Future<bool> attachApplication(GroupCommand content, ReliableMessage rMsg) async {
-    assert(content is InviteCommand
-        || content is JoinCommand
-        || content is QuitCommand
-        || content is ResignCommand, 'group command error: $content');
-    // TODO: attach 'resign' command to document?
-    ID? group = content.group;
-    if (group == null) {
-      assert(false, 'group command error: $content');
-      return false;
-    }
-    Pair<ResetCommand?, ReliableMessage?> pair = await getResetCommandMessage(group);
-    ResetCommand? cmd = pair.first;
-    ReliableMessage? msg = pair.second;
-    if (cmd == null || msg == null) {
-      assert(false, 'failed to get "reset" command message for group: $group');
-      return false;
-    }
-    var applications = msg['applications'];
-    List array;
-    if (applications is List) {
-      array = applications;
-    } else {
-      array = [];
-      msg['applications'] = array;
-    }
-    array.add(rMsg.toMap());
-    return await saveResetCommandMessage(group, cmd, msg);
-  }
-
   /// send a reset command with newest members to the receiver
-  Future<bool> sendResetCommand({required ID group, required List<ID> members, required ID receiver}) async {
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
+  Future<bool> sendGroupHistories({required ID group, required ID receiver}) async {
+    List<ReliableMessage> messages = await builder.buildGroupHistories(group);
+    if (messages.isEmpty) {
+      Log.warning('failed to build history for group: $group');
       return false;
     }
-    ID me = user.identifier;
-    Pair<ResetCommand?, ReliableMessage?> pair = await getResetCommandMessage(group);
-    ReliableMessage? msg = pair.second;
-    if (msg == null) {
-      // 'reset' command message not found in local storage
-      // check permission for creating a new one
-      ID? owner = await getOwner(group);
-      if (me != owner) {
-        // not group owner, check administrators
-        List<ID> admins = await getAdministrators(group);
-        if (!admins.contains(me)) {
-          // only group owner or administrators can reset group members
-          return false;
-        }
-      }
-      // assert(me.type != EntityType.kBot, 'a bot should not be admin: $me');
-      // this is the group owner (or administrator), so
-      // it has permission to reset group members here.
-      pair = await createResetCommand(group: group, members: members);
-      msg = pair.second;
-      if (msg == null) {
-        assert(false, 'failed to create "reset" command for group: $group');
-        return false;
-      }
-      // because the owner/administrator can create 'reset' command,
-      // so no need to save it here.
-    }
-    // OK, forward the 'reset' command message
-    Content content = ForwardContent.create(forward: msg);
-    await messenger?.sendContent(content, sender: me, receiver: receiver, priority: 1);
-    return true;
-  }
-
-  /// create 'reset' group message for anyone
-  Future<Pair<ResetCommand?, ReliableMessage?>> createResetCommand({required ID group, required List<ID> members}) async {
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return Pair(null, null);
-    }
-    ID me = user.identifier;
-    // create broadcast 'reset' group message
-    Envelope head = Envelope.create(sender: me, receiver: ID.kAnyone);
-    ResetCommand body = GroupCommand.reset(group, members: members);
-    InstantMessage iMsg = InstantMessage.create(head, body);
-    // encrypt & sign
-    SecureMessage? sMsg;
-    ReliableMessage? rMsg;
-    sMsg = await messenger?.encryptMessage(iMsg);
-    if (sMsg == null) {
-      assert(false, 'failed to encrypt message: $me => $group');
-    } else {
-      rMsg = await messenger?.signMessage(sMsg);
-      assert(rMsg != null, 'failed to sign message: $me => $group');
-    }
-    return Pair(body, rMsg);
+    Content content = ForwardContent.create(secrets: messages);
+    var pair = await messenger?.sendContent(content, sender: null, receiver: receiver, priority: 1);
+    return pair?.second != null;
   }
 
 }

@@ -1,3 +1,7 @@
+## 0.2.5
+
+- Group History Builder.
+
 ## 0.2.4
 
 - Group Command Helper.
