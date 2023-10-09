@@ -28,13 +28,17 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
+import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
-import '../dim_common.dart';
-import 'compatible.dart';
+import '../common/dbi/account.dart';
+import '../common/messenger.dart';
+import '../common/protocol/handshake.dart';
+import '../common/protocol/login.dart';
+import '../common/protocol/report.dart';
+
 import 'frequency.dart';
 import 'network/session.dart';
 
@@ -44,25 +48,6 @@ abstract class ClientMessenger extends CommonMessenger {
 
   @override
   ClientSession get session => super.session as ClientSession;
-
-  @override
-  Future<Uint8List> serializeContent(Content content,
-      SymmetricKey password, InstantMessage iMsg) async {
-    if (content is Command) {
-      content = Compatible.fixCommand(content);
-    }
-    return await super.serializeContent(content, password, iMsg);
-  }
-
-  @override
-  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password,
-      SecureMessage sMsg) async {
-    Content? content = await super.deserializeContent(data, password, sMsg);
-    if (content is Command) {
-      content = Compatible.fixCommand(content);
-    }
-    return content;
-  }
 
   ///  Send handshake command to current station
   ///

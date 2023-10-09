@@ -28,7 +28,13 @@
  * SOFTWARE.
  * =============================================================================
  */
-import '../dim_common.dart';
+import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
+
+import '../common/facebook.dart';
+import '../common/messenger.dart';
+import '../common/protocol/handshake.dart';
+
 import 'cpu/creator.dart';
 
 class ClientMessageProcessor extends MessageProcessor {

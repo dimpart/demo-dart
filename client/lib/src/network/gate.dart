@@ -30,10 +30,12 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimp/dimp.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
-import '../dim_common.dart';
+import '../common/session.dart';
+
 import 'docker.dart';
 
 

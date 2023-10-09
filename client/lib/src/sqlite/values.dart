@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-
 import 'package:object_key/object_key.dart';
 
 class SQLValues {

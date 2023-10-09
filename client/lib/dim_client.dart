@@ -2,9 +2,9 @@ library dim_client;
 
 export 'package:object_key/object_key.dart';
 
-export 'src/dim_common.dart';
-export 'src/dim_network.dart';
-export 'src/dim_sqlite.dart';
+export 'dim_common.dart';
+export 'dim_network.dart';
+export 'dim_sqlite.dart';
 
 
 export 'src/client/network/session.dart';
@@ -29,7 +29,6 @@ export 'src/client/cpu/creator.dart';
 
 export 'src/client/frequency.dart';
 export 'src/client/anonymous.dart';
-export 'src/client/compatible.dart';
 export 'src/client/facebook.dart';
 export 'src/client/messenger.dart';
 export 'src/client/packer.dart';

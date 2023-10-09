@@ -35,6 +35,7 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
+import 'compat/compatible.dart';
 import 'dbi/message.dart';
 import 'facebook.dart';
 import 'session.dart';
@@ -114,6 +115,23 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       password['digest'] = digest;
     }
     return data;
+  }
+
+  @override
+  Future<Uint8List> serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) async {
+    if (content is Command) {
+      content = Compatible.fixCommand(content);
+    }
+    return await super.serializeContent(content, password, iMsg);
+  }
+
+  @override
+  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
+    Content? content = await super.deserializeContent(data, password, sMsg);
+    if (content is Command) {
+      content = Compatible.fixCommand(content);
+    }
+    return content;
   }
 
   //

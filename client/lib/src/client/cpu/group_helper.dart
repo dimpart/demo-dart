@@ -123,6 +123,9 @@ class GroupCommandHelper extends TwinsHelper {
     return db!.saveMembers(members, group: group);
   }
 
+  ///
+  /// Group History Command
+  ///
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async {
     assert(group == content.group, 'group ID error: $group, $content');
     if (await isCommandExpired(content)) {

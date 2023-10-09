@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dim_client/src/common/compat/compatible.dart';
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
@@ -241,7 +242,17 @@ abstract class CommonPacker extends MessagePacker {
     //   // only support JsON format now
     //   return null;
     }
-    return await super.deserializeMessage(data);
+    ReliableMessage? rMsg = await super.deserializeMessage(data);
+    if (rMsg != null) {
+      Compatible.fixMetaAttachment(rMsg);
+    }
+    return rMsg;
+  }
+
+  @override
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
+    Compatible.fixMetaAttachment(rMsg);
+    return await super.serializeMessage(rMsg);
   }
 
   // @override

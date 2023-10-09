@@ -28,10 +28,10 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
+import 'package:dimp/dimp.dart';
 
-import '../dim_common.dart';
-import 'compatible.dart';
+import '../common/packer.dart';
+
 import 'facebook.dart';
 
 abstract class ClientMessagePacker extends CommonPacker {
@@ -39,21 +39,6 @@ abstract class ClientMessagePacker extends CommonPacker {
 
   @override
   ClientFacebook? get facebook => super.facebook as ClientFacebook?;
-
-  @override
-  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
-    Compatible.fixMetaAttachment(rMsg);
-    return await super.serializeMessage(rMsg);
-  }
-
-  @override
-  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    ReliableMessage? rMsg = await super.deserializeMessage(data);
-    if (rMsg != null) {
-      Compatible.fixMetaAttachment(rMsg);
-    }
-    return rMsg;
-  }
 
   @override
   Future<bool> checkReceiverInInstantMessage(InstantMessage iMsg) async {

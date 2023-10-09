@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import '../dim_common.dart';
+import '../common/session.dart';
 
 
 abstract class Arrival {

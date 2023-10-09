@@ -1,3 +1,7 @@
+## 0.2.6
+
+- Save administrators from bulletin.
+
 ## 0.2.5
 
 - Group History Builder.

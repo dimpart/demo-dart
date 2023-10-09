@@ -243,7 +243,8 @@ abstract class GroupHistoryDBI {
 ///  Account DBI
 ///  ~~~~~~~~~~~
 abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI,
-                                     UserDBI, ContactDBI, GroupDBI, GroupHistoryDBI {
+                                     UserDBI, ContactDBI,
+                                     GroupDBI, GroupHistoryDBI {
 
   /// check whether the time with new arrival info is expired
   ///

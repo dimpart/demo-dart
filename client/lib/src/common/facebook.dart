@@ -30,6 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/lnc.dart';
 
 import 'dbi/account.dart';
 
@@ -95,8 +96,18 @@ class CommonFacebook extends Facebook {
   @override
   Future<bool> saveDocument(Document doc) async {
     if (!doc.isValid) {
-      assert(false, 'document not valid: ${doc.identifier}');
-      return false;
+      ID identifier = doc.identifier;
+      Meta? meta = await getMeta(identifier);
+      if (meta == null) {
+        Log.error('meta not found: $identifier');
+        return false;
+      } else if (doc.verify(meta.publicKey)) {
+        Log.debug('document verified: $identifier');
+      } else {
+        Log.error('failed to verify document: $identifier');
+        assert(false, 'document not valid: $identifier');
+        return false;
+      }
     }
     return await database.saveDocument(doc);
   }

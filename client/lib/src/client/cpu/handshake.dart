@@ -28,11 +28,14 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
-import '../../dim_common.dart';
-import '../messenger.dart';
+import '../../common/protocol/handshake.dart';
+
 import '../network/session.dart';
+import '../messenger.dart';
 
 class HandshakeCommandProcessor extends BaseCommandProcessor {
   HandshakeCommandProcessor(super.facebook, super.messenger);

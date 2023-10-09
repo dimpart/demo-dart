@@ -28,9 +28,14 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
-import '../../dim_common.dart';
+import '../../common/dbi/session.dart';
+import '../../common/protocol/ans.dart';
+import '../../common/protocol/login.dart';
+
 import '../facebook.dart';
 import '../messenger.dart';
 import '../network/session.dart';

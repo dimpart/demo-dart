@@ -28,7 +28,12 @@
  * SOFTWARE.
  * =============================================================================
  */
-import '../dim_common.dart';
+import 'package:dimp/dimp.dart';
+
+import '../common/ans.dart';
+import '../common/facebook.dart';
+import '../common/register.dart';
+
 import 'anonymous.dart';
 
 ///  Client Facebook with Address Name Service
@@ -46,6 +51,49 @@ class ClientFacebook extends CommonFacebook {
     }
     // get name from ID
     return Anonymous.getName(identifier);
+  }
+
+  @override
+  Future<bool> saveDocument(Document doc) async {
+    bool ok = await super.saveDocument(doc);
+    if (ok && doc is Bulletin) {
+      ID group = doc.identifier;
+      assert(group.isGroup, 'group ID error: $group');
+      List<ID> admins = _getAdministratorsFromBulletin(doc);
+      if (admins.isNotEmpty) {
+        ok = await saveAdministrators(admins, group);
+      }
+    }
+    return ok;
+  }
+
+  List<ID> _getAdministratorsFromBulletin(Bulletin doc) {
+    Object? administrators = doc.getProperty('administrators');
+    if (administrators is List) {
+      return ID.convert(administrators);
+    }
+    // admins not found
+    return [];
+  }
+
+  Future<bool> saveMembers(List<ID> members, ID group) async =>
+      await database.saveMembers(members, group: group);
+
+  Future<bool> saveAssistants(List<ID> bots, ID group) async =>
+      await database.saveAssistants(bots, group: group);
+
+  Future<bool> saveAdministrators(List<ID> admins, ID group) async =>
+      await database.saveAdministrators(admins, group: group);
+
+  Future<List<ID>> getAdministrators(ID group) async {
+    List<ID> admins = await database.getAdministrators(group: group);
+    if (admins.isEmpty) {
+      Document? doc = await getDocument(group, '*');
+      if (doc is Bulletin) {
+        admins = _getAdministratorsFromBulletin(doc);
+      }
+    }
+    return admins;
   }
 
   //
@@ -74,24 +122,24 @@ IDFactory? _identifierFactory;
 class _IdentifierFactory implements IDFactory {
 
   @override
-  ID generateID(Meta meta, int? network, {String? terminal}) {
-    return _identifierFactory!.generateID(meta, network, terminal: terminal);
+  ID generateIdentifier(Meta meta, int? network, {String? terminal}) {
+    return _identifierFactory!.generateIdentifier(meta, network, terminal: terminal);
   }
 
   @override
-  ID createID({String? name, required Address address, String? terminal}) {
-    return _identifierFactory!.createID(name: name, address: address, terminal: terminal);
+  ID createIdentifier({String? name, required Address address, String? terminal}) {
+    return _identifierFactory!.createIdentifier(name: name, address: address, terminal: terminal);
   }
 
   @override
-  ID? parseID(String identifier) {
+  ID? parseIdentifier(String identifier) {
     // try ANS record
     ID? id = ClientFacebook.ans?.identifier(identifier);
     if (id != null) {
       return id;
     }
     // parse by original factory
-    return _identifierFactory?.parseID(identifier);
+    return _identifierFactory?.parseIdentifier(identifier);
   }
 
 }

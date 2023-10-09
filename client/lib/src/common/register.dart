@@ -35,6 +35,8 @@ import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:dim_plugins/dim_plugins.dart';
 
+import 'compat/entity.dart';
+import 'compat/meta.dart';
 import 'dbi/account.dart';
 import 'protocol/handshake.dart';
 import 'protocol/login.dart';
@@ -172,6 +174,9 @@ class Register {
 
     // load plugins
     registerPlugins();
+    registerEntityIDFactory();
+    registerCompatibleAddressFactory();
+    registerCompatibleMetaFactories();
 
     // load message/content factories
     _registerFactories();

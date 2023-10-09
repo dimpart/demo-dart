@@ -35,6 +35,7 @@ import 'package:object_key/object_key.dart';
 
 import '../../common/facebook.dart';
 import '../../common/messenger.dart';
+
 import 'group_builder.dart';
 import 'group_helper.dart';
 
@@ -119,10 +120,6 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
   // protected
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async =>
       await helper.saveGroupHistory(group, content, rMsg);
-  // // protected
-  // Future<Pair<ResetCommand?, ReliableMessage?>> getResetCommandMessage(ID group,
-  //     {required bool generate}) async =>
-  //     await helper.getResetCommandMessage(group, generate: generate);
 
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
@@ -139,34 +136,51 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
 
   // protected
   Future<Pair<ID?, List<Content>?>> checkCommandExpired(GroupCommand content, ReliableMessage rMsg) async {
-    bool expired = await helper.isCommandExpired(content);
-    if (!expired) {
-      // group ID must not empty here
-      return Pair(content.group, null);
+    ID? group = content.group;
+    if (group == null) {
+      assert(false, 'group command error: $content');
+      return Pair(null, null);
     }
-    String text = 'Command expired.';
-    return Pair(null, respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Group command expired: \${ID}',
-      'replacements': {
-        'ID': content.group?.toString(),
-      }
-    }));
+    List<Content>? errors;
+    bool expired = await helper.isCommandExpired(content);
+    if (expired) {
+      String text = 'Command expired.';
+      errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+        'template': 'Group command expired: \${ID}',
+        'replacements': {
+          'ID': group.toString(),
+        }
+      });
+      group = null;
+    } else {
+      // group ID must not empty here
+      errors = null;
+    }
+    return Pair(group, errors);
   }
 
   // protected
   Future<Pair<List<ID>, List<Content>?>> checkCommandMembers(GroupCommand content, ReliableMessage rMsg) async {
-    List<ID> members = await helper.getMembersFromCommand(content);
-    if (members.isNotEmpty) {
-      // group is ready
-      return Pair(members, null);
+    ID? group = content.group;
+    if (group == null) {
+      assert(false, 'group command error: $content');
+      return Pair([], null);
     }
-    String text = 'Command error.';
-    return Pair(members, respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Group members empty: \${ID}',
-      'replacements': {
-        'ID': content.group?.toString(),
-      }
-    }));
+    List<Content>? errors;
+    List<ID> members = await helper.getMembersFromCommand(content);
+    if (members.isEmpty) {
+      String text = 'Command error.';
+      errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+        'template': 'Group members empty: \${ID}',
+        'replacements': {
+          'ID': group.toString(),
+        }
+      });
+    } else {
+      // normally
+      errors = null;
+    }
+    return Pair(members, errors);
   }
 
   // protected
@@ -176,23 +190,26 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       assert(false, 'group command error: $content');
       return Triplet(null, [], null);
     }
+    List<Content>? errors;
     ID? owner = await getOwner(group);
     List<ID> members = await getMembers(group);
-    if (owner != null && members.isNotEmpty) {
+    if (owner == null || members.isEmpty) {
+      // TODO: query group members?
+      String text = 'Group empty.';
+      errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+        'template': 'Group empty: \${ID}',
+        'replacements': {
+          'ID': group.toString(),
+        }
+      });
+    } else {
       // group is ready
-      return Triplet(owner, members, null);
+      errors = null;
     }
-    // TODO: query group members?
-    String text = 'Group empty.';
-    return Triplet(owner, members, respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Group empty: \${ID}',
-      'replacements': {
-        'ID': group.toString(),
-      }
-    }));
+    return Triplet(owner, members, errors);
   }
 
-  /// send a reset command with newest members to the receiver
+  /// send a command list with newest members to the receiver
   Future<bool> sendGroupHistories({required ID group, required ID receiver}) async {
     List<ReliableMessage> messages = await builder.buildGroupHistories(group);
     if (messages.isEmpty) {

@@ -30,9 +30,14 @@
  */
 import 'dart:io';
 
+import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
-import '../dim_common.dart';
+import '../common/dbi/session.dart';
+import '../common/facebook.dart';
+import '../common/session.dart';
+
 import 'messenger.dart';
 import 'network/session.dart';
 import 'network/state.dart';

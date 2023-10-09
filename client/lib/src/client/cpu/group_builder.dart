@@ -35,6 +35,7 @@ import 'package:object_key/object_key.dart';
 import '../../common/dbi/account.dart';
 import '../../common/facebook.dart';
 import '../../common/messenger.dart';
+
 import 'group_helper.dart';
 
 
@@ -59,9 +60,9 @@ class GroupHistoryBuilder {
     Pair<Document?, ReliableMessage?> docPair = await buildDocumentCommand(group);
     doc = docPair.first;
     rMsg = docPair.second;
-    if (/*doc == null || */rMsg == null) {
+    if (doc == null || rMsg == null) {
       Log.warning('failed to build "document" command for group: $group');
-      // return messages;
+      return messages;
     } else {
       messages.add(rMsg);
     }
@@ -69,9 +70,9 @@ class GroupHistoryBuilder {
     Pair<ResetCommand?, ReliableMessage?> resPair = await helper.getResetCommandMessage(group);
     reset = resPair.first;
     rMsg = resPair.second;
-    if (/*reset == null || */rMsg == null) {
+    if (reset == null || rMsg == null) {
       Log.warning('failed to get "reset" command for group: $group');
-      // return messages;
+      return messages;
     } else {
       messages.add(rMsg);
     }
@@ -85,13 +86,13 @@ class GroupHistoryBuilder {
         continue;
       } else if (item.first is ResignCommand) {
         // 'resign' command, comparing it with document time
-        if (AccountDBI.isExpired(doc?.time, item.first.time)) {
+        if (AccountDBI.isExpired(doc.time, item.first.time)) {
           Log.warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
       } else {
         // 'invite', 'join', 'quit', comparing with 'reset' time
-        if (AccountDBI.isExpired(reset?.time, item.first.time)) {
+        if (AccountDBI.isExpired(reset.time, item.first.time)) {
           Log.warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }

@@ -30,8 +30,12 @@
  */
 import 'dart:typed_data';
 
-import '../../dim_common.dart';
-import '../../dim_network.dart';
+import 'package:dimsdk/dimsdk.dart';
+
+import '../../common/dbi/session.dart';
+import '../../common/session.dart';
+import '../../network/docker.dart';
+import '../../network/session.dart';
 
 import 'state.dart';
 
