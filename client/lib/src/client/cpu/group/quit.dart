@@ -92,8 +92,8 @@ class QuitCommandProcessor extends GroupCommandProcessor {
 
     // 3. do quit
     if (!isMember) {
-      // the sender is not a member now, shall we notify the sender that
-      // the member list was updated?
+      // the sender is not a member now,
+      // shall we notify the sender that the member list was updated?
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'quit' command to local storage as group history
       // it should not failed unless the command is expired

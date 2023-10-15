@@ -82,8 +82,8 @@ class ResignCommandProcessor extends GroupCommandProcessor {
 
     // 3. do resign
     if (!isAdmin) {
-      // the sender is not an administrator now, shall we notify the sender that
-      // the administrators list was updated?
+      // the sender is not an administrator now,
+      // shall we notify the sender that the administrators list was updated?
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'resign' command to local storage as group history
       // it should not failed unless the command is expired

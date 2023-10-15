@@ -105,7 +105,7 @@ abstract class ClientMessenger extends CommonMessenger {
         await sendContent(command, sender: me, receiver: item, priority: 1);
       } else {
         // not expired yet
-        Log.debug('visa response not expired yet: $item');
+        Log.debug('visa response not expired yet: $me => $item');
       }
     }
     //
@@ -116,7 +116,7 @@ abstract class ClientMessenger extends CommonMessenger {
       await sendContent(command, sender: me, receiver: ID.kEveryone, priority: 1);
     } else {
       // not expired yet
-      Log.debug('visa response not expired yet: ${ID.kEveryone}');
+      Log.debug('visa response not expired yet: $me => ${ID.kEveryone}');
     }
   }
 

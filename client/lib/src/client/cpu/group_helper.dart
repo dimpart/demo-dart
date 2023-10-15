@@ -156,7 +156,7 @@ class GroupCommandHelper extends TwinsHelper {
     return await db!.clearGroupAdminHistories(group: group);
   }
 
-  /// command time
+  /// check command time
   /// (all group commands received must after the cached 'reset' command)
   Future<bool> isCommandExpired(GroupCommand content) async {
     ID? group = content.group;

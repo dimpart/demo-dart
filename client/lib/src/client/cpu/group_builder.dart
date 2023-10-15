@@ -91,7 +91,7 @@ class GroupHistoryBuilder {
           continue;
         }
       } else {
-        // 'invite', 'join', 'quit', comparing with 'reset' time
+        // other commands('invite', 'join', 'quit'), comparing with 'reset' time
         if (AccountDBI.isExpired(reset.time, item.first.time)) {
           Log.warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;

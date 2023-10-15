@@ -63,7 +63,7 @@ class HistoryCommandProcessor extends BaseCommandProcessor {
   }
 
   //
-  //  Group Command Delegates
+  //  Group History Delegates
   //
 
   GroupCommandHelper? _helper;
@@ -146,8 +146,9 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     if (expired) {
       String text = 'Command expired.';
       errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group command expired: \${ID}',
+        'template': 'Group command expired: \${cmd}, group: \${ID}',
         'replacements': {
+          'cmd': content.cmd,
           'ID': group.toString(),
         }
       });

@@ -96,16 +96,17 @@ class _BTCMeta extends BaseMeta {
   Address generateAddress(int? network) {
     assert(type == MetaType.kBTC || type == MetaType.kExBTC, 'meta type error: $type');
     // assert(network == NetworkID.kBTCMain, 'BTC address type error: $network');
-    if (_cachedAddress == null/* || cached.type != network*/) {
+    Address? address = _cachedAddress;
+    if (address == null || address.type != network) {
       // if (type == MetaType.kBTC) {
       //   // TODO: compress public key?
       //   key['compressed'] = 1;
       // }
       Uint8List data = publicKey.data;
       // generate and cache it
-      _cachedAddress = CompatibleBTCAddress.generate(data, network!);
+      _cachedAddress = address = CompatibleBTCAddress.generate(data, network!);
     }
-    return _cachedAddress!;
+    return address;
   }
 }
 

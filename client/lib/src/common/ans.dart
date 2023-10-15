@@ -101,6 +101,11 @@ class AddressNameServer implements AddressNameService {
 
   /// remove the keywords temporary before save new records
   Future<int> fix(Map<String, String> records) async {
+    // _reserved['apns'] = false;
+    _reserved['master'] = false;
+    _reserved['monitor'] = false;
+    _reserved['archivist'] = false;
+    _reserved['announcer'] = false;
     _reserved['assistant'] = false;
     // _reserved['station'] = false;
     int count = 0;
@@ -114,6 +119,11 @@ class AddressNameServer implements AddressNameService {
     }
     // _reserved['station'] = true;
     _reserved['assistant'] = true;
+    _reserved['announcer'] = true;
+    _reserved['archivist'] = true;
+    _reserved['monitor'] = true;
+    _reserved['master'] = true;
+    // _reserved['apns'] = true;
     return count;
   }
 
