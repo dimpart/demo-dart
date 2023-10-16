@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
@@ -82,64 +81,6 @@ abstract class GroupEmitter {
       sender: sender, receiver: receiver, generate: true,
     );
     return key!;
-  }
-
-  /// Broadcast group document
-  Future<bool> broadcastDocument(Bulletin doc) async {
-    CommonFacebook? facebook = delegate.facebook;
-    CommonMessenger? messenger = delegate.messenger;
-    assert(facebook != null && messenger != null, 'facebook messenger not ready: $facebook, $messenger');
-
-    //
-    //  0. get current user
-    //
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
-    ID me = user.identifier;
-
-    //
-    //  1. create 'document' command, and send to current station
-    //
-    ID group = doc.identifier;
-    Meta? meta = await facebook?.getMeta(group);
-    Command content = DocumentCommand.response(group, meta, doc);
-    messenger?.sendContent(content, sender: me, receiver: Station.kAny, priority: 1);
-
-    //
-    //  2. check group bots
-    //
-    List<ID> bots = await delegate.getAssistants(group);
-    if (bots.isNotEmpty) {
-      // group bots exist, let them to deliver to all other members
-      for (ID item in bots) {
-        if (me == item) {
-          assert(false, 'should not be a bot here: $me');
-          continue;
-        }
-        messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
-      }
-      return true;
-    }
-
-    //
-    //  3. broadcast to all members
-    //
-    List<ID> members = await delegate.getMembers(group);
-    if (members.isEmpty) {
-      assert(false, 'failed to get group members: $group');
-      return false;
-    }
-    for (ID item in members) {
-      if (me == item) {
-        Log.info('skip cycled message: $item, $group');
-        continue;
-      }
-      messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
-    }
-    return true;
   }
 
   /// Send group message content

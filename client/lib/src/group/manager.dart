@@ -40,10 +40,9 @@ import '../client/cpu/group_builder.dart';
 
 import '../common/register.dart';
 import 'delegate.dart';
-import 'emitter.dart';
 import 'packer.dart';
 
-abstract class GroupManager {
+class GroupManager {
   GroupManager(this.delegate);
 
   // protected
@@ -51,8 +50,6 @@ abstract class GroupManager {
 
   // protected
   late final GroupPacker packer = createPacker();
-  // protected
-  late final GroupEmitter emitter = createEmitter();
 
   // protected
   late final GroupCommandHelper helper = createHelper();
@@ -61,8 +58,6 @@ abstract class GroupManager {
 
   /// override for customized packer
   GroupPacker createPacker() => GroupPacker(delegate);
-  /// override for customized emitter
-  GroupEmitter createEmitter();
 
   /// override for customized helper
   GroupCommandHelper createHelper() => GroupCommandHelper(facebook!, messenger!);
@@ -143,63 +138,6 @@ abstract class GroupManager {
     }
 
     return group;
-  }
-
-  ///  Update 'administrators' in bulletin document
-  ///  (broadcast new document to all members and neighbor station)
-  ///
-  /// @param group     - group ID
-  /// @param newAdmins - administrator list
-  /// @return false on error
-  Future<bool> updateAdministrators(ID group, List<ID> newAdmins) async {
-    assert(group.isGroup, 'group ID error: $group');
-
-    //
-    //  0. get current user
-    //
-    User? user = await currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
-    ID me = user.identifier;
-    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(me);
-    assert(sKey != null, 'failed to get sign key for current user: $me');
-
-    //
-    //  1. check permission
-    //
-    bool isOwner = await delegate.isOwner(me, group: group);
-    if (!isOwner) {
-      assert(false, 'cannot update administrators for group: $group, $me');
-      return false;
-    }
-
-    //
-    //  2. update document
-    //
-    Document? doc = await delegate.getDocument(group, '*');
-    if (doc == null) {
-      // TODO: create new one?
-      assert(false, 'failed to get group document: $group, owner: $me');
-      return false;
-    }
-    doc.setProperty('administrators', ID.revert(newAdmins));
-    var signature = sKey == null ? null : doc.sign(sKey);
-    if (signature == null) {
-      assert(false, 'failed to sign document for group: $group, owner: $me');
-      return false;
-    } else if (!await delegate.saveDocument(doc)) {
-      assert(false, 'failed to save document for group: $group');
-      return false;
-    } else {
-      Log.info('group document updated: $group');
-    }
-
-    //
-    //  3. broadcast bulletin document
-    //
-    return emitter.broadcastDocument(doc as Bulletin);
   }
 
   // DISCUSS: should we let the neighbor stations know the group info?
@@ -464,43 +402,6 @@ abstract class GroupManager {
     }
 
     return true;
-  }
-
-  ///  Query group info
-  ///
-  /// @param group - group ID
-  /// @return false on error
-  Future<bool> queryGroup(ID group) async {
-    assert(group.isGroup, 'group ID error: $group');
-
-    //
-    //  0. get current user
-    //
-    User? user = await currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
-    ID me = user.identifier;
-
-    bool isMember = await delegate.isMember(me, group: group);
-    bool isAssistant = await delegate.isAssistant(me, group: group);
-
-    //
-    //  1. check permission
-    //
-    bool canQuery = isMember || isAssistant;
-    if (!canQuery) {
-      assert(false, 'cannot query group: $group, $me');
-    }
-
-    //
-    //  2. do query
-    //
-    bool? ok1 = await messenger?.queryDocument(group);
-    bool? ok2 = await messenger?.queryMembers(group);
-
-    return ok1 == true || ok2 == true;
   }
 
   Future<bool> _sendCommand(Content content, {ID? receiver, List<ID>? members}) async {
