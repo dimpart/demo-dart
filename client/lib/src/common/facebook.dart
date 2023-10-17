@@ -33,6 +33,8 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
 import 'dbi/account.dart';
+import 'anonymous.dart';
+
 
 ///  Common Facebook with Database
 class CommonFacebook extends Facebook {
@@ -82,6 +84,19 @@ class CommonFacebook extends Facebook {
   setCurrentUser(User user) {
     user.dataSource ??= this;
     _current = user;
+  }
+
+  Future<String> getName(ID identifier) async {
+    // get name from document
+    Document? doc = await getDocument(identifier, '*');
+    if (doc != null) {
+      String? name = doc.name;
+      if (name != null && name.isNotEmpty) {
+        return name;
+      }
+    }
+    // get name from ID
+    return Anonymous.getName(identifier);
   }
 
   @override

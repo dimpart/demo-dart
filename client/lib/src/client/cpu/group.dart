@@ -35,10 +35,8 @@ import 'package:object_key/object_key.dart';
 
 import '../../common/facebook.dart';
 import '../../common/messenger.dart';
-
-import 'group_builder.dart';
-import 'group_helper.dart';
-
+import '../../group/helper.dart';
+import '../../group/builder.dart';
 
 class HistoryCommandProcessor extends BaseCommandProcessor {
   HistoryCommandProcessor(super.facebook, super.messenger);

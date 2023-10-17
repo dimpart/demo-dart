@@ -22,6 +22,7 @@ export 'src/common/compat/entity.dart';
 export 'src/common/compat/meta.dart';
 export 'src/common/compat/compatible.dart';
 
+export 'src/common/anonymous.dart';
 export 'src/common/ans.dart';
 export 'src/common/facebook.dart';
 export 'src/common/messenger.dart';

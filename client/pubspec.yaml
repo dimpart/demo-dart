@@ -13,8 +13,8 @@ dependencies:
   object_key: ^0.1.0
   lnc: ^0.1.0
   dimp: ^0.2.5
-  dimsdk: ^0.2.4
-  dim_plugins: ^0.2.2
+  dimsdk: ^0.2.5
+  dim_plugins: ^0.2.3
 
 dev_dependencies:
   lints: ^2.0.0

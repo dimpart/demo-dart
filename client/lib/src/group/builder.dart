@@ -32,12 +32,11 @@ import 'package:dimp/dimp.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
-import '../../common/dbi/account.dart';
-import '../../common/facebook.dart';
-import '../../common/messenger.dart';
+import '../common/dbi/account.dart';
+import '../common/facebook.dart';
+import '../common/messenger.dart';
 
-import 'group_helper.dart';
-
+import 'helper.dart';
 
 class GroupHistoryBuilder {
   GroupHistoryBuilder(this.helper);

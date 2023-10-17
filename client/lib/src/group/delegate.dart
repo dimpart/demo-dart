@@ -31,7 +31,7 @@
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 
-import '../client/facebook.dart';
+import '../common/dbi/account.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
@@ -46,7 +46,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
 
   Future<String> buildGroupName(List<ID> members) async {
     assert(members.isNotEmpty, 'members should not be empty here');
-    ClientFacebook barrack = facebook as ClientFacebook;
+    CommonFacebook barrack = facebook!;
     String text = await barrack.getName(members.first);
     String nickname;
     for (int i = 1; i < members.length; ++i) {
@@ -86,7 +86,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
 
   Future<bool> saveDocument(Document doc) async {
     assert(doc.isValid, 'document invalid: ${doc.identifier}');
-    var db = facebook?.database;
+    AccountDBI? db = facebook?.database;
     if (db == null) {
       assert(false, 'account database not found');
       return false;
@@ -103,6 +103,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
+      // group not ready
       return null;
     }
     return await facebook?.getFounder(group);
@@ -113,6 +114,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
+      // group not ready
       return null;
     }
     return await facebook?.getOwner(group);
@@ -123,16 +125,24 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
+      // group not ready
       return [];
     }
-    List<ID>? bots = await facebook?.getAssistants(group);
+    AccountDBI? db = facebook?.database;
+    List<ID>? bots = await db?.getAssistants(group: group);
     if (bots != null && bots.isNotEmpty) {
       // got from database
       return bots;
     }
-    // get from bulletin
-    var array = doc.getProperty('assistants');
-    return array is List ? ID.convert(array) : [];
+    if (doc is Bulletin/* && doc.isValid*/) {
+      bots = doc.assistants;
+      if (bots != null) {
+        // got from bulletin document
+        return bots;
+      }
+    }
+    // TODO: get group bots from SP configuration
+    return [];
   }
 
   @override
@@ -140,6 +150,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
+      // group not ready
       return [];
     }
     List<ID>? members = await facebook?.getMembers(group);
@@ -152,7 +163,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
 
   Future<bool> saveMembers(List<ID> members, {required ID group}) async {
     assert(group.isGroup && members.isNotEmpty, 'params error: $group, $members');
-    var db = facebook?.database;
+    AccountDBI? db = facebook?.database;
     if (db == null) {
       assert(false, 'account database not found');
       return false;
@@ -168,17 +179,22 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
+      // group not ready
       return [];
     }
-    var db = facebook?.database;
+    AccountDBI? db = facebook?.database;
     List<ID>? admins = await db?.getAdministrators(group: group);
     if (admins != null && admins.isNotEmpty) {
       // got from database
       return admins;
     }
-    // get from bulletin
     var array = doc.getProperty('administrators');
-    return array is List ? ID.convert(array) : [];
+    if (array is List) {
+      // got from bulletin document
+      return ID.convert(array);
+    }
+    // administrators not found
+    return [];
   }
 
   //

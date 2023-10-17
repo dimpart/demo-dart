@@ -33,12 +33,12 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
 import '../common/dbi/account.dart';
+import '../common/register.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
-import '../client/cpu/group_helper.dart';
-import '../client/cpu/group_builder.dart';
 
-import '../common/register.dart';
+import 'helper.dart';
+import 'builder.dart';
 import 'delegate.dart';
 import 'packer.dart';
 

@@ -33,9 +33,9 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
-import '../../common/dbi/account.dart';
-import '../../common/facebook.dart';
-import '../../common/messenger.dart';
+import '../common/dbi/account.dart';
+import '../common/facebook.dart';
+import '../common/messenger.dart';
 
 class GroupCommandHelper extends TwinsHelper {
   GroupCommandHelper(super.facebook, super.messenger);

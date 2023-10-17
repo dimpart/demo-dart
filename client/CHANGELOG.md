@@ -1,3 +1,7 @@
+## 0.2.7
+
+- Group Manager.
+
 ## 0.2.6
 
 - Save administrators from bulletin.

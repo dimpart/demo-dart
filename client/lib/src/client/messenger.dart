@@ -33,13 +33,13 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
+import '../utils/frequency.dart';
 import '../common/dbi/account.dart';
 import '../common/messenger.dart';
 import '../common/protocol/handshake.dart';
 import '../common/protocol/login.dart';
 import '../common/protocol/report.dart';
 
-import 'frequency.dart';
 import 'network/session.dart';
 
 ///  Client Messenger for Handshake & Broadcast Report

@@ -34,24 +34,9 @@ import '../common/ans.dart';
 import '../common/facebook.dart';
 import '../common/register.dart';
 
-import 'anonymous.dart';
-
 ///  Client Facebook with Address Name Service
 class ClientFacebook extends CommonFacebook {
   ClientFacebook(super.adb);
-
-  Future<String> getName(ID identifier) async {
-    // get name from document
-    Document? doc = await getDocument(identifier, '*');
-    if (doc != null) {
-      String? name = doc.name;
-      if (name != null && name.isNotEmpty) {
-        return name;
-      }
-    }
-    // get name from ID
-    return Anonymous.getName(identifier);
-  }
 
   @override
   Future<bool> saveDocument(Document doc) async {
@@ -59,21 +44,21 @@ class ClientFacebook extends CommonFacebook {
     if (ok && doc is Bulletin) {
       ID group = doc.identifier;
       assert(group.isGroup, 'group ID error: $group');
-      List<ID> admins = _getAdministratorsFromBulletin(doc);
-      if (admins.isNotEmpty) {
+      List<ID>? admins = _getAdministratorsFromBulletin(doc);
+      if (admins != null) {
         ok = await saveAdministrators(admins, group);
       }
     }
     return ok;
   }
 
-  List<ID> _getAdministratorsFromBulletin(Bulletin doc) {
+  List<ID>? _getAdministratorsFromBulletin(Bulletin doc) {
     Object? administrators = doc.getProperty('administrators');
     if (administrators is List) {
       return ID.convert(administrators);
     }
     // admins not found
-    return [];
+    return null;
   }
 
   Future<bool> saveMembers(List<ID> members, ID group) async =>
@@ -87,11 +72,14 @@ class ClientFacebook extends CommonFacebook {
 
   Future<List<ID>> getAdministrators(ID group) async {
     List<ID> admins = await database.getAdministrators(group: group);
-    if (admins.isEmpty) {
-      Document? doc = await getDocument(group, '*');
-      if (doc is Bulletin) {
-        admins = _getAdministratorsFromBulletin(doc);
-      }
+    if (admins.isNotEmpty) {
+      // got from database
+      return admins;
+    }
+    Document? doc = await getDocument(group, '*');
+    if (doc is Bulletin) {
+      // try to get from bulletin document
+      admins = _getAdministratorsFromBulletin(doc) ?? [];
     }
     return admins;
   }
