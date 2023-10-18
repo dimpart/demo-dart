@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
 import 'delegate.dart';
@@ -39,6 +40,9 @@ class GroupPacker {
   // protected
   final GroupDelegate delegate;
 
+  // protected
+  Messenger? get messenger => delegate.messenger;
+
   ///  Pack as broadcast message
   Future<ReliableMessage?> packMessage(Content content, {required ID sender}) async {
     Envelope envelope = Envelope.create(sender: sender, receiver: ID.kAnyone);
@@ -48,14 +52,15 @@ class GroupPacker {
   }
 
   Future<ReliableMessage?> encryptAndSignMessage(InstantMessage iMsg) async {
+    Messenger? transceiver = messenger;
     // encrypt for receiver
-    SecureMessage? sMsg = await delegate.messenger?.encryptMessage(iMsg);
+    SecureMessage? sMsg = await transceiver?.encryptMessage(iMsg);
     if (sMsg == null) {
       assert(false, 'failed to encrypt message: ${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
       return null;
     }
     // sign for sender
-    ReliableMessage? rMsg = await delegate.messenger?.signMessage(sMsg);
+    ReliableMessage? rMsg = await transceiver?.signMessage(sMsg);
     if (rMsg == null) {
       assert(false, 'failed to sign message: ${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
       return null;

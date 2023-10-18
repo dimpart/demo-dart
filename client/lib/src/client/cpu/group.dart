@@ -35,6 +35,7 @@ import 'package:object_key/object_key.dart';
 
 import '../../common/facebook.dart';
 import '../../common/messenger.dart';
+import '../../group/delegate.dart';
 import '../../group/helper.dart';
 import '../../group/builder.dart';
 
@@ -64,28 +65,21 @@ class HistoryCommandProcessor extends BaseCommandProcessor {
   //  Group History Delegates
   //
 
-  GroupCommandHelper? _helper;
-  GroupHistoryBuilder? _builder;
+  // protected
+  late final GroupDelegate delegate = createdDelegate();
+  // protected
+  late final GroupCommandHelper helper = createdHelper();
+  // protected
+  late final GroupHistoryBuilder builder = createBuilder();
 
-  GroupCommandHelper get helper {
-    GroupCommandHelper? delegate = _helper;
-    if (delegate == null) {
-      _helper = delegate = createGroupCommandHelper();
-    }
-    return delegate;
-  }
+  /// override for customized data source
+  GroupDelegate createdDelegate() => GroupDelegate(facebook!, messenger!);
+
   /// override for customized helper
-  GroupCommandHelper createGroupCommandHelper() => GroupCommandHelper(facebook!, messenger!);
+  GroupCommandHelper createdHelper() => GroupCommandHelper(delegate);
 
-  GroupHistoryBuilder get builder {
-    GroupHistoryBuilder? delegate = _builder;
-    if (delegate == null) {
-      _builder = delegate = createGroupHistoryBuilder();
-    }
-    return delegate;
-  }
   /// override for customized builder
-  GroupHistoryBuilder createGroupHistoryBuilder() => GroupHistoryBuilder(helper);
+  GroupHistoryBuilder createBuilder() => GroupHistoryBuilder(delegate);
 
 }
 
@@ -95,25 +89,25 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
 
   // protected
   Future<ID?> getOwner(ID group) async =>
-      await helper.getOwner(group);
+      await delegate.getOwner(group);
 
   // protected
   Future<List<ID>> getAssistants(ID group) async =>
-      await helper.getAssistants(group);
+      await delegate.getAssistants(group);
 
   // protected
   Future<List<ID>> getAdministrators(ID group) async =>
-      await helper.getAdministrators(group);
+      await delegate.getAdministrators(group);
   // protected
   Future<bool> saveAdministrators(ID group, List<ID> admins) async =>
-      await helper.saveAdministrators(group, admins);
+      await delegate.saveAdministrators(group, admins);
 
   // protected
   Future<List<ID>> getMembers(ID group) async =>
-      await helper.getMembers(group);
+      await delegate.getMembers(group);
   // protected
   Future<bool> saveMembers(ID group, List<ID> members) async =>
-      await helper.saveMembers(group, members);
+      await delegate.saveMembers(group, members);
 
   // protected
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async =>

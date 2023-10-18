@@ -60,16 +60,17 @@ class GroupManager {
   GroupPacker createPacker() => GroupPacker(delegate);
 
   /// override for customized helper
-  GroupCommandHelper createHelper() => GroupCommandHelper(facebook!, messenger!);
+  GroupCommandHelper createHelper() => GroupCommandHelper(delegate);
   /// override for customized builder
-  GroupHistoryBuilder createBuilder() => GroupHistoryBuilder(helper);
+  GroupHistoryBuilder createBuilder() => GroupHistoryBuilder(delegate);
 
-  CommonMessenger? get messenger => delegate.messenger;
+  // protected
   CommonFacebook? get facebook => delegate.facebook;
+  // protected
+  CommonMessenger? get messenger => delegate.messenger;
 
+  // protected
   AccountDBI? get database => facebook?.database;
-
-  Future<User?> get currentUser async => await facebook?.currentUser;
 
   ///  Create new group with members
   ///  (broadcast document & members to all members and neighbor station)
@@ -82,7 +83,7 @@ class GroupManager {
     //
     //  0. get current user
     //
-    User? user = await currentUser;
+    User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return null;
@@ -163,7 +164,7 @@ class GroupManager {
     //
     //  0. get current user
     //
-    User? user = await currentUser;
+    User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
@@ -191,12 +192,14 @@ class GroupManager {
     //
     bool isOwner = me == first;
     bool isAdmin = await delegate.isAdministrator(me, group: group);
+    bool isBot = await delegate.isAssistant(me, group: group);
     bool canReset = isOwner || isAdmin;
     if (!canReset) {
       assert(false, 'cannot reset members of group: $group');
       return false;
     }
     // only the owner or admin can reset group members
+    assert(!isBot, 'group bot cannot reset members: $group, $me');
 
     //
     //  2. build 'reset' command
@@ -215,7 +218,7 @@ class GroupManager {
     if (!await helper.saveGroupHistory(group, reset, rMsg)) {
       assert(false, 'failed to save "reset" command for group: $group');
       return false;
-    } else if (!await delegate.saveMembers(newMembers, group: group)) {
+    } else if (!await delegate.saveMembers(group, newMembers)) {
       assert(false, 'failed to update members of group: $group');
       return false;
     } else {
@@ -254,7 +257,7 @@ class GroupManager {
     //
     //  0. get current user
     //
-    User? user = await currentUser;
+    User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
@@ -335,7 +338,7 @@ class GroupManager {
     //
     //  0. get current user
     //
-    User? user = await currentUser;
+    User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
@@ -350,6 +353,7 @@ class GroupManager {
 
     bool isOwner = await delegate.isOwner(me, group: group);
     bool isAdmin = await delegate.isAdministrator(me, group: group);
+    bool isBot = await delegate.isAssistant(me, group: group);
     bool isMember = members.contains(me);
 
     //
@@ -362,6 +366,7 @@ class GroupManager {
       assert(false, 'administrator cannot quit from group: $group');
       return false;
     }
+    assert(!isBot, 'group bot cannot quit: $group, $me');
 
     //
     //  2. update local storage
@@ -370,7 +375,7 @@ class GroupManager {
       Log.warning('quitting group: $group, $me');
       members = [...members];
       members.remove(me);
-      bool ok = await delegate.saveMembers(members, group: group);
+      bool ok = await delegate.saveMembers(group, members);
       assert(ok, 'failed to save members for group: $group');
     } else {
       Log.error('member not in group: $group, $me');
@@ -412,20 +417,21 @@ class GroupManager {
       assert(false, 'params error');
       return false;
     }
-    CommonMessenger? transceiver = messenger;
-    User? user = await currentUser;
-    if (user == null || transceiver == null) {
-      assert(false, 'should not happen: $user, $transceiver');
+    // 1. get sender
+    User? user = await facebook?.currentUser;
+    if (user == null) {
+      assert(false, 'should not happen: $user');
       return false;
     }
     ID me = user.identifier;
-
+    // 2. send to all receivers
+    CommonMessenger? transceiver = messenger;
     for (ID receiver in members) {
       if (me == receiver) {
         Log.info('skip cycled message: $me => $receiver');
         continue;
       }
-      transceiver.sendContent(content, sender: me, receiver: receiver, priority: 1);
+      transceiver?.sendContent(content, sender: me, receiver: receiver, priority: 1);
     }
     return true;
   }

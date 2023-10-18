@@ -36,15 +36,24 @@ import '../common/dbi/account.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
+import 'delegate.dart';
 import 'helper.dart';
 
 class GroupHistoryBuilder {
-  GroupHistoryBuilder(this.helper);
+  GroupHistoryBuilder(this.delegate);
 
-  final GroupCommandHelper helper;
+  // protected
+  final GroupDelegate delegate;
+  // protected
+  late final GroupCommandHelper helper = createHelper();
 
-  CommonFacebook? get facebook => helper.facebook;
-  CommonMessenger? get messenger => helper.messenger;
+  /// override for customized helper
+  GroupCommandHelper createHelper() => GroupCommandHelper(delegate);
+
+  // protected
+  CommonFacebook? get facebook => delegate.facebook;
+  // protected
+  CommonMessenger? get messenger => delegate.messenger;
 
   /// build command list for group history:
   ///     0. document command
@@ -105,14 +114,14 @@ class GroupHistoryBuilder {
   /// create broadcast 'document' command
   Future<Pair<Document?, ReliableMessage?>> buildDocumentCommand(ID group) async {
     User? user = await facebook?.currentUser;
-    Document? doc = await helper.getDocument(group);
+    Document? doc = await delegate.getDocument(group, '*');
     if (user == null || doc == null) {
       assert(user != null, 'failed to get current user');
       Log.error('document not found for group: $group');
       return Pair(null, null);
     }
     ID me = user.identifier;
-    Meta? meta = await helper.getMeta(group);
+    Meta? meta = await delegate.getMeta(group);
     Command command = DocumentCommand.response(group, meta, doc);
     ReliableMessage? rMsg = await _packBroadcastMessage(me, command);
     return Pair(doc, rMsg);
@@ -121,7 +130,7 @@ class GroupHistoryBuilder {
   /// create broadcast 'reset' group command with newest member list
   Future<Pair<ResetCommand?, ReliableMessage?>> buildResetCommand(ID group, [List<ID>? members]) async {
     User? user = await facebook?.currentUser;
-    ID? owner = await helper.getOwner(group);
+    ID? owner = await delegate.getOwner(group);
     if (user == null || owner == null) {
       assert(user != null, 'failed to get current user');
       Log.error('owner not found for group: $group');
@@ -129,13 +138,13 @@ class GroupHistoryBuilder {
     }
     ID me = user.identifier;
     if (owner != me) {
-      List<ID> admins = await helper.getAdministrators(group);
+      List<ID> admins = await delegate.getAdministrators(group);
       if (!admins.contains(me)) {
         Log.warning('not permit to build "reset" command for group: $group, $me');
         return Pair(null, null);
       }
     }
-    members ??= await helper.getMembers(group);
+    members ??= await delegate.getMembers(group);
     ResetCommand command = GroupCommand.reset(group, members: members);
     ReliableMessage? rMsg = await _packBroadcastMessage(me, command);
     return Pair(command, rMsg);

@@ -43,6 +43,9 @@ class AdminManager {
   // protected
   final GroupDelegate delegate;
 
+  CommonFacebook? get facebook => delegate.facebook;
+  CommonMessenger? get messenger => delegate.messenger;
+
   ///  Update 'administrators' in bulletin document
   ///  (broadcast new document to all members and neighbor station)
   ///
@@ -51,19 +54,19 @@ class AdminManager {
   /// @return false on error
   Future<bool> updateAdministrators(ID group, List<ID> newAdmins) async {
     assert(group.isGroup, 'group ID error: $group');
-    CommonFacebook? facebook = delegate.facebook;
-    assert(facebook != null, 'facebook not ready');
+    CommonFacebook? barrack = facebook;
+    assert(barrack != null, 'facebook not ready');
 
     //
     //  0. get current user
     //
-    User? user = await facebook?.currentUser;
+    User? user = await barrack?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
     }
     ID me = user.identifier;
-    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(me);
+    SignKey? sKey = await barrack?.getPrivateKeyForVisaSignature(me);
     assert(sKey != null, 'failed to get sign key for current user: $me');
 
     //
@@ -71,7 +74,7 @@ class AdminManager {
     //
     bool isOwner = await delegate.isOwner(me, group: group);
     if (!isOwner) {
-      assert(false, 'cannot update administrators for group: $group, $me');
+      // assert(false, 'cannot update administrators for group: $group, $me');
       return false;
     }
 
@@ -105,14 +108,14 @@ class AdminManager {
   /// Broadcast group document
   // protected
   Future<bool> broadcastDocument(Bulletin doc) async {
-    CommonFacebook? facebook = delegate.facebook;
-    CommonMessenger? messenger = delegate.messenger;
-    assert(facebook != null && messenger != null, 'facebook messenger not ready: $facebook, $messenger');
+    CommonFacebook? barrack = facebook;
+    CommonMessenger? transceiver = messenger;
+    assert(barrack != null && transceiver != null, 'facebook messenger not ready: $barrack, $transceiver');
 
     //
     //  0. get current user
     //
-    User? user = await facebook?.currentUser;
+    User? user = await barrack?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
@@ -123,9 +126,9 @@ class AdminManager {
     //  1. create 'document' command, and send to current station
     //
     ID group = doc.identifier;
-    Meta? meta = await facebook?.getMeta(group);
+    Meta? meta = await barrack?.getMeta(group);
     Command content = DocumentCommand.response(group, meta, doc);
-    messenger?.sendContent(content, sender: me, receiver: Station.kAny, priority: 1);
+    transceiver?.sendContent(content, sender: me, receiver: Station.kAny, priority: 1);
 
     //
     //  2. check group bots
@@ -138,7 +141,7 @@ class AdminManager {
           assert(false, 'should not be a bot here: $me');
           continue;
         }
-        messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
+        transceiver?.sendContent(content, sender: me, receiver: item, priority: 1);
       }
       return true;
     }
@@ -156,7 +159,7 @@ class AdminManager {
         Log.info('skip cycled message: $item, $group');
         continue;
       }
-      messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
+      transceiver?.sendContent(content, sender: me, receiver: item, priority: 1);
     }
     return true;
   }

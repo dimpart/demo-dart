@@ -49,10 +49,6 @@ abstract class ClientMessenger extends CommonMessenger {
   @override
   ClientSession get session => super.session as ClientSession;
 
-  Future<SymmetricKey?> getCipherKey({required ID sender, required ID receiver,
-    bool generate = false}) async =>
-      await cipherKeyDelegate?.getCipherKey(sender: sender, receiver: receiver, generate: generate);
-
   ///  Send handshake command to current station
   ///
   /// @param sessionKey - respond session key

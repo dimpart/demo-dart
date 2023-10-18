@@ -44,6 +44,8 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   @override
   CommonMessenger? get messenger => super.messenger as CommonMessenger?;
 
+  AccountDBI? get database => facebook?.database;
+
   Future<String> buildGroupName(List<ID> members) async {
     assert(members.isNotEmpty, 'members should not be empty here');
     CommonFacebook barrack = facebook!;
@@ -70,6 +72,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   Future<Meta?> getMeta(ID identifier) async {
     Meta? meta = await facebook?.getMeta(identifier);
     if (meta == null) {
+      // if not found, query it from any station
       messenger?.queryMeta(identifier);
     }
     return meta;
@@ -79,20 +82,14 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   Future<Document?> getDocument(ID identifier, String? docType) async {
     Document? doc = await facebook?.getDocument(identifier, docType);
     if (doc == null) {
+      // if not found, query it from any station
       messenger?.queryDocument(identifier);
     }
     return doc;
   }
 
-  Future<bool> saveDocument(Document doc) async {
-    assert(doc.isValid, 'document invalid: ${doc.identifier}');
-    AccountDBI? db = facebook?.database;
-    if (db == null) {
-      assert(false, 'account database not found');
-      return false;
-    }
-    return await db.saveDocument(doc);
-  }
+  Future<bool> saveDocument(Document doc) async =>
+      await facebook!.saveDocument(doc);
 
   //
   //  Group DataSource
@@ -103,7 +100,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
-      // group not ready
+      // the owner(founder) should be set in the bulletin document of group
       return null;
     }
     return await facebook?.getFounder(group);
@@ -114,7 +111,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
-      // group not ready
+      // the owner(founder) should be set in the bulletin document of group
       return null;
     }
     return await facebook?.getOwner(group);
@@ -125,24 +122,10 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(group.isGroup, 'ID error: $group');
     Document? doc = await getDocument(group, '*');
     if (doc == null) {
-      // group not ready
+      // the group assistants should be set in the bulletin document
       return [];
     }
-    AccountDBI? db = facebook?.database;
-    List<ID>? bots = await db?.getAssistants(group: group);
-    if (bots != null && bots.isNotEmpty) {
-      // got from database
-      return bots;
-    }
-    if (doc is Bulletin/* && doc.isValid*/) {
-      bots = doc.assistants;
-      if (bots != null) {
-        // got from bulletin document
-        return bots;
-      }
-    }
-    // TODO: get group bots from SP configuration
-    return [];
+    return await facebook!.getAssistants(group);
   }
 
   @override
@@ -153,23 +136,16 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
       // group not ready
       return [];
     }
-    List<ID>? members = await facebook?.getMembers(group);
-    if (members == null || members.length < 2) {
+    List<ID> members = await facebook!.getMembers(group);
+    if (members.length < 2) {
       // members not found, query the owner (or group bots)
       messenger?.queryMembers(group);
     }
-    return members ?? [];
+    return members;
   }
 
-  Future<bool> saveMembers(List<ID> members, {required ID group}) async {
-    assert(group.isGroup && members.isNotEmpty, 'params error: $group, $members');
-    AccountDBI? db = facebook?.database;
-    if (db == null) {
-      assert(false, 'account database not found');
-      return false;
-    }
-    return await db.saveMembers(members, group: group);
-  }
+  Future<bool> saveMembers(ID group, List<ID> members) async =>
+      await database!.saveMembers(members, group: group);
 
   //
   //  Administrators
@@ -182,9 +158,8 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
       // group not ready
       return [];
     }
-    AccountDBI? db = facebook?.database;
-    List<ID>? admins = await db?.getAdministrators(group: group);
-    if (admins != null && admins.isNotEmpty) {
+    List<ID> admins = await database!.getAdministrators(group: group);
+    if (admins.isNotEmpty) {
       // got from database
       return admins;
     }
@@ -196,6 +171,9 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     // administrators not found
     return [];
   }
+
+  Future<bool> saveAdministrators(ID group, List<ID> admins) async =>
+      await database!.saveAdministrators(admins, group: group);
 
   //
   //  Membership

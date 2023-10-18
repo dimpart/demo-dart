@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
@@ -75,9 +76,15 @@ abstract class GroupEmitter {
   GroupPacker createPacker() => GroupPacker(delegate);
 
   // protected
-  Future<EncryptKey> getEncryptKey({required ID sender, required ID receiver}) async {
-    ClientMessenger? messenger = delegate.messenger as ClientMessenger?;
-    EncryptKey? key = await messenger?.getCipherKey(
+  CommonFacebook? get facebook => delegate.facebook;
+  // protected
+  CommonMessenger? get messenger => delegate.messenger;
+
+  // protected
+  Future<SymmetricKey> getEncryptKey({required ID sender, required ID receiver}) async {
+    ClientMessenger? transceiver = messenger as ClientMessenger?;
+    CipherKeyDelegate? keyCache = transceiver?.cipherKeyDelegate;
+    SymmetricKey? key = await keyCache?.getCipherKey(
       sender: sender, receiver: receiver, generate: true,
     );
     return key!;
@@ -85,8 +92,8 @@ abstract class GroupEmitter {
 
   /// Send group message content
   Future<Pair<InstantMessage?, ReliableMessage?>> sendContent(Content content, {int priority = 0}) async {
-    CommonFacebook? facebook = delegate.facebook;
-    assert(facebook != null, 'facebook messenger not ready');
+    CommonFacebook? barrack = facebook;
+    assert(barrack != null, 'facebook not ready');
 
     // get 'sender' => 'group'
     ID? group = content.group;
@@ -94,7 +101,7 @@ abstract class GroupEmitter {
       assert(false, 'not a group message: $content');
       return Pair(null, null);
     }
-    User? user = await facebook?.currentUser;
+    User? user = await barrack?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return Pair(null, null);
@@ -121,7 +128,7 @@ abstract class GroupEmitter {
     //
     if (content is FileContent) {
       // call emitter to encrypt & upload file data before send out
-      EncryptKey password = await getEncryptKey(sender: iMsg.sender, receiver: group);
+      SymmetricKey password = await getEncryptKey(sender: iMsg.sender, receiver: group);
       bool ok = await uploadFileData(content, password, iMsg);
       assert(ok, 'failed to upload file data: $content');
     }
@@ -167,7 +174,7 @@ abstract class GroupEmitter {
   /// @param password - symmetric key to encrypt/decrypt file data
   /// @param iMsg     - outgoing message
   // protected
-  Future<bool> uploadFileData(FileContent content, EncryptKey password, InstantMessage iMsg);
+  Future<bool> uploadFileData(FileContent content, SymmetricKey password, InstantMessage iMsg);
 
   /// Encrypt & sign message, then forward to the bot
   Future<ReliableMessage?> _forwardMessage(InstantMessage iMsg, ID bot, {required ID group, int priority = 0}) async {
@@ -176,7 +183,7 @@ abstract class GroupEmitter {
     //         if you want to send a group command to any assistant, you must
     //         set the bot ID as 'receiver' and set the group ID in content;
     //         this means you must send it to the bot directly.
-    CommonMessenger? messenger = delegate.messenger;
+    CommonMessenger? transceiver = messenger;
 
     // group bots designated, let group bot to split the message, so
     // here must expose the group ID; this will cause the client to
@@ -203,7 +210,7 @@ abstract class GroupEmitter {
 
     // forward the group message to any bot
     Content content = ForwardContent.create(forward: rMsg);
-    var pair = await messenger?.sendContent(content, sender: null, receiver: bot, priority: priority);
+    var pair = await transceiver?.sendContent(content, sender: null, receiver: bot, priority: priority);
     if (pair == null || pair.second == null) {
       assert(false, 'failed to forward message for group: $group, bot: $bot');
     }
@@ -216,7 +223,7 @@ abstract class GroupEmitter {
   Future<ReliableMessage?> _disperseMessage(InstantMessage iMsg, List<ID> members, {required ID group, int priority = 0}) async {
     assert(group.isGroup, 'group ID error: $group');
     // assert(!iMsg.containsKey('group'), 'should not happen');
-    CommonMessenger? messenger = delegate.messenger;
+    CommonMessenger? transceiver = messenger;
 
     // NOTICE: there are too many members in this group
     //         if we still hide the group ID, the cost will be very high.
@@ -246,7 +253,7 @@ abstract class GroupEmitter {
         assert(false, 'cycled message: $sender => $receiver, $group');
         continue;
       }
-      ok = await messenger?.sendReliableMessage(rMsg, priority: priority);
+      ok = await transceiver?.sendReliableMessage(rMsg, priority: priority);
       assert(ok == true, 'failed to send message: $sender => $receiver, $group');
     }
 
@@ -257,7 +264,7 @@ abstract class GroupEmitter {
   Future<int> _splitAndSendMessage(InstantMessage iMsg, List<ID> members, {required ID group, int priority = 0}) async {
     assert(group.isGroup, 'group ID error: $group');
     assert(!iMsg.containsKey('group'), 'should not happen');
-    CommonMessenger? messenger = delegate.messenger;
+    CommonMessenger? transceiver = messenger;
 
     // NOTICE: this is a tiny group
     //         I suggest NOT to expose the group ID to maximize its privacy,
@@ -280,7 +287,7 @@ abstract class GroupEmitter {
         continue;
       }
       // send message
-      rMsg = await messenger?.sendInstantMessage(msg, priority: priority);
+      rMsg = await transceiver?.sendInstantMessage(msg, priority: priority);
       if (rMsg == null) {
         Log.error('failed to send message: $sender => $receiver, $group');
         continue;

@@ -42,47 +42,21 @@ class ClientFacebook extends CommonFacebook {
   Future<bool> saveDocument(Document doc) async {
     bool ok = await super.saveDocument(doc);
     if (ok && doc is Bulletin) {
-      ID group = doc.identifier;
-      assert(group.isGroup, 'group ID error: $group');
-      List<ID>? admins = _getAdministratorsFromBulletin(doc);
-      if (admins != null) {
+      // check administrators
+      Object? array = doc.getProperty('administrators');
+      if (array is List) {
+        ID group = doc.identifier;
+        assert(group.isGroup, 'group ID error: $group');
+        List<ID> admins = ID.convert(array);
         ok = await saveAdministrators(admins, group);
       }
     }
     return ok;
   }
 
-  List<ID>? _getAdministratorsFromBulletin(Bulletin doc) {
-    Object? administrators = doc.getProperty('administrators');
-    if (administrators is List) {
-      return ID.convert(administrators);
-    }
-    // admins not found
-    return null;
-  }
-
-  Future<bool> saveMembers(List<ID> members, ID group) async =>
-      await database.saveMembers(members, group: group);
-
-  Future<bool> saveAssistants(List<ID> bots, ID group) async =>
-      await database.saveAssistants(bots, group: group);
-
+  // private
   Future<bool> saveAdministrators(List<ID> admins, ID group) async =>
       await database.saveAdministrators(admins, group: group);
-
-  Future<List<ID>> getAdministrators(ID group) async {
-    List<ID> admins = await database.getAdministrators(group: group);
-    if (admins.isNotEmpty) {
-      // got from database
-      return admins;
-    }
-    Document? doc = await getDocument(group, '*');
-    if (doc is Bulletin) {
-      // try to get from bulletin document
-      admins = _getAdministratorsFromBulletin(doc) ?? [];
-    }
-    return admins;
-  }
 
   //
   //  Address Name Service
