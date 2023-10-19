@@ -120,14 +120,14 @@ class GroupManager {
     Command content;
     if (doc != null) {
       content = DocumentCommand.response(group, meta, doc);
-      _sendCommand(content, receiver: Station.kAny);    // to neighbor(s)
     } else if (meta != null) {
       content = MetaCommand.response(group, meta);
-      _sendCommand(content, receiver: Station.kAny);    // to neighbor(s)
     } else {
       assert(false, 'failed to get group info: $group');
       return null;
     }
+    bool ok = await _sendCommand(content, receiver: Station.kAny);  // to neighbor(s)
+    assert(ok, 'failed to upload meta/document to neighbor station');
 
     //
     //  4. create & broadcast 'reset' group command with new members
@@ -148,7 +148,7 @@ class GroupManager {
   //          and its potential risk is that anyone not in the group can also
   //          know the group info (only the group ID, name, and admins, ...)
   //      (B) but, if we don't let the station knows it,
-  //          then we must shared the group info with our members themself;
+  //          then we must shared the group info with our members themselves;
   //          and if none of them is online, you cannot get the newest info
   //          immediately until someone online again.
 
@@ -175,7 +175,7 @@ class GroupManager {
     ID first = newMembers.first;
     bool ok = await delegate.isOwner(first, group: group);
     if (!ok) {
-      assert(false, 'group owner musts be the first member: $group');
+      assert(false, 'group owner must be the first member: $group');
       return false;
     }
     // member list OK, check expelled members
@@ -235,7 +235,7 @@ class GroupManager {
     if (bots.isNotEmpty) {
       // let the group bots know the newest member ID list,
       // so they can split group message correctly for us.
-      _sendCommand(forward, members: bots);             // to all assistants
+      return _sendCommand(forward, members: bots);      // to all assistants
     } else {
       // group bots not exist,
       // send the command to all members
@@ -311,8 +311,7 @@ class GroupManager {
     if (bots.isNotEmpty) {
       // let the group bots know the newest member ID list,
       // so they can split group message correctly for us.
-      _sendCommand(forward, members: bots);             // to all assistants
-      return true;
+      return _sendCommand(forward, members: bots);      // to all assistants
     }
 
     // forward 'invite' to old members
@@ -346,10 +345,7 @@ class GroupManager {
     ID me = user.identifier;
 
     List<ID> members = await delegate.getMembers(group);
-    if (members.isEmpty) {
-      assert(false, 'failed to get members for group: $group');
-      return false;
-    }
+    assert(members.isNotEmpty, 'failed to get members for group: $group');
 
     bool isOwner = await delegate.isOwner(me, group: group);
     bool isAdmin = await delegate.isAdministrator(me, group: group);
@@ -378,7 +374,7 @@ class GroupManager {
       bool ok = await delegate.saveMembers(group, members);
       assert(ok, 'failed to save members for group: $group');
     } else {
-      Log.error('member not in group: $group, $me');
+      Log.warning('member not in group: $group, $me');
     }
 
     //
@@ -399,14 +395,12 @@ class GroupManager {
     if (bots.isNotEmpty) {
       // let the group bots know the newest member ID list,
       // so they can split group message correctly for us.
-      _sendCommand(forward, members: bots);             // to group bots
+      return _sendCommand(forward, members: bots);      // to group bots
     } else {
       // group bots not exist,
       // send the command to all members directly
-      _sendCommand(forward, members: members);          // to all members
+      return _sendCommand(forward, members: members);   // to all members
     }
-
-    return true;
   }
 
   Future<bool> _sendCommand(Content content, {ID? receiver, List<ID>? members}) async {

@@ -46,7 +46,7 @@ abstract class GroupEmitter {
   //
   //      if members.length < POLYLOGUE_LIMIT,
   //          means it is a small polylogue group, let the members to split
-  //          and send group messages by themself, this can keep the group
+  //          and send group messages by themselves, this can keep the group
   //          more secretive because no one else can know the group ID even;
   //      else,
   //          set 'assistants' in the bulletin document to tell all members
@@ -63,6 +63,7 @@ abstract class GroupEmitter {
   //          you should expose group ID in the instant message level, then
   //          encrypt message by one symmetric key for this group, after that,
   //          split and send to all members directly.
+  //
   static int kSecretGroupLimit = 16;
 
   GroupEmitter(this.delegate);
@@ -96,14 +97,10 @@ abstract class GroupEmitter {
     assert(barrack != null, 'facebook not ready');
 
     // get 'sender' => 'group'
-    ID? group = content.group;
-    if (group == null) {
-      assert(false, 'not a group message: $content');
-      return Pair(null, null);
-    }
     User? user = await barrack?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
+    ID? group = content.group;
+    if (user == null || group == null) {
+      assert(false, 'params error: $user => $group');
       return Pair(null, null);
     }
     ID sender = user.identifier;
@@ -127,9 +124,10 @@ abstract class GroupEmitter {
     //  0. check file message
     //
     if (content is FileContent) {
+      ID sender = iMsg.sender;
       // call emitter to encrypt & upload file data before send out
-      SymmetricKey password = await getEncryptKey(sender: iMsg.sender, receiver: group);
-      bool ok = await uploadFileData(content, password, iMsg);
+      SymmetricKey password = await getEncryptKey(sender: sender, receiver: group);
+      bool ok = await uploadFileData(content, password: password, sender: sender);
       assert(ok, 'failed to upload file data: $content');
     }
 
@@ -172,9 +170,10 @@ abstract class GroupEmitter {
   ///
   /// @param content  - file content
   /// @param password - symmetric key to encrypt/decrypt file data
-  /// @param iMsg     - outgoing message
+  /// @param sender   - from where
   // protected
-  Future<bool> uploadFileData(FileContent content, SymmetricKey password, InstantMessage iMsg);
+  Future<bool> uploadFileData(FileContent content,
+      {required SymmetricKey password, required ID sender});
 
   /// Encrypt & sign message, then forward to the bot
   Future<ReliableMessage?> _forwardMessage(InstantMessage iMsg, ID bot, {required ID group, int priority = 0}) async {
@@ -201,14 +200,18 @@ abstract class GroupEmitter {
     int sn = iMsg.content.sn;
     iMsg['sn'] = sn;
 
-    // pack message
+    //
+    //  1. pack message
+    //
     ReliableMessage? rMsg = await packer.encryptAndSignMessage(iMsg);
     if (rMsg == null) {
       assert(false, 'failed to encrypt & sign message: ${iMsg.sender} => $group');
       return null;
     }
 
-    // forward the group message to any bot
+    //
+    //  2. forward the group message to any bot
+    //
     Content content = ForwardContent.create(forward: rMsg);
     var pair = await transceiver?.sendContent(content, sender: null, receiver: bot, priority: priority);
     if (pair == null || pair.second == null) {
@@ -236,14 +239,18 @@ abstract class GroupEmitter {
 
     ID sender = iMsg.sender;
 
-    // pack message
+    //
+    //  1. pack message
+    //
     ReliableMessage? rMsg = await packer.encryptAndSignMessage(iMsg);
     if (rMsg == null) {
       assert(false, 'failed to encrypt & sign message: $sender => $group');
       return null;
     }
 
-    // split messages
+    //
+    //  2. split messages
+    //
     List<ReliableMessage> messages = await packer.splitReliableMessage(rMsg, members);
     ID receiver;
     bool? ok;
@@ -276,7 +283,9 @@ abstract class GroupEmitter {
     ID sender = iMsg.sender;
     int success = 0;
 
-    // split messages
+    //
+    //  1. split messages
+    //
     List<InstantMessage> messages = await packer.splitInstantMessage(iMsg, members);
     ID receiver;
     ReliableMessage? rMsg;
@@ -286,7 +295,9 @@ abstract class GroupEmitter {
         assert(false, 'cycled message: $sender => $receiver, $group');
         continue;
       }
-      // send message
+      //
+      //  2. send message
+      //
       rMsg = await transceiver?.sendInstantMessage(msg, priority: priority);
       if (rMsg == null) {
         Log.error('failed to send message: $sender => $receiver, $group');

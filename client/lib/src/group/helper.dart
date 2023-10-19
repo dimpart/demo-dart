@@ -42,6 +42,7 @@ class GroupCommandHelper {
   // protected
   final GroupDelegate delegate;
 
+  // protected
   AccountDBI? get database => delegate.database;
 
   ///

@@ -107,13 +107,14 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
     password.remove('digest');
     // 2. serialize key without flags
     Uint8List? data = await super.serializeKey(password, iMsg);
-    // 3. put it back after serialized
+    // 3. put them back after serialized
     if (Converter.getBool(reused, false)!) {
       password['reused'] = true;
     }
     if (digest != null) {
       password['digest'] = digest;
     }
+    // OK
     return data;
   }
 
@@ -161,7 +162,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       return null;
     } else {
       Log.debug('send instant message (type=${iMsg.content.type}): '
-          '${iMsg.sender} -> ${iMsg.receiver}');
+          '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
     }
     // 1. encrypt message
     SecureMessage? sMsg = await encryptMessage(iMsg);

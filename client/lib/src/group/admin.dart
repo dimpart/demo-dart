@@ -43,7 +43,9 @@ class AdminManager {
   // protected
   final GroupDelegate delegate;
 
+  // protected
   CommonFacebook? get facebook => delegate.facebook;
+  // protected
   CommonMessenger? get messenger => delegate.messenger;
 
   ///  Update 'administrators' in bulletin document

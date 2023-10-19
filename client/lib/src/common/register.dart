@@ -57,7 +57,7 @@ class Register {
   /// @param nickname  - user name
   /// @param avatarUrl - photo URL
   /// @return user ID
-  Future<ID> createUser({required String name, String? avatar}) async {
+  Future<ID> createUser({required String name, PortableNetworkFile? avatar}) async {
     //
     //  Step 1: generate private key (with asymmetric algorithm)
     //
@@ -73,12 +73,11 @@ class Register {
     //
     //  Step 4: generate visa with ID and sign with private key
     //
-    PrivateKey msgKey = PrivateKey.generate(AsymmetricKey.kRSA)!;
-    Visa visa = _createVisa(identifier, msgKey.publicKey as EncryptKey, idKey,
-        name: name, avatar: avatar);
+    PrivateKey? msgKey = PrivateKey.generate(AsymmetricKey.kRSA);
+    EncryptKey visaKey = msgKey!.publicKey as EncryptKey;
+    Visa visa = createVisa(identifier, visaKey, idKey, name: name, avatar: avatar);
     //
     //  Step 5: save private key, meta & visa in local storage
-    //          don't forget to upload them onto the DIM station
     //
     await database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier, decrypt: 0);
     await database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier, decrypt: 1);
@@ -92,6 +91,7 @@ class Register {
   ///
   /// @param founder - group founder
   /// @param title   - group name
+  /// @param seed    - ID.name
   /// @return group ID
   Future<ID> createGroup(ID founder, {required String name, String? seed}) async {
     if (seed == null || seed.isEmpty) {
@@ -114,10 +114,9 @@ class Register {
     //
     //  Step 4: generate bulletin with ID and sign with founder's private key
     //
-    Bulletin doc = _createBulletin(identifier, privateKey, name: name, founder: founder);
+    Bulletin doc = createBulletin(identifier, privateKey, name: name, founder: founder);
     //
     //  Step 5: save meta & bulletin in local storage
-    //          don't forget to upload then onto the DIM station
     //
     await database.saveMeta(meta, identifier);
     await database.saveDocument(doc);
@@ -131,8 +130,8 @@ class Register {
   }
 
   // create user document
-  static Visa _createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
-      {required String name, String? avatar}) {
+  static Visa createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
+      {required String name, PortableNetworkFile? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
     Visa doc = BaseVisa.from(identifier);
     // App ID
@@ -141,7 +140,7 @@ class Register {
     doc.name = name;
     // avatar
     if (avatar != null) {
-      doc.avatar = PortableNetworkFile.parse(avatar);
+      doc.avatar = avatar;
     }
     // public key
     doc.publicKey = visaKey;
@@ -151,7 +150,7 @@ class Register {
     return doc;
   }
   // create group document
-  static Bulletin _createBulletin(ID identifier, SignKey privateKey,
+  static Bulletin createBulletin(ID identifier, SignKey privateKey,
       {required String name, required ID founder}) {
     assert(identifier.isGroup, 'group ID error: $identifier');
     Bulletin doc = BaseBulletin.from(identifier);

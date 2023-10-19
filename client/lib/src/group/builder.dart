@@ -64,7 +64,9 @@ class GroupHistoryBuilder {
     Document? doc;
     ResetCommand? reset;
     ReliableMessage? rMsg;
-    // 0. build 'document' command
+    //
+    //  0. build 'document' command
+    //
     Pair<Document?, ReliableMessage?> docPair = await buildDocumentCommand(group);
     doc = docPair.first;
     rMsg = docPair.second;
@@ -74,7 +76,9 @@ class GroupHistoryBuilder {
     } else {
       messages.add(rMsg);
     }
-    // 1. append 'reset' command
+    //
+    //  1. append 'reset' command
+    //
     Pair<ResetCommand?, ReliableMessage?> resPair = await helper.getResetCommandMessage(group);
     reset = resPair.first;
     rMsg = resPair.second;
@@ -84,7 +88,9 @@ class GroupHistoryBuilder {
     } else {
       messages.add(rMsg);
     }
-    // 2. append other group commands
+    //
+    //  2. append other group commands
+    //
     List<Pair<GroupCommand, ReliableMessage>> history = await helper.getGroupHistories(group);
     for (var item in history) {
       if (item.first is ResetCommand) {
