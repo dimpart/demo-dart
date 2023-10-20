@@ -192,14 +192,6 @@ abstract class GroupEmitter {
     // but the group bots cannot decrypt it.
     iMsg.setString('group', group);
 
-    // the group bot can only get the message 'signature',
-    // but cannot know the 'sn' because it cannot decrypt the content,
-    // this is usually not a problem;
-    // but sometimes we want to respond a receipt with original sn,
-    // so I suggest to expose 'sn' too.
-    int sn = iMsg.content.sn;
-    iMsg['sn'] = sn;
-
     //
     //  1. pack message
     //
@@ -260,7 +252,7 @@ abstract class GroupEmitter {
         assert(false, 'cycled message: $sender => $receiver, $group');
         continue;
       }
-      ok = await transceiver?.sendReliableMessage(rMsg, priority: priority);
+      ok = await transceiver?.sendReliableMessage(msg, priority: priority);
       assert(ok == true, 'failed to send message: $sender => $receiver, $group');
     }
 
