@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Upload file data before sending message.
+
 ## 0.2.8
 
 - Group Data Source.

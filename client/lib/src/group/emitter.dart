@@ -29,18 +29,15 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
-import 'package:object_key/object_key.dart';
 
 import '../common/facebook.dart';
 import '../common/messenger.dart';
-import '../client/messenger.dart';
 
 import 'delegate.dart';
 import 'packer.dart';
 
-abstract class GroupEmitter {
+class GroupEmitter {
 
   // NOTICE: group assistants (bots) can help the members to redirect messages
   //
@@ -81,55 +78,19 @@ abstract class GroupEmitter {
   // protected
   CommonMessenger? get messenger => delegate.messenger;
 
-  // protected
-  Future<SymmetricKey> getEncryptKey({required ID sender, required ID receiver}) async {
-    ClientMessenger? transceiver = messenger as ClientMessenger?;
-    CipherKeyDelegate? keyCache = transceiver?.cipherKeyDelegate;
-    SymmetricKey? key = await keyCache?.getCipherKey(
-      sender: sender, receiver: receiver, generate: true,
-    );
-    return key!;
-  }
-
-  /// Send group message content
-  Future<Pair<InstantMessage?, ReliableMessage?>> sendContent(Content content, {int priority = 0}) async {
-    CommonFacebook? barrack = facebook;
-    assert(barrack != null, 'facebook not ready');
-
-    // get 'sender' => 'group'
-    User? user = await barrack?.currentUser;
-    ID? group = content.group;
-    if (user == null || group == null) {
-      assert(false, 'params error: $user => $group');
-      return Pair(null, null);
-    }
-    ID sender = user.identifier;
-
-    // pack and send
-    Envelope envelope = Envelope.create(sender: sender, receiver: group);
-    InstantMessage iMsg = InstantMessage.create(envelope, content);
-    ReliableMessage? rMsg = await sendMessage(iMsg, priority: priority);
-    return Pair(iMsg, rMsg);
-  }
-
-  Future<ReliableMessage?> sendMessage(InstantMessage iMsg, {int priority = 0}) async {
+  Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     Content content = iMsg.content;
     ID? group = content.group;
     if (group == null) {
       assert(false, 'not a group message: $iMsg');
       return null;
     }
+    assert(iMsg.receiver == group, 'group message error: $iMsg');
 
-    //
-    //  0. check file message
-    //
-    if (content is FileContent) {
-      ID sender = iMsg.sender;
-      // call emitter to encrypt & upload file data before send out
-      SymmetricKey password = await getEncryptKey(sender: sender, receiver: group);
-      bool ok = await uploadFileData(content, password: password, sender: sender);
-      assert(ok, 'failed to upload file data: $content');
-    }
+    // TODO: if it's a file message
+    //       please upload the file data first
+    //       before calling this
+    assert(content is! FileContent || !content.containsKey('data'), 'content error: $content');
 
     //
     //  1. check group bots
@@ -164,16 +125,6 @@ abstract class GroupEmitter {
       return await _disperseMessage(iMsg, members, group: group, priority: priority);
     }
   }
-
-  /// Send file data encrypted with password
-  /// (store download URL & decrypt key into file content after uploaded)
-  ///
-  /// @param content  - file content
-  /// @param password - symmetric key to encrypt/decrypt file data
-  /// @param sender   - from where
-  // protected
-  Future<bool> uploadFileData(FileContent content,
-      {required SymmetricKey password, required ID sender});
 
   /// Encrypt & sign message, then forward to the bot
   Future<ReliableMessage?> _forwardMessage(InstantMessage iMsg, ID bot, {required ID group, int priority = 0}) async {
