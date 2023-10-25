@@ -88,12 +88,12 @@ class GroupCommandHelper {
     }
     if (content is ResignCommand) {
       // administrator command, check with document time
-      Document? doc = await delegate.getDocument(group, '*');
+      Bulletin? doc = await delegate.getBulletin(group);
       if (doc == null) {
         assert(false, 'group document not exists: $group');
         return true;
       }
-      return AccountDBI.isExpired(doc.time, content.time);
+      return DocumentHelper.isBefore(doc.time, content.time);
     }
     // membership command, check with reset command
     Pair<ResetCommand?, ReliableMessage?> pair = await getResetCommandMessage(group);
@@ -102,7 +102,7 @@ class GroupCommandHelper {
     if (cmd == null/* || msg == null*/) {
       return false;
     }
-    return AccountDBI.isExpired(cmd.time, content.time);
+    return DocumentHelper.isBefore(cmd.time, content.time);
   }
 
   /// members

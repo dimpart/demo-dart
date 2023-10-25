@@ -83,7 +83,7 @@ class AdminManager {
     //
     //  2. update document
     //
-    Document? doc = await delegate.getDocument(group, '*');
+    Bulletin? doc = await delegate.getBulletin(group);
     if (doc == null) {
       // TODO: create new one?
       assert(false, 'failed to get group document: $group, owner: $me');
@@ -104,11 +104,10 @@ class AdminManager {
     //
     //  3. broadcast bulletin document
     //
-    return broadcastDocument(doc as Bulletin);
+    return broadcastDocument(doc);
   }
 
   /// Broadcast group document
-  // protected
   Future<bool> broadcastDocument(Bulletin doc) async {
     CommonFacebook? barrack = facebook;
     CommonMessenger? transceiver = messenger;

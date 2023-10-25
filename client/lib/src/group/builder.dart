@@ -32,7 +32,6 @@ import 'package:dimp/dimp.dart';
 import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
-import '../common/dbi/account.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
@@ -100,13 +99,13 @@ class GroupHistoryBuilder {
         continue;
       } else if (item.first is ResignCommand) {
         // 'resign' command, comparing it with document time
-        if (AccountDBI.isExpired(doc.time, item.first.time)) {
+        if (DocumentHelper.isBefore(doc.time, item.first.time)) {
           Log.warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
       } else {
         // other commands('invite', 'join', 'quit'), comparing with 'reset' time
-        if (AccountDBI.isExpired(reset.time, item.first.time)) {
+        if (DocumentHelper.isBefore(reset.time, item.first.time)) {
           Log.warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
@@ -120,7 +119,7 @@ class GroupHistoryBuilder {
   /// create broadcast 'document' command
   Future<Pair<Document?, ReliableMessage?>> buildDocumentCommand(ID group) async {
     User? user = await facebook?.currentUser;
-    Document? doc = await delegate.getDocument(group, '*');
+    Bulletin? doc = await delegate.getBulletin(group);
     if (user == null || doc == null) {
       assert(user != null, 'failed to get current user');
       Log.error('document not found for group: $group');

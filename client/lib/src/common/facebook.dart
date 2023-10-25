@@ -86,9 +86,20 @@ class CommonFacebook extends Facebook {
     _current = user;
   }
 
+  Future<Document?> getDocumentByType(ID identifier, [String? type]) async =>
+      DocumentHelper.lastDocument(await getDocuments(identifier), type);
+
   Future<String> getName(ID identifier) async {
+    String type;
+    if (identifier.isUser) {
+      type = Document.kVisa;
+    } else if (identifier.isGroup) {
+      type = Document.kBulletin;
+    } else {
+      type = '*';
+    }
     // get name from document
-    Document? doc = await getDocument(identifier, '*');
+    Document? doc = await getDocumentByType(identifier, type);
     if (doc != null) {
       String? name = doc.name;
       if (name != null && name.isNotEmpty) {
@@ -105,13 +116,21 @@ class CommonFacebook extends Facebook {
       assert(false, 'meta not valid: $identifier');
       return false;
     }
+    // check old meta
+    Meta? old = await getMeta(identifier);
+    if (old != null) {
+      assert(meta == old, 'meta should not changed');
+      return true;
+    }
+    // meta not exists yet, save it
     return await database.saveMeta(meta, identifier);
   }
 
   @override
   Future<bool> saveDocument(Document doc) async {
+    ID identifier = doc.identifier;
     if (!doc.isValid) {
-      ID identifier = doc.identifier;
+      // try to verify
       Meta? meta = await getMeta(identifier);
       if (meta == null) {
         Log.error('meta not found: $identifier');
@@ -121,6 +140,21 @@ class CommonFacebook extends Facebook {
       } else {
         Log.error('failed to verify document: $identifier');
         assert(false, 'document not valid: $identifier');
+        return false;
+      }
+    }
+    String type = doc.type ?? '*';
+    // check old documents with type
+    List<Document> documents = await getDocuments(identifier);
+    Document? old = DocumentHelper.lastDocument(documents, type);
+    if (old != null) {
+      if (DocumentHelper.isExpired(doc, old)) {
+        Log.warning('drop expired document: $identifier');
+        return false;
+      } else if (await database.clearDocuments(identifier, type)) {
+        Log.info('cleared old documents: $identifier, type: $type');
+      } else {
+        Log.error('failed to clear old documents: $identifier, type: $type');
         return false;
       }
     }
@@ -136,8 +170,8 @@ class CommonFacebook extends Facebook {
       await database.getMeta(identifier);
 
   @override
-  Future<Document?> getDocument(ID identifier, String? docType) async =>
-      await database.getDocument(identifier, docType);
+  Future<List<Document>> getDocuments(ID identifier) async =>
+      await database.getDocuments(identifier);
 
   //
   //  UserDataSource

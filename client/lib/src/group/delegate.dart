@@ -79,14 +79,17 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   }
 
   @override
-  Future<Document?> getDocument(ID identifier, String? docType) async {
-    Document? doc = await facebook?.getDocument(identifier, docType);
-    if (doc == null) {
+  Future<List<Document>> getDocuments(ID identifier) async {
+    List<Document> documents = await facebook!.getDocuments(identifier);
+    if (documents.isEmpty) {
       // if not found, query it from any station
       messenger?.queryDocument(identifier);
     }
-    return doc;
+    return documents;
   }
+
+  Future<Bulletin?> getBulletin(ID group) async =>
+      DocumentHelper.lastBulletin(await getDocuments(group));
 
   Future<bool> saveDocument(Document doc) async =>
       await facebook!.saveDocument(doc);
@@ -98,7 +101,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   @override
   Future<ID?> getFounder(ID group) async {
     assert(group.isGroup, 'ID error: $group');
-    Document? doc = await getDocument(group, '*');
+    Bulletin? doc = await getBulletin(group);
     if (doc == null) {
       // the owner(founder) should be set in the bulletin document of group
       return null;
@@ -109,7 +112,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   @override
   Future<ID?> getOwner(ID group) async {
     assert(group.isGroup, 'ID error: $group');
-    Document? doc = await getDocument(group, '*');
+    Bulletin? doc = await getBulletin(group);
     if (doc == null) {
       // the owner(founder) should be set in the bulletin document of group
       return null;
@@ -120,7 +123,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   @override
   Future<List<ID>> getAssistants(ID group) async {
     assert(group.isGroup, 'ID error: $group');
-    Document? doc = await getDocument(group, '*');
+    Bulletin? doc = await getBulletin(group);
     if (doc == null) {
       // the group assistants should be set in the bulletin document
       return [];
@@ -131,7 +134,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   @override
   Future<List<ID>> getMembers(ID group) async {
     assert(group.isGroup, 'ID error: $group');
-    Document? doc = await getDocument(group, '*');
+    Bulletin? doc = await getBulletin(group);
     if (doc == null) {
       // group not ready
       return [];
@@ -153,7 +156,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
 
   Future<List<ID>> getAdministrators(ID group) async {
     assert(group.isGroup, 'ID error: $group');
-    Document? doc = await getDocument(group, '*');
+    Bulletin? doc = await getBulletin(group);
     if (doc == null) {
       // group not ready
       return [];

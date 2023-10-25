@@ -75,8 +75,8 @@ abstract class CommonPacker extends MessagePacker {
   Future<List<ID>> getMembers(ID group) async {
     Facebook barrack = facebook!;
     CommonMessenger transceiver = messenger as CommonMessenger;
-    Document? doc = await barrack.getDocument(group, '*');
-    if (doc == null) {
+    List<Document> documents = await barrack.getDocuments(group);
+    if (documents.isEmpty) {
       // group not ready, try to query document for it
       if (await transceiver.queryDocument(group)) {
         Log.info('querying document for group: $group');
@@ -102,7 +102,7 @@ abstract class CommonPacker extends MessagePacker {
     ID sender = rMsg.sender;
     assert(sender.isUser, 'sender error: $sender');
     // check sender's meta & document
-    Visa? visa = rMsg.visa;
+    Visa? visa = MessageHelper.getVisa(rMsg);
     if (visa != null) {
       // first handshake?
       assert(visa.identifier == sender, 'visa ID not match: $sender');

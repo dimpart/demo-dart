@@ -177,8 +177,8 @@ abstract class ClientMessenger extends CommonMessenger {
   Future<bool> queryMembers(ID identifier) async {
     assert(identifier.isGroup, "group ID error: $identifier");
     // 0. check group document
-    Document? bulletin = await facebook.getDocument(identifier, '*');
-    if (bulletin == null) {
+    Bulletin? doc = await facebook.getBulletin(identifier);
+    if (doc == null) {
       Log.warning('group document not exists: $identifier');
       queryDocument(identifier);
       return false;

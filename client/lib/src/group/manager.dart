@@ -116,7 +116,7 @@ class GroupManager {
     //  DISCUSS: should we let the neighbor stations know the group info?
     //
     Meta? meta = await delegate.getMeta(group);
-    Document? doc = await delegate.getDocument(group, '*');
+    Bulletin? doc = await delegate.getBulletin(group);
     Command content;
     if (doc != null) {
       content = DocumentCommand.response(group, meta, doc);

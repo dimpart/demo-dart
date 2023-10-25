@@ -146,7 +146,9 @@ abstract class DocumentDBI {
 
   Future<bool> saveDocument(Document doc);
 
-  Future<Document?> getDocument(ID entity, String? type);
+  Future<bool> clearDocuments(ID entity, String type);
+
+  Future<List<Document>> getDocuments(ID entity);
 
 }
 
@@ -245,17 +247,5 @@ abstract class GroupHistoryDBI {
 abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI,
                                      UserDBI, ContactDBI,
                                      GroupDBI, GroupHistoryDBI {
-
-  /// check whether the time with new arrival info is expired
-  ///
-  /// @param oldTime - time in old info loaded in local storage
-  /// @param newTime - time in new info received from network
-  static bool isExpired(DateTime? oldTime, DateTime? newTime) {
-    if (oldTime == null || newTime == null) {
-      return false;
-    }
-    return newTime.isBefore(oldTime);
-    // return newTime.compareTo(oldTime) < 0;
-  }
 
 }
