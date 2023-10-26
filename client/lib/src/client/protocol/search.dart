@@ -44,7 +44,7 @@ import 'package:dimp/dimp.dart';
 ///      station  : "{STATION_ID}",  // station ID
 ///      users    : ["{ID}"]         // user ID list
 ///  }
-abstract class SearchCommand implements Command {
+abstract interface class SearchCommand implements Command {
 
   static const String kSearch = 'search';
   static const String kOnlineUsers = 'users';

@@ -40,7 +40,7 @@ import 'package:dimp/dimp.dart';
 ///      //---- extra info
 ///      time    : 1234567890,    // timestamp
 ///  }
-abstract class ReportCommand implements Command {
+abstract interface class ReportCommand implements Command {
 
   static const String kReport  = 'report';
   static const String kOnline  = 'online';

@@ -137,7 +137,7 @@ class StationInfo {
 
 ///  Session DBI
 ///  ~~~~~~~~~~~
-abstract class ProviderDBI {
+abstract interface class ProviderDBI {
 
   ///  Get all providers
   ///
@@ -169,7 +169,7 @@ abstract class ProviderDBI {
 
 ///  Session DBI
 ///  ~~~~~~~~~~~
-abstract class StationDBI {
+abstract interface class StationDBI {
 
   ///  Get all stations of this sp
   ///
@@ -218,7 +218,7 @@ abstract class StationDBI {
 
 ///  Session DBI
 ///  ~~~~~~~~~~~
-abstract class LoginDBI {
+abstract interface class LoginDBI {
 
   Future<Pair<LoginCommand?, ReliableMessage?>> getLoginCommandMessage(ID identifier);
 
@@ -229,6 +229,6 @@ abstract class LoginDBI {
 
 ///  Session DBI
 ///  ~~~~~~~~~~~
-abstract class SessionDBI implements LoginDBI, ProviderDBI, StationDBI {
+abstract interface class SessionDBI implements LoginDBI, ProviderDBI, StationDBI {
 
 }

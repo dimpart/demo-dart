@@ -35,7 +35,7 @@ import 'package:object_key/object_key.dart';
 
 ///  Message DBI
 ///  ~~~~~~~~~~~
-abstract class ReliableMessageDBI {
+abstract interface class ReliableMessageDBI {
 
   ///  Get network messages
   ///
@@ -54,14 +54,14 @@ abstract class ReliableMessageDBI {
 
 ///  Message DBI
 ///  ~~~~~~~~~~~
-abstract class CipherKeyDBI implements CipherKeyDelegate {
+abstract interface class CipherKeyDBI implements CipherKeyDelegate {
 
 }
 
 
 ///  Message DBI
 ///  ~~~~~~~~~~~
-abstract class GroupKeysDBI {
+abstract interface class GroupKeysDBI {
 
   Map getGroupKeys({required ID group, required ID sender});
 
@@ -72,6 +72,6 @@ abstract class GroupKeysDBI {
 
 ///  Message DBI
 ///  ~~~~~~~~~~~
-abstract class MessageDBI implements ReliableMessageDBI, CipherKeyDBI, GroupKeysDBI {
+abstract interface class MessageDBI implements ReliableMessageDBI, CipherKeyDBI, GroupKeysDBI {
 
 }

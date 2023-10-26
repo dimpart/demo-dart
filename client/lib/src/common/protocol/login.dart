@@ -52,7 +52,7 @@ import 'package:dimsdk/dimsdk.dart';
 ///          ID   : "{SP_ID}"
 ///      }
 ///  }
-abstract class LoginCommand implements Command {
+abstract interface class LoginCommand implements Command {
 
   static const String kLogin = 'login';
 

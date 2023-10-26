@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Remove 'clearDocuments'.
+
 ## 0.3.0
 
 - Upload file data before sending message.

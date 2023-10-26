@@ -126,7 +126,7 @@ abstract class SessionStateMachine {
 }
 
 
-abstract class SessionStateDelegate {
+abstract interface class SessionStateDelegate {
 
   ///  Called before new state entered
   ///  (get current state from context)

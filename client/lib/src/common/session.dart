@@ -35,7 +35,7 @@ import 'package:object_key/object_key.dart';
 
 import 'dbi/session.dart';
 
-abstract class Transmitter {
+abstract interface class Transmitter {
 
   ///  Send content from sender to receiver with priority
   ///
@@ -94,7 +94,7 @@ class SocketAddress extends Pair<String, int> {
 
 }
 
-abstract class Session implements Transmitter {
+abstract interface class Session implements Transmitter {
 
   SessionDBI get database;
 

@@ -58,7 +58,7 @@ class SQLConditions {
 //  Conditions
 //
 
-abstract class _Condition {
+abstract interface class _Condition {
 
   void appendEscapeValue(StringBuffer sb);
 

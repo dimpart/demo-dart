@@ -41,7 +41,7 @@ import 'package:dimp/dimp.dart';
 ///          "{alias}": "{ID}",
 ///      }
 ///  }
-abstract class AnsCommand implements Command {
+abstract interface class AnsCommand implements Command {
 
   static const String kANS = 'ans';
 

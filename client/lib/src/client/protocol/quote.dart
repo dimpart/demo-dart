@@ -40,7 +40,7 @@ import 'package:dimp/dimp.dart';
 ///      },
 ///      text  : "..."         // comment
 ///  }
-abstract class QuoteContent implements Content {
+abstract interface class QuoteContent implements Content {
 
   ID get quoteSender;
   Content get quoteContent;

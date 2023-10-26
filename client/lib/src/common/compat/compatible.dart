@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-abstract class Compatible {
+abstract interface class Compatible {
 
   static void fixMetaAttachment(ReliableMessage rMsg) {
     Map? meta = rMsg['meta'];

@@ -62,7 +62,7 @@ class HandshakeState {
 ///      title   : "Hello world!", // "DIM?", "DIM!"
 ///      session : "{SESSION_KEY}" // session key
 ///  }
-abstract class HandshakeCommand implements Command {
+abstract interface class HandshakeCommand implements Command {
 
   static const String kHandshake = 'handshake';
 

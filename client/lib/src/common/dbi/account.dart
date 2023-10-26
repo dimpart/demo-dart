@@ -34,7 +34,7 @@ import 'package:object_key/object_key.dart';
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class PrivateKeyDBI {
+abstract interface class PrivateKeyDBI {
 
   static const String kMeta = 'M';
   static const String kVisa = 'V';
@@ -132,7 +132,7 @@ abstract class PrivateKeyDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class MetaDBI {
+abstract interface class MetaDBI {
 
   Future<bool> saveMeta(Meta meta, ID entity);
 
@@ -142,11 +142,9 @@ abstract class MetaDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class DocumentDBI {
+abstract interface class DocumentDBI {
 
   Future<bool> saveDocument(Document doc);
-
-  Future<bool> clearDocuments(ID entity, String type);
 
   Future<List<Document>> getDocuments(ID entity);
 
@@ -155,7 +153,7 @@ abstract class DocumentDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class UserDBI {
+abstract interface class UserDBI {
 
   Future<List<ID>> getLocalUsers();
 
@@ -166,7 +164,7 @@ abstract class UserDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class ContactDBI {
+abstract interface class ContactDBI {
 
   Future<List<ID>> getContacts({required ID user});
 
@@ -176,7 +174,7 @@ abstract class ContactDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class GroupDBI {
+abstract interface class GroupDBI {
 
   Future<ID?> getFounder({required ID group});
 
@@ -204,7 +202,7 @@ abstract class GroupDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class GroupHistoryDBI {
+abstract interface class GroupHistoryDBI {
 
   /// save group commands:
   ///     invite
@@ -244,8 +242,9 @@ abstract class GroupHistoryDBI {
 
 ///  Account DBI
 ///  ~~~~~~~~~~~
-abstract class AccountDBI implements PrivateKeyDBI, MetaDBI, DocumentDBI,
-                                     UserDBI, ContactDBI,
-                                     GroupDBI, GroupHistoryDBI {
+abstract interface class AccountDBI implements PrivateKeyDBI,
+                                               MetaDBI, DocumentDBI,
+                                               UserDBI, ContactDBI,
+                                               GroupDBI, GroupHistoryDBI {
 
 }

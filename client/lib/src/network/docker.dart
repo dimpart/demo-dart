@@ -33,12 +33,12 @@ import 'dart:typed_data';
 import '../common/session.dart';
 
 
-abstract class Arrival {
+abstract interface class Arrival {
 
   Uint8List get payload;
 
 }
-abstract class Departure {
+abstract interface class Departure {
 
 }
 
@@ -53,7 +53,7 @@ class DockerStatus {
 }
 
 
-abstract class Docker {
+abstract interface class Docker {
 
   SocketAddress get remoteAddress;
   SocketAddress get localAddress;
@@ -61,7 +61,7 @@ abstract class Docker {
 }
 
 
-abstract class DockerDelegate {
+abstract interface class DockerDelegate {
 
   ///  Callback when new package received
   ///

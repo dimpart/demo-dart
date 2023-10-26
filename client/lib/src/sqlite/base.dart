@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-abstract class ResultSet {
+abstract interface class ResultSet {
 
   /// Moves the cursor forward one row from its current position.
   /// A <code>ResultSet</code> cursor is initially positioned
@@ -90,7 +90,7 @@ abstract class ResultSet {
 
 }
 
-abstract class Statement {
+abstract interface class Statement {
 
   /// 'INSERT INTO t_user(id, name) VALUES("moky@anywhere", "Moky")'
   Future<int> executeInsert(String sql);
@@ -108,7 +108,7 @@ abstract class Statement {
 
 }
 
-abstract class DBConnection {
+abstract interface class DBConnection {
 
   Statement createStatement();
 
