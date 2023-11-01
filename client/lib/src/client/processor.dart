@@ -61,7 +61,7 @@ class ClientMessageProcessor extends MessageProcessor {
     User? user = await facebook.selectLocalUser(receiver);
     if (user == null) {
       assert(false, "receiver error: $receiver");
-      return [];
+      return responses;
     }
     receiver = user.identifier;
     // check responses

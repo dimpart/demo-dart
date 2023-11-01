@@ -37,6 +37,7 @@ class SQLBuilder {
   final StringBuffer _sb;
 
   static const String create = "CREATE";
+  static const String alter  = "ALTER";
 
   static const String insert = "INSERT";
   static const String select = "SELECT";
@@ -97,16 +98,35 @@ class SQLBuilder {
     return builder.toString();
   }
 
+  ///
+  ///  CREATE INDEX IF NOT EXISTS name ON (fields)
+  ///
   static String buildCreateIndex(String table,
       {required String name, required List<String> fields}) {
     SQLBuilder builder = SQLBuilder(create);
-    builder._append(' INDEX ');
+    builder._append(' INDEX IF NOT EXISTS ');
     builder._append(name);
     builder._append(' ON ');
     builder._append(table);
     builder._append('(');
     builder._appendStringList(fields);
     builder._append(')');
+    return builder.toString();
+  }
+
+  ///
+  ///  ALTER TABLE table ADD COLUMN IF NOT EXISTS name type;
+  ///
+  static String buildAddColumn(String table,
+      {required String name, required String type}) {
+    SQLBuilder builder = SQLBuilder(alter);
+    builder._append(' TABLE ');
+    builder._append(table);
+    // builder._append(' ADD COLUMN IF NOT EXISTS ');
+    builder._append(' ADD COLUMN ');
+    builder._append(name);
+    builder._append(' ');
+    builder._append(type);
     return builder.toString();
   }
 

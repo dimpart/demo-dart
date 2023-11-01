@@ -86,8 +86,15 @@ class CommonFacebook extends Facebook {
     _current = user;
   }
 
-  Future<Document?> getDocumentByType(ID identifier, [String? type]) async =>
-      DocumentHelper.lastDocument(await getDocuments(identifier), type);
+  Future<Document?> getDocument(ID identifier, [String? type]) async {
+    List<Document> documents = await getDocuments(identifier);
+    Document? doc = DocumentHelper.lastDocument(documents, type);
+    // compatible for document type
+    if (doc == null && type == Document.kVisa) {
+      doc = DocumentHelper.lastDocument(documents, 'profile');
+    }
+    return doc;
+  }
 
   Future<String> getName(ID identifier) async {
     String type;
@@ -99,7 +106,7 @@ class CommonFacebook extends Facebook {
       type = '*';
     }
     // get name from document
-    Document? doc = await getDocumentByType(identifier, type);
+    Document? doc = await getDocument(identifier, type);
     if (doc != null) {
       String? name = doc.name;
       if (name != null && name.isNotEmpty) {

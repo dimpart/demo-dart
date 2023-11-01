@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-abstract interface class ResultSet {
+abstract class ResultSet {
 
   /// Moves the cursor forward one row from its current position.
   /// A <code>ResultSet</code> cursor is initially positioned
