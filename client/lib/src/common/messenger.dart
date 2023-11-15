@@ -92,6 +92,17 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   Future<bool> queryMembers(ID identifier);
 
   @override
+  Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
+    try {
+      return await super.encryptKey(key, receiver, iMsg);
+    } catch (e) {
+      // FIXME:
+      Log.error('failed to encrypt key for receiver: $receiver, $e');
+      return null;
+    }
+  }
+
+  @override
   Future<Uint8List?> serializeKey(SymmetricKey password, InstantMessage iMsg) async {
     // TODO: reuse message key
 

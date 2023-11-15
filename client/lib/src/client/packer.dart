@@ -84,7 +84,12 @@ abstract class ClientMessagePacker extends CommonPacker {
       'members': ID.revert(waiting),
     };
     suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
-    return false;
+    // perhaps some members have already disappeared,
+    // although the packer will query document when the member's visa key is not found,
+    // but the station will never respond with the right document,
+    // so we must return true here to let the messaging continue;
+    // when the member's visa is responded, we should send the suspended message again.
+    return waiting.length < members.length;
   }
 
 }
