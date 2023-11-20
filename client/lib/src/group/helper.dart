@@ -43,7 +43,7 @@ class GroupCommandHelper {
   final GroupDelegate delegate;
 
   // protected
-  AccountDBI? get database => delegate.database;
+  AccountDBI? get database => delegate.facebook?.archivist.database;
 
   ///
   /// Group History Command
@@ -53,6 +53,18 @@ class GroupCommandHelper {
     if (await isCommandExpired(content)) {
       Log.warning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
       return false;
+    }
+    DateTime? cmdTime = content.time;
+    if (cmdTime == null) {
+      assert(false, 'group command error: $content');
+    } else {
+      // calibrate the clock
+      // make sure the command time is not in the far future
+      int current = DateTime.now().millisecondsSinceEpoch + 65536;
+      if (cmdTime.millisecondsSinceEpoch > current) {
+        assert(false, 'group command time error: $cmdTime, $content');
+        return false;
+      }
     }
     AccountDBI? db = database;
     if (content is ResetCommand) {

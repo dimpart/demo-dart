@@ -30,26 +30,6 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:object_key/object_key.dart';
-
-
-///  Message DBI
-///  ~~~~~~~~~~~
-abstract interface class ReliableMessageDBI {
-
-  ///  Get network messages
-  ///
-  /// @param receiver actual receiver
-  /// @param start    start position for loading message
-  /// @param limit    max count for loading message
-  /// @return partial messages and remaining count, 0 means there are all messages cached
-  Future<Pair<List<ReliableMessage>, int>> getReliableMessages(ID receiver,
-      {int start = 0, int? limit});
-
-  Future<bool> cacheReliableMessage(ID receiver, ReliableMessage rMsg);
-
-  Future<bool> removeReliableMessage(ID receiver, ReliableMessage rMsg);
-}
 
 
 ///  Message DBI
@@ -72,6 +52,6 @@ abstract interface class GroupKeysDBI {
 
 ///  Message DBI
 ///  ~~~~~~~~~~~
-abstract interface class MessageDBI implements ReliableMessageDBI, CipherKeyDBI, GroupKeysDBI {
+abstract interface class MessageDBI implements CipherKeyDBI, GroupKeysDBI {
 
 }

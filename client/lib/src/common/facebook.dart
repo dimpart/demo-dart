@@ -30,26 +30,25 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
 
-import 'dbi/account.dart';
+import 'archivist.dart';
 import 'anonymous.dart';
 
 
 ///  Common Facebook with Database
-class CommonFacebook extends Facebook {
-  CommonFacebook(AccountDBI adb) : _database = adb, _current = null;
+abstract class CommonFacebook extends Facebook {
+  CommonFacebook() : _current = null;
 
-  final AccountDBI _database;
   User? _current;
 
-  AccountDBI get database => _database;
+  @override
+  CommonArchivist get archivist;
 
   @override
   Future<List<User>> get localUsers async {
     List<User> users = [];
     User? usr;
-    List<ID> array = await database.getLocalUsers();
+    List<ID> array = await archivist.getLocalUsers();
     if (array.isEmpty) {
       usr = _current;
       if (usr != null) {
@@ -117,132 +116,24 @@ class CommonFacebook extends Facebook {
     return Anonymous.getName(identifier);
   }
 
-  @override
-  Future<bool> saveMeta(Meta meta, ID identifier) async {
-    if (!meta.isValid || !meta.matchIdentifier(identifier)) {
-      assert(false, 'meta not valid: $identifier');
-      return false;
-    }
-    // check old meta
-    Meta? old = await getMeta(identifier);
-    if (old != null) {
-      assert(meta == old, 'meta should not changed');
-      return true;
-    }
-    // meta not exists yet, save it
-    return await database.saveMeta(meta, identifier);
-  }
-
-  @override
-  Future<bool> saveDocument(Document doc) async {
-    ID identifier = doc.identifier;
-    if (!doc.isValid) {
-      // try to verify
-      Meta? meta = await getMeta(identifier);
-      if (meta == null) {
-        Log.error('meta not found: $identifier');
-        return false;
-      } else if (doc.verify(meta.publicKey)) {
-        Log.debug('document verified: $identifier');
-      } else {
-        Log.error('failed to verify document: $identifier');
-        assert(false, 'document not valid: $identifier');
-        return false;
-      }
-    }
-    String type = doc.type ?? '*';
-    // check old documents with type
-    List<Document> documents = await getDocuments(identifier);
-    Document? old = DocumentHelper.lastDocument(documents, type);
-    if (old != null && DocumentHelper.isExpired(doc, old)) {
-      Log.warning('drop expired document: $identifier');
-      return false;
-    }
-    return await database.saveDocument(doc);
-  }
-
-  //
-  //  EntityDataSource
-  //
-
-  @override
-  Future<Meta?> getMeta(ID identifier) async =>
-      await database.getMeta(identifier);
-
-  @override
-  Future<List<Document>> getDocuments(ID identifier) async =>
-      await database.getDocuments(identifier);
-
   //
   //  UserDataSource
   //
 
   @override
   Future<List<ID>> getContacts(ID user) async =>
-      await database.getContacts(user: user);
+      await archivist.getContacts(user);
 
   @override
   Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user) async =>
-      await database.getPrivateKeysForDecryption(user);
+      await archivist.getPrivateKeysForDecryption(user);
 
   @override
   Future<SignKey?> getPrivateKeyForSignature(ID user) async =>
-      await database.getPrivateKeyForSignature(user);
+      await archivist.getPrivateKeyForSignature(user);
 
   @override
   Future<SignKey?> getPrivateKeyForVisaSignature(ID user) async =>
-      await database.getPrivateKeyForVisaSignature(user);
-
-  //
-  //  GroupDataSource
-  //
-
-  @override
-  Future<ID?> getFounder(ID group) async {
-    ID? user = await database.getFounder(group: group);
-    if (user != null) {
-      // got from database
-      return user;
-    }
-    return await super.getFounder(group);
-  }
-
-  @override
-  Future<ID?> getOwner(ID group) async {
-    ID? user = await database.getOwner(group: group);
-    if (user != null) {
-      // got from database
-      return user;
-    }
-    return await super.getOwner(group);
-  }
-
-  @override
-  Future<List<ID>> getMembers(ID group) async {
-    ID? owner = await getOwner(group);
-    if (owner == null) {
-      assert(false, 'group owner not found: $group');
-      return [];
-    }
-    List<ID> users = await database.getMembers(group: group);
-    if (users.isEmpty) {
-      users = await super.getMembers(group);
-      if (users.isEmpty) {
-        users = [owner];
-      }
-    }
-    assert(users.first == owner, 'group owner must be the first member: $group');
-    return users;
-  }
-
-  @override
-  Future<List<ID>> getAssistants(ID group) async {
-    List<ID> bots = await database.getAssistants(group: group);
-    if (bots.isNotEmpty) {
-      // got from database
-      return bots;
-    }
-    return await super.getAssistants(group);
-  }
+      await archivist.getPrivateKeyForVisaSignature(user);
 
 }

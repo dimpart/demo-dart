@@ -44,7 +44,7 @@ class QueryCommandProcessor extends GroupCommandProcessor {
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is QueryCommand, 'query command error: $content');
-    GroupCommand command = content as GroupCommand;
+    QueryCommand command = content as QueryCommand;
 
     // 0. check command
     Pair<ID?, List<Content>?> pair = await checkCommandExpired(command, rMsg);
@@ -78,6 +78,26 @@ class QueryCommandProcessor extends GroupCommandProcessor {
           'ID': group.toString(),
         }
       });
+    }
+
+    // check last group time
+    DateTime? queryTime = command.lastTime;
+    if (queryTime != null) {
+      // check last group history time
+      DateTime? lastTime = await facebook?.archivist.getLastGroupHistoryTime(group);
+      if (lastTime == null) {
+        assert(false, 'group history error: $group');
+      } else if (!lastTime.isAfter(queryTime)) {
+        // group history not updated
+        text = 'Group history not updated.';
+        return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
+          'template': 'Group history not updated: \${ID}, last time: \${time}',
+          'replacements': {
+            'ID': group.toString(),
+            'time': lastTime.millisecondsSinceEpoch / 1000.0,
+          }
+        });
+      }
     }
 
     // 3. send newest group history commands

@@ -35,8 +35,6 @@ import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
 
-import 'messenger.dart';
-
 abstract class CommonPacker extends MessagePacker {
   CommonPacker(super.facebook, super.messenger);
 
@@ -56,42 +54,13 @@ abstract class CommonPacker extends MessagePacker {
 
   /// for checking whether user's ready
   // protected
-  Future<EncryptKey?> getVisaKey(ID user) async {
-    EncryptKey? visaKey = await facebook?.getPublicKeyForEncryption(user);
-    if (visaKey != null) {
-      // user is ready
-      return visaKey;
-    }
-    // user not ready, try to query document for it
-    CommonMessenger transceiver = messenger as CommonMessenger;
-    if (await transceiver.queryDocument(user)) {
-      Log.info('querying document for user: $user');
-    }
-    return null;
-  }
+  Future<EncryptKey?> getVisaKey(ID user) async =>
+      await facebook?.getPublicKeyForEncryption(user);
 
   /// for checking whether group's ready
   // protected
-  Future<List<ID>> getMembers(ID group) async {
-    Facebook barrack = facebook!;
-    CommonMessenger transceiver = messenger as CommonMessenger;
-    Bulletin? doc = await barrack.getBulletin(group);
-    if (doc == null) {
-      // group not ready, try to query document for it
-      if (await transceiver.queryDocument(group)) {
-        Log.info('querying document for group: $group');
-      }
-      return [];
-    }
-    List<ID> members = await barrack.getMembers(group);
-    if (members.isEmpty) {
-      // group not ready, try to query members for it
-      if (await transceiver.queryMembers(group)) {
-        Log.info('querying members for group: $group');
-      }
-    }
-    return members;
-  }
+  Future<List<ID>> getMembers(ID group) async =>
+      await facebook!.getMembers(group);
 
   ///  Check sender before verifying received message
   ///

@@ -86,7 +86,7 @@ class SQLBuilder {
   }
 
   ///
-  ///  CREATE TABLE table (field type, ...);
+  ///  CREATE TABLE IF NOT EXISTS table (field type, ...);
   ///
   static String buildCreateTable(String table, {required List<String> fields}) {
     SQLBuilder builder = SQLBuilder(create);
@@ -99,7 +99,7 @@ class SQLBuilder {
   }
 
   ///
-  ///  CREATE INDEX IF NOT EXISTS name ON (fields)
+  ///  CREATE INDEX IF NOT EXISTS name ON table (fields);
   ///
   static String buildCreateIndex(String table,
       {required String name, required List<String> fields}) {

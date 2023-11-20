@@ -41,13 +41,13 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
   HandshakeCommandProcessor(super.facebook, super.messenger);
 
   @override
-  ClientMessenger get messenger => super.messenger as ClientMessenger;
+  ClientMessenger? get messenger => super.messenger as ClientMessenger?;
 
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is HandshakeCommand, 'handshake command error: $content');
     HandshakeCommand command = content as HandshakeCommand;
-    ClientSession session = messenger.session;
+    ClientSession session = messenger!.session;
     // update station's default ID ('station@anywhere') to sender (real ID)
     Station station = session.station;
     ID oid = station.identifier;
@@ -66,11 +66,11 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
       // S -> C: station ask client to handshake again
       if (oldKey == null) {
         // first handshake response with new session key
-        await messenger.handshake(newKey);
+        await messenger?.handshake(newKey);
       } else if (oldKey == newKey) {
         // duplicated handshake response?
         // or session expired and the station ask to handshake again?
-        await messenger.handshake(newKey);
+        await messenger?.handshake(newKey);
       } else {
         // connection changed?
         // erase session key to handshake again

@@ -78,6 +78,28 @@ class GroupEmitter {
   // protected
   CommonMessenger? get messenger => delegate.messenger;
 
+  void _attachGroupTimes(ID group, InstantMessage iMsg) async {
+    Bulletin? doc = await facebook?.getBulletin(group);
+    if (doc == null) {
+      assert(false, 'failed to get bulletin document for group: $group');
+      return;
+    }
+    // attach group document time
+    DateTime? lastDocumentTime = doc.time;
+    if (lastDocumentTime == null) {
+      assert(false, 'document error: $doc');
+    } else {
+      iMsg.setDateTime('GDT', lastDocumentTime);
+    }
+    // attach group history time
+    DateTime? lastHistoryTime = await facebook?.archivist.getLastGroupHistoryTime(group);
+    if (lastDocumentTime == null) {
+      assert(false, 'failed to get history time: $group');
+    } else {
+      iMsg.setDateTime('GHT', lastHistoryTime);
+    }
+  }
+
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     Content content = iMsg.content;
     ID? group = content.group;
@@ -86,6 +108,10 @@ class GroupEmitter {
       return null;
     }
     assert(iMsg.receiver == group, 'group message error: $iMsg');
+
+    // attach group document & history times
+    // for the receiver to check whether group info synchronized
+    _attachGroupTimes(group, iMsg);
 
     // TODO: if it's a file message
     //       please upload the file data first

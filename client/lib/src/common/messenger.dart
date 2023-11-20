@@ -36,20 +36,16 @@ import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import 'compat/compatible.dart';
-import 'dbi/message.dart';
 import 'facebook.dart';
 import 'session.dart';
 
 abstract class CommonMessenger extends Messenger implements Transmitter {
-  CommonMessenger(Session session, CommonFacebook facebook, MessageDBI mdb)
-      : _session = session, _facebook = facebook, _database = mdb {
-    _packer = null;
-    _processor = null;
-  }
+  CommonMessenger(this._session, this._facebook, this._database)
+      : _packer = null, _processor = null;
 
   final Session _session;
   final CommonFacebook _facebook;
-  final MessageDBI _database;
+  final CipherKeyDelegate _database;
   Packer? _packer;
   Processor? _processor;
 
@@ -59,8 +55,6 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   EntityDelegate get entityDelegate => _facebook;
 
   CommonFacebook get facebook => _facebook;
-
-  MessageDBI get database => _database;
 
   @override
   CipherKeyDelegate? get cipherKeyDelegate => _database;
@@ -72,24 +66,6 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   @override
   Processor? get processor => _processor;
   set processor(Processor? messageProcessor) => _processor = messageProcessor;
-
-  ///  Request for meta with entity ID
-  ///
-  /// @param identifier - entity ID
-  /// @return false on duplicated
-  Future<bool> queryMeta(ID identifier);
-
-  ///  Request for meta & visa document with entity ID
-  ///
-  /// @param identifier - entity ID
-  /// @return false on duplicated
-  Future<bool> queryDocument(ID identifier);
-
-  ///  Request for group members with group ID
-  ///
-  /// @param identifier - group ID
-  /// @return false on duplicated
-  Future<bool> queryMembers(ID identifier);
 
   @override
   Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {

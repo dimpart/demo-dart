@@ -70,7 +70,7 @@ class GroupManager {
   CommonMessenger? get messenger => delegate.messenger;
 
   // protected
-  AccountDBI? get database => facebook?.database;
+  AccountDBI? get database => facebook?.archivist.database;
 
   ///  Create new group with members
   ///  (broadcast document & members to all members and neighbor station)

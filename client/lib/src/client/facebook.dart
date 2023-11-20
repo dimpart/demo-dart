@@ -35,8 +35,8 @@ import '../common/facebook.dart';
 import '../common/register.dart';
 
 ///  Client Facebook with Address Name Service
-class ClientFacebook extends CommonFacebook {
-  ClientFacebook(super.adb);
+abstract class ClientFacebook extends CommonFacebook {
+  ClientFacebook();
 
   @override
   Future<bool> saveDocument(Document doc) async {
@@ -54,9 +54,128 @@ class ClientFacebook extends CommonFacebook {
     return ok;
   }
 
-  // private
+  //
+  //  GroupDataSource
+  //
+
+  @override
+  Future<ID?> getFounder(ID group) async {
+    assert(group.isGroup, 'group ID error: $group');
+    // check broadcast group
+    if (group.isBroadcast) {
+      // founder of broadcast group
+      return BroadcastHelper.getBroadcastFounder(group);
+    }
+    // check bulletin document
+    Bulletin? doc = await getBulletin(group);
+    if (doc == null) {
+      // the owner(founder) should be set in the bulletin document of group
+      return null;
+    }
+    // check local storage
+    ID? user = await archivist.getFounder(group);
+    if (user != null) {
+      // got from local storage
+      return user;
+    }
+    // get from bulletin document
+    user = doc.founder;
+    assert(user != null, 'founder not designated for group: $group');
+    return user;
+  }
+
+  @override
+  Future<ID?> getOwner(ID group) async {
+    assert(group.isGroup, 'group ID error: $group');
+    // check broadcast group
+    if (group.isBroadcast) {
+      // founder of broadcast group
+      return BroadcastHelper.getBroadcastOwner(group);
+    }
+    // check bulletin document
+    Bulletin? doc = await getBulletin(group);
+    if (doc == null) {
+      // the owner(founder) should be set in the bulletin document of group
+      return null;
+    }
+    // check local storage
+    ID? user = await archivist.getOwner(group);
+    if (user != null) {
+      // got from local storage
+      return user;
+    }
+    // check group type
+    if (group.type == EntityType.kGroup) {
+      // Polylogue owner is its founder
+      user = await archivist.getFounder(group);
+      user ??= doc.founder;
+    }
+    assert(user != null, 'owner not found for group: $group');
+    return user;
+  }
+
+  @override
+  Future<List<ID>> getMembers(ID group) async {
+    assert(group.isGroup, 'group ID error: $group');
+    ID? owner = await getOwner(group);
+    if (owner == null) {
+      // assert(false, 'group owner not found: $group');
+      return [];
+    }
+    // check local storage
+    List<ID> members = await archivist.getMembers(group);
+    archivist.checkMembers(group, members);
+    if (members.isEmpty) {
+      members = [owner];
+    } else {
+      assert(members.first == owner, 'group owner must be the first member: $group');
+    }
+    return members;
+  }
+
+  @override
+  Future<List<ID>> getAssistants(ID group) async {
+    assert(group.isGroup, 'group ID error: $group');
+    // check bulletin document
+    Bulletin? doc = await getBulletin(group);
+    if (doc == null) {
+      // the assistants should be set in the bulletin document of group
+      return [];
+    }
+    // check local storage
+    List<ID> bots = await archivist.getAssistants(group);
+    if (bots.isNotEmpty) {
+      // got from local storage
+      return bots;
+    }
+    // get from bulletin document
+    return doc.assistants ?? [];
+  }
+
+  //
+  //  Organizational Structure
+  //
+
+  Future<List<ID>> getAdministrators(ID group) async {
+    assert(group.isGroup, 'group ID error: $group');
+    // check bulletin document
+    Bulletin? doc = await getBulletin(group);
+    if (doc == null) {
+      // the administrators should be set in the bulletin document
+      return [];
+    }
+    // the 'administrators' should be saved into local storage
+    // when the newest bulletin document received,
+    // so we must get them from the local storage only,
+    // not from the bulletin document.
+    return await archivist.getAdministrators(group: group);
+  }
+
   Future<bool> saveAdministrators(List<ID> admins, ID group) async =>
-      await database.saveAdministrators(admins, group: group);
+      await archivist.saveAdministrators(admins, group: group);
+
+  Future<bool> saveMembers(List<ID> newMembers, ID group) async =>
+      await archivist.saveMembers(newMembers, group: group);
 
   //
   //  Address Name Service
@@ -77,6 +196,7 @@ class ClientFacebook extends CommonFacebook {
     _loaded = true;
   }
   static bool _loaded = false;
+
 }
 
 IDFactory? _identifierFactory;

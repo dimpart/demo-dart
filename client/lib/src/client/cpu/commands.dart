@@ -38,7 +38,6 @@ import '../../common/protocol/login.dart';
 
 import '../facebook.dart';
 import '../messenger.dart';
-import '../network/session.dart';
 
 
 class AnsCommandProcessor extends BaseCommandProcessor {
@@ -65,7 +64,10 @@ class LoginCommandProcessor extends BaseCommandProcessor {
   LoginCommandProcessor(super.facebook, super.messenger);
 
   @override
-  ClientMessenger get messenger => super.messenger as ClientMessenger;
+  ClientMessenger? get messenger => super.messenger as ClientMessenger?;
+
+  // private
+  SessionDBI? get database => messenger?.session.database;
 
   @override
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
@@ -74,8 +76,7 @@ class LoginCommandProcessor extends BaseCommandProcessor {
     ID sender = command.identifier;
     assert(rMsg.sender == sender, 'sender not match: $sender, ${rMsg.sender}');
     // save login command to session db
-    ClientSession session = messenger.session;
-    SessionDBI db = session.database;
+    SessionDBI db = database!;
     if (await db.saveLoginCommandMessage(sender, command, rMsg)) {
       Log.info('saved login command for user: $sender');
     } else {

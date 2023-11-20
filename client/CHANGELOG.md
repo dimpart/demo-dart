@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Attach group times.
+
 ## 0.3.1
 
 - Remove 'clearDocuments'.

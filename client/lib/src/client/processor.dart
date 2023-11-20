@@ -37,18 +37,66 @@ import '../common/protocol/handshake.dart';
 
 import 'cpu/creator.dart';
 
+import 'archivist.dart';
+
 class ClientMessageProcessor extends MessageProcessor {
   ClientMessageProcessor(super.facebook, super.messenger);
 
   @override
-  CommonMessenger get messenger => super.messenger as CommonMessenger;
+  CommonMessenger? get messenger => super.messenger as CommonMessenger?;
 
   @override
-  CommonFacebook get facebook => super.facebook as CommonFacebook;
+  CommonFacebook? get facebook => super.facebook as CommonFacebook?;
+
+  void _checkGroupTimes(Content content, ReliableMessage rMsg) {
+    ID? group = content.group;
+    if (group == null) {
+      return;
+    }
+    ClientArchivist? archivist = facebook?.archivist as ClientArchivist?;
+    if (archivist == null) {
+      assert(false, 'should not happen');
+      return;
+    }
+    DateTime now = DateTime.now();
+    bool docUpdated = false;
+    bool memUpdated = false;
+    // check group document time
+    DateTime? lastDocumentTime = rMsg.getDateTime('GDT', null);
+    if (lastDocumentTime != null) {
+      if (lastDocumentTime.isAfter(now)) {
+        // calibrate the clock
+        lastDocumentTime = now;
+      }
+      docUpdated = archivist.setLastDocumentTime(group, lastDocumentTime);
+    }
+    // check group history time
+    DateTime? lastHistoryTime = rMsg.getDateTime('GHT', null);
+    if (lastHistoryTime != null) {
+      if (lastHistoryTime.isAfter(now)) {
+        // calibrate the clock
+        lastHistoryTime = now;
+      }
+      memUpdated = archivist.setLastGroupHistoryTime(group, lastHistoryTime);
+    }
+    // check whether needs update
+    if (docUpdated) {
+      facebook?.getDocuments(group);
+    }
+    if (memUpdated) {
+      archivist.setLastActiveMember(group: group, member: rMsg.sender);
+      facebook?.getMembers(group);
+    }
+  }
 
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     List<Content> responses = await super.processContent(content, rMsg);
+
+    // check group document & history times from the message
+    // to make sure the group info synchronized
+    _checkGroupTimes(content, rMsg);
+
     if (responses.isEmpty) {
       // respond nothing
       return responses;
@@ -58,7 +106,7 @@ class ClientMessageProcessor extends MessageProcessor {
     }
     ID sender = rMsg.sender;
     ID receiver = rMsg.receiver;
-    User? user = await facebook.selectLocalUser(receiver);
+    User? user = await facebook?.selectLocalUser(receiver);
     if (user == null) {
       assert(false, "receiver error: $receiver");
       return responses;
@@ -84,7 +132,7 @@ class ClientMessageProcessor extends MessageProcessor {
         }
       }
       // normal response
-      await messenger.sendContent(res, sender: receiver, receiver: sender, priority: 1);
+      await messenger?.sendContent(res, sender: receiver, receiver: sender, priority: 1);
     }
     // DON'T respond to station directly
     return [];
@@ -92,7 +140,7 @@ class ClientMessageProcessor extends MessageProcessor {
 
   @override
   ContentProcessorCreator createCreator() {
-    return ClientContentProcessorCreator(facebook, messenger);
+    return ClientContentProcessorCreator(facebook!, messenger!);
   }
 
 }
