@@ -78,7 +78,12 @@ class GroupEmitter {
   // protected
   CommonMessenger? get messenger => delegate.messenger;
 
-  void _attachGroupTimes(ID group, InstantMessage iMsg) async {
+  // private
+  void attachGroupTimes(ID group, InstantMessage iMsg) async {
+    if (iMsg.content is GroupCommand) {
+      // no need to attach times for group command
+      return;
+    }
     Bulletin? doc = await facebook?.getBulletin(group);
     if (doc == null) {
       assert(false, 'failed to get bulletin document for group: $group');
@@ -111,7 +116,7 @@ class GroupEmitter {
 
     // attach group document & history times
     // for the receiver to check whether group info synchronized
-    _attachGroupTimes(group, iMsg);
+    attachGroupTimes(group, iMsg);
 
     // TODO: if it's a file message
     //       please upload the file data first

@@ -30,6 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/lnc.dart';
 
 import 'dbi/account.dart';
 
@@ -58,6 +59,33 @@ abstract class CommonArchivist extends Archivist implements UserDataSource, Grou
     return lastTime;
   }
 
+  @override
+  Future<bool> checkMeta(ID identifier, Meta? meta) async {
+    if (identifier.isBroadcast) {
+      // broadcast entity has no meta to query
+      return false;
+    }
+    return await super.checkMeta(identifier, meta);
+  }
+
+  @override
+  Future<bool> checkDocuments(ID identifier, List<Document> documents) async {
+    if (identifier.isBroadcast) {
+      // broadcast entity has no document to update
+      return false;
+    }
+    return await super.checkDocuments(identifier, documents);
+  }
+
+  @override
+  Future<bool> checkMembers(ID group, List<ID> members) async {
+    if (group.isBroadcast) {
+      // broadcast group has no members to update
+      return false;
+    }
+    return await super.checkMembers(group, members);
+  }
+
   Future<List<ID>> getLocalUsers() async =>
       await database.getLocalUsers();
 
@@ -69,7 +97,8 @@ abstract class CommonArchivist extends Archivist implements UserDataSource, Grou
   Future<bool> saveDocument(Document doc) async {
     DateTime? docTime = doc.time;
     if (docTime == null) {
-      assert(false, 'document error: $doc');
+      // assert(false, 'document error: $doc');
+      Log.warning('document without time: ${doc.identifier}');
     } else {
       // calibrate the clock
       // make sure the document time is not in the far future

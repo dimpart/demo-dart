@@ -48,7 +48,8 @@ class ClientMessageProcessor extends MessageProcessor {
   @override
   CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
-  void _checkGroupTimes(Content content, ReliableMessage rMsg) {
+  // private
+  void checkGroupTimes(Content content, ReliableMessage rMsg) async {
     ID? group = content.group;
     if (group == null) {
       return;
@@ -95,7 +96,7 @@ class ClientMessageProcessor extends MessageProcessor {
 
     // check group document & history times from the message
     // to make sure the group info synchronized
-    _checkGroupTimes(content, rMsg);
+    checkGroupTimes(content, rMsg);
 
     if (responses.isEmpty) {
       // respond nothing

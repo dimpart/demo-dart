@@ -71,9 +71,10 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
     try {
       return await super.encryptKey(key, receiver, iMsg);
-    } catch (e) {
+    } catch (e, st) {
       // FIXME:
-      Log.error('failed to encrypt key for receiver: $receiver, $e');
+      Log.error('failed to encrypt key for receiver: $receiver, error: $e');
+      Log.debug('failed to encrypt key for receiver: $receiver, error: $e, $st');
       return null;
     }
   }

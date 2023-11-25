@@ -67,7 +67,7 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryMeta(ID identifier) async {
     if (!isMetaQueryExpired(identifier)) {
       // query not expired yet
-      Log.debug('meta query not expired yet: $identifier');
+      Log.info('meta query not expired yet: $identifier');
       return false;
     }
     Log.info('querying meta for: $identifier');
@@ -81,7 +81,7 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryDocuments(ID identifier, List<Document> documents) async {
     if (!isDocumentQueryExpired(identifier)) {
       // query not expired yet
-      Log.debug('document query not expired yet: $identifier');
+      Log.info('document query not expired yet: $identifier');
       return false;
     }
     DateTime? lastTime = await getLastDocumentTime(identifier, documents);
@@ -96,7 +96,7 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryMembers(ID identifier, List<ID> members) async {
     if (!isMembersQueryExpired(identifier)) {
       // query not expired yet
-      Log.debug('members query not expired yet: $identifier');
+      Log.info('members query not expired yet: $identifier');
       return false;
     }
     User? user = await facebook?.currentUser;

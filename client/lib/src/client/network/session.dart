@@ -31,6 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/lnc.dart';
 
 import '../../common/dbi/session.dart';
 import '../../common/session.dart';
@@ -128,8 +129,10 @@ abstract class ClientSession extends BaseSession {
           }
           allResponses.add(res);
         }
-      } catch (e) {
-        // e.printStackTrace();
+      } catch (e, st) {
+        // FIXME:
+        Log.error('failed to process package: ${pack.length} bytes, error: $e');
+        Log.debug('failed to process package: ${pack.length} bytes, error: $e, $st');
       }
     }
     SocketAddress source = docker.remoteAddress;
