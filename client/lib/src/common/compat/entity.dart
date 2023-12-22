@@ -53,17 +53,30 @@ class _EntityIDFactory extends IdentifierFactory {
   }
 
   @override
-  ID? parseIdentifier(String identifier) {
-    assert(identifier.isNotEmpty, 'ID should not be empty');
-    String lower = identifier.toLowerCase();
-    if (lower == ID.kAnyone.toString()) {
-      return ID.kAnyone;
-    } else if (lower == ID.kEveryone.toString()) {
-      return ID.kEveryone;
-    } else if (lower == ID.kFounder.toString()) {
-      return ID.kFounder;
+  ID? parse(String identifier) {
+    assert(identifier.isNotEmpty, 'ID empty');
+    int len = identifier.length;
+    if (len == 15) {
+      // "anyone@anywhere"
+      String lower = identifier.toLowerCase();
+      if (ID.kAnyone.toString() == lower) {
+        return ID.kAnyone;
+      }
+    } else if (len == 19) {
+      // "everyone@everywhere"
+      // "stations@everywhere"
+      String lower = identifier.toLowerCase();
+      if (ID.kEveryone.toString() == lower) {
+        return ID.kEveryone;
+      }
+    } else if (len == 13) {
+      // "moky@anywhere"
+      String lower = identifier.toLowerCase();
+      if (ID.kFounder.toString() == lower) {
+        return ID.kFounder;
+      }
     }
-    return super.parseIdentifier(identifier);
+    return super.parse(identifier);
   }
 }
 
@@ -71,14 +84,16 @@ class _CompatibleAddressFactory extends BaseAddressFactory {
 
   @override
   Address? createAddress(String address) {
-    assert(address.isNotEmpty, 'address should not be empty');
+    assert(address.isNotEmpty, 'address empty');
     int len = address.length;
     if (len == 8) {
+      // "anywhere"
       String lower = address.toLowerCase();
       if (lower == Address.kAnywhere.toString()) {
         return Address.kAnywhere;
       }
     } else if (len == 10) {
+      // "everywhere"
       String lower = address.toLowerCase();
       if (lower == Address.kEverywhere.toString()) {
         return Address.kEverywhere;

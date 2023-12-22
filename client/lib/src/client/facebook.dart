@@ -89,7 +89,7 @@ abstract class ClientFacebook extends CommonFacebook {
     assert(group.isGroup, 'group ID error: $group');
     // check broadcast group
     if (group.isBroadcast) {
-      // founder of broadcast group
+      // owner of broadcast group
       return BroadcastHelper.getBroadcastOwner(group);
     }
     // check bulletin document

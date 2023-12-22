@@ -57,7 +57,7 @@ abstract class ClientMessagePacker extends CommonPacker {
     if (members.isEmpty) {
       // group not ready, suspend message for waiting meta/members
       Map<String, String> error = {
-        'message': 'group not found',
+        'message': 'group members not found',
         'group': receiver.toString(),
       };
       suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);

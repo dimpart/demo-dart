@@ -150,6 +150,7 @@ class GroupHistoryBuilder {
       }
     }
     members ??= await delegate.getMembers(group);
+    assert(members.isNotEmpty, 'group members not found: $group');
     ResetCommand command = GroupCommand.reset(group, members: members);
     ReliableMessage? rMsg = await _packBroadcastMessage(me, command);
     return Pair(command, rMsg);

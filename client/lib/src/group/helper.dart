@@ -54,6 +54,7 @@ class GroupCommandHelper {
       Log.warning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
       return false;
     }
+    // check command time
     DateTime? cmdTime = content.time;
     if (cmdTime == null) {
       assert(false, 'group command error: $content');
@@ -66,6 +67,7 @@ class GroupCommandHelper {
         return false;
       }
     }
+    // update group history
     AccountDBI? db = database;
     if (content is ResetCommand) {
       Log.warning('cleaning group history for "reset" command: ${rMsg.sender} => $group');

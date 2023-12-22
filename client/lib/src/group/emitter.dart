@@ -98,7 +98,7 @@ class GroupEmitter {
     }
     // attach group history time
     DateTime? lastHistoryTime = await facebook?.archivist.getLastGroupHistoryTime(group);
-    if (lastDocumentTime == null) {
+    if (lastHistoryTime == null) {
       assert(false, 'failed to get history time: $group');
     } else {
       iMsg.setDateTime('GHT', lastHistoryTime);
@@ -151,6 +151,7 @@ class GroupEmitter {
       Log.info('split $success message(s) for group: $group');
       return null;
     } else {
+      Log.info('splitting message for ${members.length} members of group: $group');
       // encrypt and sign this message first,
       // then split and send to all members one by one
       return await _disperseMessage(iMsg, members, group: group, priority: priority);
@@ -214,7 +215,7 @@ class GroupEmitter {
     ID sender = iMsg.sender;
 
     //
-    //  1. pack message
+    //  0. pack message
     //
     ReliableMessage? rMsg = await packer.encryptAndSignMessage(iMsg);
     if (rMsg == null) {
@@ -223,7 +224,7 @@ class GroupEmitter {
     }
 
     //
-    //  2. split messages
+    //  1. split messages
     //
     List<ReliableMessage> messages = await packer.splitReliableMessage(rMsg, members);
     ID receiver;
@@ -234,6 +235,9 @@ class GroupEmitter {
         assert(false, 'cycled message: $sender => $receiver, $group');
         continue;
       }
+      //
+      //  2. send message
+      //
       ok = await transceiver?.sendReliableMessage(msg, priority: priority);
       assert(ok == true, 'failed to send message: $sender => $receiver, $group');
     }

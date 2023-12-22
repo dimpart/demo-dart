@@ -37,9 +37,9 @@ import '../common/register.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
+import 'delegate.dart';
 import 'helper.dart';
 import 'builder.dart';
-import 'delegate.dart';
 import 'packer.dart';
 
 class GroupManager {

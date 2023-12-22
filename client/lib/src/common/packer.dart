@@ -30,10 +30,11 @@
  */
 import 'dart:typed_data';
 
-import 'package:dim_client/src/common/compat/compatible.dart';
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
+
+import 'compat/compatible.dart';
 
 abstract class CommonPacker extends MessagePacker {
   CommonPacker(super.facebook, super.messenger);
@@ -163,7 +164,6 @@ abstract class CommonPacker extends MessagePacker {
     if (await checkReceiverInInstantMessage(iMsg)) {
       // receiver is ready
     } else {
-      // receiver not ready
       Log.warning('receiver not ready: ${iMsg.receiver}');
       return null;
     }
@@ -176,9 +176,7 @@ abstract class CommonPacker extends MessagePacker {
     if (await checkSenderInReliableMessage(rMsg)) {
       // sender is ready
     } else {
-      // sender not ready
-      String error = 'sender not ready: ${rMsg.sender}';
-      Log.warning(error);
+      Log.warning('sender not ready: ${rMsg.sender}');
       return null;
     }
     // 2. check receiver/group with local user
@@ -186,8 +184,7 @@ abstract class CommonPacker extends MessagePacker {
       // receiver is ready
     } else {
       // receiver (group) not ready
-      String error = 'receiver not ready: ${rMsg.receiver}';
-      Log.warning(error);
+      Log.warning('receiver not ready: ${rMsg.receiver}');
       return null;
     }
     return await super.verifyMessage(rMsg);
@@ -204,7 +201,7 @@ abstract class CommonPacker extends MessagePacker {
 
   @override
   Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    if (data.length < 2) {
+    if (data.length <= 4) {
       // message data error
       return null;
     // } else if (data.first != '{'.codeUnitAt(0) || data.last != '}'.codeUnitAt(0)) {

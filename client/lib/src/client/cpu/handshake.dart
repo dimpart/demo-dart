@@ -54,6 +54,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
     ID sender = rMsg.sender;
     if (oid.isBroadcast) {
       station.identifier = sender;
+      Log.info('update station ID: $oid => $sender');
     } else {
       assert(oid == sender, 'station ID not match: $oid, $sender');
     }
