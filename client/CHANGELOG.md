@@ -1,3 +1,7 @@
+## 0.3.3
+
+- Check group by client packer.
+
 ## 0.3.2
 
 - Attach group times.

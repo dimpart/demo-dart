@@ -68,7 +68,7 @@ abstract class CommonPacker extends MessagePacker {
   /// @param rMsg - network message
   /// @return false on verify key not found
   // protected
-  Future<bool> checkSenderInReliableMessage(ReliableMessage rMsg) async {
+  Future<bool> checkSender(ReliableMessage rMsg) async {
     ID sender = rMsg.sender;
     assert(sender.isUser, 'sender error: $sender');
     // check sender's meta & document
@@ -91,48 +91,12 @@ abstract class CommonPacker extends MessagePacker {
     return false;
   }
 
-  // protected
-  Future<bool> checkReceiverInReliableMessage(ReliableMessage sMsg) async {
-    ID receiver = sMsg.receiver;
-    // check group
-    ID? group = ID.parse(sMsg['group']);
-    if (group == null && receiver.isGroup) {
-      /// Transform:
-      ///     (B) => (J)
-      ///     (D) => (G)
-      group = receiver;
-    }
-    if (group == null || group.isBroadcast) {
-      /// A, C - personal message (or hidden group message)
-      //      the packer will call the facebook to select a user from local
-      //      for this receiver, if no user matched (private key not found),
-      //      this message will be ignored;
-      /// E, F, G - broadcast group message
-      //      broadcast message is not encrypted, so it can be read by anyone.
-      return true;
-    }
-    /// H, J, K - group message
-    //      check for received group message
-    List<ID> members = await getMembers(group);
-    if (members.isNotEmpty) {
-      // group is ready
-      return true;
-    }
-    // group not ready, suspend message for waiting members
-    Map<String, String> error = {
-      'message': 'group not ready',
-      'group': group.toString(),
-    };
-    suspendReliableMessage(sMsg, error);  // rMsg.put("error", error);
-    return false;
-  }
-
   ///  Check receiver before encrypting message
   ///
   /// @param iMsg - plain message
   /// @return false on encrypt key not found
   // protected
-  Future<bool> checkReceiverInInstantMessage(InstantMessage iMsg) async {
+  Future<bool> checkReceiver(InstantMessage iMsg) async {
     ID receiver = iMsg.receiver;
     if (receiver.isBroadcast) {
       // broadcast message
@@ -161,7 +125,7 @@ abstract class CommonPacker extends MessagePacker {
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
     // 1. check contact info
     // 2. check group members info
-    if (await checkReceiverInInstantMessage(iMsg)) {
+    if (await checkReceiver(iMsg)) {
       // receiver is ready
     } else {
       Log.warning('receiver not ready: ${iMsg.receiver}');
@@ -172,19 +136,12 @@ abstract class CommonPacker extends MessagePacker {
 
   @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    // 1. check sender's meta
-    if (await checkSenderInReliableMessage(rMsg)) {
+    // 1. check receiver/group with local user
+    // 2. check sender's visa info
+    if (await checkSender(rMsg)) {
       // sender is ready
     } else {
       Log.warning('sender not ready: ${rMsg.sender}');
-      return null;
-    }
-    // 2. check receiver/group with local user
-    if (await checkReceiverInReliableMessage(rMsg)) {
-      // receiver is ready
-    } else {
-      // receiver (group) not ready
-      Log.warning('receiver not ready: ${rMsg.receiver}');
       return null;
     }
     return await super.verifyMessage(rMsg);

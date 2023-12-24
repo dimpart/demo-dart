@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:lnc/lnc.dart';
 
 import '../common/packer.dart';
 
@@ -41,14 +42,14 @@ abstract class ClientMessagePacker extends CommonPacker {
   ClientFacebook? get facebook => super.facebook as ClientFacebook?;
 
   @override
-  Future<bool> checkReceiverInInstantMessage(InstantMessage iMsg) async {
+  Future<bool> checkReceiver(InstantMessage iMsg) async {
     ID receiver = iMsg.receiver;
     if (receiver.isBroadcast) {
       // broadcast message
       return true;
     } else if (receiver.isUser) {
       // check user's meta & document
-      return await super.checkReceiverInInstantMessage(iMsg);
+      return await super.checkReceiver(iMsg);
     }
     //
     //  check group's meta & members
@@ -90,6 +91,55 @@ abstract class ClientMessagePacker extends CommonPacker {
     // so we must return true here to let the messaging continue;
     // when the member's visa is responded, we should send the suspended message again.
     return waiting.length < members.length;
+  }
+
+  // protected
+  Future<bool> checkGroup(ReliableMessage sMsg) async {
+    ID receiver = sMsg.receiver;
+    // check group
+    ID? group = ID.parse(sMsg['group']);
+    if (group == null && receiver.isGroup) {
+      /// Transform:
+      ///     (B) => (J)
+      ///     (D) => (G)
+      group = receiver;
+    }
+    if (group == null || group.isBroadcast) {
+      /// A, C - personal message (or hidden group message)
+      //      the packer will call the facebook to select a user from local
+      //      for this receiver, if no user matched (private key not found),
+      //      this message will be ignored;
+      /// E, F, G - broadcast group message
+      //      broadcast message is not encrypted, so it can be read by anyone.
+      return true;
+    }
+    /// H, J, K - group message
+    //      check for received group message
+    List<ID> members = await getMembers(group);
+    if (members.isNotEmpty) {
+      // group is ready
+      return true;
+    }
+    // group not ready, suspend message for waiting members
+    Map<String, String> error = {
+      'message': 'group not ready',
+      'group': group.toString(),
+    };
+    suspendReliableMessage(sMsg, error);  // rMsg.put("error", error);
+    return false;
+  }
+
+  @override
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
+    // check receiver/group with local user
+    if (await checkGroup(rMsg)) {
+      // receiver is ready
+    } else {
+      // receiver (group) not ready
+      Log.warning('receiver not ready: ${rMsg.receiver}');
+      return null;
+    }
+    return await super.verifyMessage(rMsg);
   }
 
 }

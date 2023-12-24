@@ -100,7 +100,7 @@ class GroupPacker {
     ID sender = rMsg.sender;
 
     assert(!rMsg.containsKey('key'), 'should not happen');
-    Map? keys = await rMsg.encryptedKeys;
+    Map? keys = rMsg.encryptedKeys;
     keys ??= {};  // TODO: get key digest
 
     Object? keyData;  // Base-64

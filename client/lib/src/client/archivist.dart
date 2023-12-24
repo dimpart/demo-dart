@@ -93,10 +93,10 @@ abstract class ClientArchivist extends CommonArchivist {
   }
 
   @override
-  Future<bool> queryMembers(ID identifier, List<ID> members) async {
-    if (!isMembersQueryExpired(identifier)) {
+  Future<bool> queryMembers(ID group, List<ID> members) async {
+    if (!isMembersQueryExpired(group)) {
       // query not expired yet
-      Log.info('members query not expired yet: $identifier');
+      Log.info('members query not expired yet: $group');
       return false;
     }
     User? user = await facebook?.currentUser;
@@ -105,34 +105,34 @@ abstract class ClientArchivist extends CommonArchivist {
       return false;
     }
     ID me = user.identifier;
-    DateTime? lastTime = await getLastGroupHistoryTime(identifier);
-    Log.info('querying members for group: $identifier, last time: $lastTime');
+    DateTime? lastTime = await getLastGroupHistoryTime(group);
+    Log.info('querying members for group: $group, last time: $lastTime');
     // build query command for group members
-    var command = GroupCommand.query(identifier, lastTime);
+    var command = GroupCommand.query(group, lastTime);
     bool ok;
     // 1. check group bots
-    ok = await queryMembersFromAssistants(command, sender: me, group: identifier);
+    ok = await queryMembersFromAssistants(command, sender: me, group: group);
     if (ok) {
       return true;
     }
     // 2. check administrators
-    ok = await queryMembersFromAdministrators(command, sender: me, group: identifier);
+    ok = await queryMembersFromAdministrators(command, sender: me, group: group);
     if (ok) {
       return true;
     }
     // 3. check group owner
-    ok = await queryMembersFromOwner(command, sender: me, group: identifier);
+    ok = await queryMembersFromOwner(command, sender: me, group: group);
     if (ok) {
       return true;
     }
     // all failed, try last active member
     Pair<InstantMessage, ReliableMessage?>? pair;
-    ID? lastMember = _lastActiveMembers[identifier];
+    ID? lastMember = _lastActiveMembers[group];
     if (lastMember != null) {
-      Log.info('querying members from: $lastMember, group: $identifier');
+      Log.info('querying members from: $lastMember, group: $group');
       pair = await messenger?.sendContent(command, sender: me, receiver: lastMember, priority: 1);
     }
-    Log.error('group not ready: $identifier');
+    Log.error('group not ready: $group');
     return pair?.second != null;
   }
 
