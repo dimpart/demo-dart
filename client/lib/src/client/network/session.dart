@@ -32,10 +32,10 @@ import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
+import 'package:stargate/websocket.dart';
+import 'package:startrek/startrek.dart';
 
 import '../../common/dbi/session.dart';
-import '../../common/session.dart';
-import '../../network/docker.dart';
 import '../../network/session.dart';
 
 import 'state.dart';
@@ -61,12 +61,15 @@ import 'state.dart';
 ///          when first handshake responded, and we can trust
 ///          all messages from this ID after that.
 abstract class ClientSession extends BaseSession {
-  ClientSession(this.station, SessionDBI database)
-      : super(SocketAddress(station.host!, station.port), database) {
+  ClientSession(SessionDBI database, this._server)
+      : super(database, remote: InetSocketAddress(_server.host!, _server.port)) {
+    _fsm = StateMachine(this);
     _key = null;
   }
 
-  final Station station;
+  final Station _server;
+  final StateMachine _fsm;
+
   String? _key;
 
   @override
@@ -135,18 +138,18 @@ abstract class ClientSession extends BaseSession {
         Log.debug('failed to process package: ${pack.length} bytes, error: $e, $st');
       }
     }
-    SocketAddress source = docker.remoteAddress;
-    SocketAddress destination = docker.localAddress;
+    SocketAddress source = docker.remoteAddress!;
+    SocketAddress? destination = docker.localAddress;
     // 3. send responses separately
     for (Uint8List res in allResponses) {
-      sendResponse(res, ship, remote: source, local: destination);
+      await gate.sendResponse(res, ship, remote: source, local: destination);
     }
   }
 
 }
 
 List<Uint8List> _getDataPackages(Arrival ship) {
-  Uint8List payload = ship.payload;
+  Uint8List payload = (ship as PlainArrival).package;
   // check payload
   if (payload.isEmpty) {
     return [];

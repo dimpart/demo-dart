@@ -32,6 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
+import 'package:startrek/startrek.dart';
 
 import 'dbi/session.dart';
 
@@ -62,38 +63,6 @@ abstract interface class Transmitter {
   Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0});
 }
 
-class SocketAddress extends Pair<String, int> {
-  SocketAddress(String host, int port) : super(host, port);
-
-  String get host => first;
-  int get port => second;
-
-  @override
-  String toString() => '("$host", $port)';
-
-  static SocketAddress? parse(String address) {
-    String string = address;
-    string = string.replaceAll("'", '');
-    string = string.replaceAll('"', '');
-    string = string.replaceAll(' ', '');
-    string = string.replaceAll('/', '');
-    string = string.replaceAll('(', '');
-    string = string.replaceAll(')', '');
-    List<String> pair = string.split(',');
-    if (pair.length == 1) {
-      pair = string.split(':');
-    }
-    if (pair.length == 2) {
-      int? port = Converter.getInt(pair.last, null);
-      if (port != null && port > 0) {
-        return SocketAddress(pair.first, port);
-      }
-    }
-    return null;
-  }
-
-}
-
 abstract interface class Session implements Transmitter {
 
   SessionDBI get database;
@@ -118,7 +87,7 @@ abstract interface class Session implements Transmitter {
   /// @param active - flag
   /// @param when   - now (seconds from Jan 1, 1970 UTC)
   /// @return true on changed
-  bool setActive(bool flag, {double when = 0});
+  bool setActive(bool flag, DateTime? when);
   bool get isActive;
 
   ///  Pack message into a waiting queue

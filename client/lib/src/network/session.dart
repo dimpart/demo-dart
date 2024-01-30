@@ -28,26 +28,31 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:typed_data';
+
 import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
+import 'package:stargate/websocket.dart';
+import 'package:startrek/startrek.dart';
 
 import '../common/dbi/session.dart';
 import '../common/messenger.dart';
 import '../common/session.dart';
 
-import 'gate.dart';
+import 'keeper.dart';
 
 abstract class BaseSession extends GateKeeper implements Session {
-  BaseSession(super.remoteAddress, this.database) {
+  BaseSession(this._db, {required super.remote}) {
     _identifier = null;
     _transceiver = null;
   }
 
-  @override
-  final SessionDBI database;
-
+  final SessionDBI _db;
   ID? _identifier;
   WeakReference<CommonMessenger>? _transceiver;
+
+  @override
+  SessionDBI get database => _db;
 
   @override
   ID? get identifier => _identifier;
@@ -68,6 +73,12 @@ abstract class BaseSession extends GateKeeper implements Session {
   CommonMessenger? get messenger => _transceiver?.target;
   set messenger(CommonMessenger? transceiver) =>
       _transceiver = transceiver == null ? null : WeakReference(transceiver);
+
+  @override
+  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0}) {
+    Departure ship = PlainDeparture(data, priority);
+    return queueAppend(rMsg, ship);
+  }
 
   //
   //  Transmitter
