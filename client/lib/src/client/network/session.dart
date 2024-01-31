@@ -60,54 +60,90 @@ import 'state.dart';
 ///          Station with remote IP & port, its ID will be set
 ///          when first handshake responded, and we can trust
 ///          all messages from this ID after that.
-abstract class ClientSession extends BaseSession {
+class ClientSession extends BaseSession {
   ClientSession(SessionDBI database, this._server)
       : super(database, remote: InetSocketAddress(_server.host!, _server.port)) {
-    _fsm = StateMachine(this);
+    _fsm = SessionStateMachine(this);
     _key = null;
   }
 
   final Station _server;
-  final StateMachine _fsm;
+  late final SessionStateMachine _fsm;
 
   String? _key;
+
+  Station get station => _server;
+
+  SessionState? get state => _fsm.currentState ?? _fsm.getDefaultState();
 
   @override
   String? get key => _key;
 
   set key(String? sessionKey) => _key = sessionKey;
 
-  SessionState get state;
-
   /// pause state machine
-  void pause();
+  Future<void> pause() async => await _fsm.pause();
 
   /// resume state machine
-  void resume();
+  Future<void> resume() async => await _fsm.resume();
 
   /// start session in background thread
   /// start session state machine
-  void start();
+  Future<void> start(SessionStateDelegate delegate) async {
+    await stop();
+    // start a background thread
+    run();
+    // start state machine
+    _fsm.delegate = delegate;
+    await _fsm.start();
+}
 
   /// stop state machine for this session
   /// stop background machine for this session
-  void stop();
+  @override
+  Future<void> stop() async {
+    await super.stop();
+    // stop state machine
+    await _fsm.stop();
+    // wait for thread stop
+  }
+
+  @override
+  Future<void> setup() async {
+    setActive(true, null);
+    await super.setup();
+  }
+
+  @override
+  Future<void> finish() async {
+    setActive(false, null);
+    await super.finish();
+  }
+
+  // @override
+  // StreamHub createHub(ConnectionDelegate delegate, SocketAddress remote) {
+  //   ClientHub hub = ClientHub(delegate);
+  //   // Connection? conn = await hub.connect(remote: remote);
+  //   // assert(conn != null, 'failed to connect remote: $remote');
+  //   // TODO: reset send buffer size
+  //   return hub;
+  // }
 
   //
   //  Docker Delegate
   //
 
   @override
-  Future<void> onDockerStatusChanged(int previous, int current, Docker docker) async {
+  Future<void> onDockerStatusChanged(DockerStatus previous, DockerStatus current, Docker docker) async {
     await super.onDockerStatusChanged(previous, current, docker);
     if (current == DockerStatus.kError) {
       // connection error or session finished
       // TODO: reconnect?
-      setActive(false, when: 0);
+      setActive(false, null);
       // TODO: clear session ID and handshake again
     } else if (current == DockerStatus.kReady) {
       // connected/ reconnected
-      setActive(true, when: 0);
+      setActive(true, null);
     }
   }
 
@@ -149,7 +185,7 @@ abstract class ClientSession extends BaseSession {
 }
 
 List<Uint8List> _getDataPackages(Arrival ship) {
-  Uint8List payload = (ship as PlainArrival).package;
+  Uint8List payload = (ship as PlainArrival).payload;
   // check payload
   if (payload.isEmpty) {
     return [];

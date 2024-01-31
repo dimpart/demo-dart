@@ -169,6 +169,6 @@ class MessageWrapper implements Departure {
   void touch(DateTime now) => _ship.touch(now);
 
   @override
-  int getStatus(DateTime now) => _ship.getStatus(now);
+  ShipStatus getStatus(DateTime now) => _ship.getStatus(now);
 
 }

@@ -177,8 +177,8 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     ID? uid = session.identifier;
     if (uid != null) {
       // already signed in, check session state
-      SessionState state = session.state;
-      if (state.index == SessionStateOrder.kRunning) {
+      SessionState? state = session.state;
+      if (state?.index == SessionStateOrder.running.index) {
         // report client state
         await transceiver.reportOffline(uid);
         // sleep a while for waiting 'report' command sent
@@ -202,8 +202,8 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     if (uid != null) {
       // already signed in, wait a while to check session state
       sleep(const Duration(milliseconds: 500));
-      SessionState state = session.state;
-      if (state.index == SessionStateOrder.kRunning) {
+      SessionState? state = session.state;
+      if (state?.index == SessionStateOrder.running.index) {
         // report client state
         await transceiver.reportOnline(uid);
       }
@@ -229,19 +229,19 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
   //
 
   @override
-  Future<void> enterState(SessionState next, SessionStateMachine ctx, double now) async {
+  Future<void> enterState(SessionState? next, SessionStateMachine ctx, DateTime now) async {
     // called before state changed
   }
 
   @override
-  Future<void> exitState(SessionState previous, SessionStateMachine ctx, double now) async {
+  Future<void> exitState(SessionState? previous, SessionStateMachine ctx, DateTime now) async {
     // called after state changed
     SessionState? current = ctx.currentState;
     if (current == null) {
       return;
     }
-    if (current.index == SessionStateOrder.kDefault ||
-        current.index == SessionStateOrder.kConnecting) {
+    if (current.index == SessionStateOrder.init.index ||
+        current.index == SessionStateOrder.connecting.index) {
       // check current user
       ID? user = ctx.sessionID;
       if (user == null) {
@@ -256,22 +256,22 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
       }
       // TODO: create docker for connecting remote address
       Log.warning('TODO: trying to connect: $remote');
-    } else if (current.index == SessionStateOrder.kHandshaking) {
+    } else if (current.index == SessionStateOrder.handshaking.index) {
       // start handshake
       await messenger?.handshake(null);
-    } else if (current.index == SessionStateOrder.kRunning) {
+    } else if (current.index == SessionStateOrder.running.index) {
       // broadcast current meta & visa document to all stations
       await messenger?.handshakeSuccess();
     }
   }
 
   @override
-  Future<void> pauseState(SessionState current, SessionStateMachine ctx, double now) async {
+  Future<void> pauseState(SessionState? current, SessionStateMachine ctx, DateTime now) async {
 
   }
 
   @override
-  Future<void> resumeState(SessionState current, SessionStateMachine ctx, double now) async {
+  Future<void> resumeState(SessionState? current, SessionStateMachine ctx, DateTime now) async {
     // TODO: clear session key for re-login?
   }
 

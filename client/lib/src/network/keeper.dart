@@ -171,7 +171,7 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
   //
 
   @override
-  Future<void> onDockerStatusChanged(int previous, int current, Docker docker) async {
+  Future<void> onDockerStatusChanged(DockerStatus previous, DockerStatus current, Docker docker) async {
     Log.info('docker status changed: $previous => $current, $docker');
   }
 

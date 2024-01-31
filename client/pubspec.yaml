@@ -11,8 +11,8 @@ environment:
 # Add regular dependencies here.
 dependencies:
   object_key: ^0.1.1
-  startrek: ^0.1.2
-  stargate: ^0.1.0
+  startrek: ^0.1.3
+  stargate: ^0.1.1
   lnc: ^0.1.0
   dimp: ^0.3.3
   dimsdk: ^0.3.3

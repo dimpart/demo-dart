@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Upgrade session state.
+
 ## 0.3.3
 
 - Check group by client packer.
