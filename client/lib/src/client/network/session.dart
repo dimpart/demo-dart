@@ -32,7 +32,8 @@ import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
-import 'package:stargate/websocket.dart';
+import 'package:stargate/stargate.dart';
+import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
 
 import '../../common/dbi/session.dart';
@@ -74,7 +75,7 @@ class ClientSession extends BaseSession {
 
   Station get station => _server;
 
-  SessionState? get state => _fsm.currentState ?? _fsm.getDefaultState();
+  SessionState? get state => _fsm.currentState ?? _fsm.defaultState;
 
   @override
   String? get key => _key;
@@ -92,7 +93,7 @@ class ClientSession extends BaseSession {
   Future<void> start(SessionStateDelegate delegate) async {
     await stop();
     // start a background thread
-    run();
+    /*await */run();
     // start state machine
     _fsm.delegate = delegate;
     await _fsm.start();
@@ -135,13 +136,13 @@ class ClientSession extends BaseSession {
 
   @override
   Future<void> onDockerStatusChanged(DockerStatus previous, DockerStatus current, Docker docker) async {
-    await super.onDockerStatusChanged(previous, current, docker);
-    if (current == DockerStatus.kError) {
+    // await super.onDockerStatusChanged(previous, current, docker);
+    if (current == DockerStatus.error) {
       // connection error or session finished
       // TODO: reconnect?
       setActive(false, null);
       // TODO: clear session ID and handshake again
-    } else if (current == DockerStatus.kReady) {
+    } else if (current == DockerStatus.ready) {
       // connected/ reconnected
       setActive(true, null);
     }
@@ -149,7 +150,7 @@ class ClientSession extends BaseSession {
 
   @override
   Future<void> onDockerReceived(Arrival ship, Docker docker) async {
-    await super.onDockerReceived(ship, docker);
+    // await super.onDockerReceived(ship, docker);
     List<Uint8List> allResponses = [];
     // 1. get data packages from arrival ship's payload
     List<Uint8List> packages = _getDataPackages(ship);

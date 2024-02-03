@@ -32,6 +32,7 @@ import 'package:dimp/dimp.dart';
 import 'package:lnc/lnc.dart';
 import 'package:stargate/websocket.dart';
 import 'package:startrek/fsm.dart';
+import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
 
 import 'queue.dart';
@@ -62,8 +63,9 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
   // protected
   StreamHub createHub(ConnectionDelegate delegate, SocketAddress remote) {
     ClientHub hub = ClientHub(delegate);
-    // Connection? conn = await hub.connect(remote: remote);
-    // assert(conn != null, 'failed to connect remote: $remote');
+    hub.connect(remote: remote).then((conn) {
+      assert(conn != null, 'failed to connect remote: $remote');
+    });
     // TODO: reset send buffer size
     return hub;
   }
@@ -81,7 +83,7 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
     DateTime? last = _lastActiveTime;
     if (when == null) {
       when = DateTime.now();
-    } else if (last != null && last.isAfter(when)) {
+    } else if (last != null && !when.isAfter(last)) {
       return false;
     }
     _active = flag;
@@ -90,7 +92,7 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
   }
 
   @override
-  bool get isRunning => super.isRunning ? _gate.isRunning : false;
+  bool get isRunning => super.isRunning && _gate.isRunning;
 
   @override
   Future<void> stop() async {
@@ -101,8 +103,6 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
   @override
   Future<void> setup() async {
     await super.setup();
-    Connection? conn = await _gate.hub?.connect(remote: _remoteAddress);
-    assert(conn != null, 'failed to connect remote: $_remoteAddress');
     await _gate.start();
   }
 

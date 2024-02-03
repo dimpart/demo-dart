@@ -32,8 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
-import 'package:stargate/websocket.dart';
-import 'package:startrek/startrek.dart';
+import 'package:stargate/stargate.dart';
 
 import '../common/dbi/session.dart';
 import '../common/messenger.dart';
@@ -75,10 +74,8 @@ abstract class BaseSession extends GateKeeper implements Session {
       _transceiver = transceiver == null ? null : WeakReference(transceiver);
 
   @override
-  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0}) {
-    Departure ship = PlainDeparture(data, priority);
-    return queueAppend(rMsg, ship);
-  }
+  bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0}) =>
+      queueAppend(rMsg, PlainDeparture(data, priority));
 
   //
   //  Transmitter
@@ -86,20 +83,19 @@ abstract class BaseSession extends GateKeeper implements Session {
 
   @override
   Future<Pair<InstantMessage, ReliableMessage?>> sendContent(Content content,
-      {required ID? sender, required ID receiver, int priority = 0}) async {
-    return await messenger!.sendContent(content,
-        sender: sender, receiver: receiver, priority: priority);
-  }
+      {required ID? sender, required ID receiver, int priority = 0}) async =>
+      await messenger!.sendContent(content,
+        sender: sender, receiver: receiver, priority: priority,
+      );
 
   @override
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg,
-      {int priority = 0}) async {
-    return await messenger!.sendInstantMessage(iMsg, priority: priority);
-  }
+      {int priority = 0}) async =>
+      await messenger!.sendInstantMessage(iMsg, priority: priority);
 
   @override
-  Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) async {
-    return await messenger!.sendReliableMessage(rMsg, priority: priority);
-  }
+  Future<bool> sendReliableMessage(ReliableMessage rMsg,
+      {int priority = 0}) async =>
+      await messenger!.sendReliableMessage(rMsg, priority: priority);
 
 }

@@ -90,12 +90,12 @@ class SessionStateMachine
   DockerStatus get status {
     ClientSession? cs = session;
     if (cs == null) {
-      return DockerStatus.kError;
+      return DockerStatus.error;
     }
     CommonGate gate = cs.gate;
     Docker? docker = gate.getDocker(remote: cs.remoteAddress);
     if (docker == null) {
-      return DockerStatus.kError;
+      return DockerStatus.error;
     }
     return docker.status;
   }
@@ -153,7 +153,7 @@ class SessionStateTransitionBuilder {
   getConnectingConnectedTransition() => SessionStateTransition(
     SessionStateOrder.connected, (ctx, now) async {
       DockerStatus status = ctx.status;
-      return status == DockerStatus.kReady;
+      return status == DockerStatus.ready;
     },
   );
 
@@ -169,7 +169,7 @@ class SessionStateTransitionBuilder {
         return true;
       }
       DockerStatus status = ctx.status;
-      return !(status == DockerStatus.kPreparing || status == DockerStatus.kReady);
+      return !(status == DockerStatus.preparing || status == DockerStatus.ready);
     },
   );
 
@@ -186,7 +186,7 @@ class SessionStateTransitionBuilder {
         return false;
       }
       DockerStatus status = ctx.status;
-      return status == DockerStatus.kReady;
+      return status == DockerStatus.ready;
     },
   );
 
@@ -202,7 +202,7 @@ class SessionStateTransitionBuilder {
         return true;
       }
       DockerStatus status = ctx.status;
-      return status != DockerStatus.kReady;
+      return status != DockerStatus.ready;
     },
   );
 
@@ -219,7 +219,7 @@ class SessionStateTransitionBuilder {
         return false;
       }
       DockerStatus status = ctx.status;
-      if (status != DockerStatus.kReady) {
+      if (status != DockerStatus.ready) {
         // connection lost, state will be changed to 'error'
         return false;
       }
@@ -242,7 +242,7 @@ class SessionStateTransitionBuilder {
         return false;
       }
       DockerStatus status = ctx.status;
-      if (status != DockerStatus.kReady) {
+      if (status != DockerStatus.ready) {
         // connection lost, state will be changed to 'error'
         return false;
       }
@@ -268,7 +268,7 @@ class SessionStateTransitionBuilder {
         return true;
       }
       DockerStatus status = ctx.status;
-      return status != DockerStatus.kReady;
+      return status != DockerStatus.ready;
     },
   );
 
@@ -283,7 +283,7 @@ class SessionStateTransitionBuilder {
   getRunningDefaultTransition() => SessionStateTransition(
     SessionStateOrder.init, (ctx, now) async {
       DockerStatus status = ctx.status;
-      if (status != DockerStatus.kReady) {
+      if (status != DockerStatus.ready) {
         // connection lost, state will be changed to 'error'
         return false;
       }
@@ -302,7 +302,7 @@ class SessionStateTransitionBuilder {
   getRunningErrorTransition() => SessionStateTransition(
     SessionStateOrder.error, (ctx, now) async {
       DockerStatus status = ctx.status;
-      return status != DockerStatus.kReady;
+      return status != DockerStatus.ready;
     },
   );
 
@@ -312,7 +312,7 @@ class SessionStateTransitionBuilder {
   getErrorDefaultTransition() => SessionStateTransition(
     SessionStateOrder.init, (ctx, now) async {
       DockerStatus status = ctx.status;
-      return status != DockerStatus.kError;
+      return status != DockerStatus.error;
     },
   );
 

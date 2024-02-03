@@ -28,11 +28,11 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:io';
-
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/lnc.dart';
+import 'package:startrek/fsm.dart' show Runner;
+import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
 
 import '../common/dbi/session.dart';
@@ -87,13 +87,15 @@ mixin DeviceMixin {
 
 }
 
-abstract class Terminal with DeviceMixin implements SessionStateDelegate {
+abstract class Terminal extends Runner with DeviceMixin implements SessionStateDelegate {
   Terminal(this.facebook, this.sdb) : _messenger = null;
 
   final SessionDBI sdb;
   final CommonFacebook facebook;
 
   ClientMessenger? _messenger;
+
+  DateTime? _lastTime;  // last online time
 
   ClientMessenger? get messenger => _messenger;
 
@@ -182,7 +184,7 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
         // report client state
         await transceiver.reportOffline(uid);
         // sleep a while for waiting 'report' command sent
-        sleep(const Duration(milliseconds: 500));
+        await Runner.sleep(milliseconds: 512);
       }
     }
     // pause the session
@@ -201,13 +203,77 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
     ID? uid = session.identifier;
     if (uid != null) {
       // already signed in, wait a while to check session state
-      sleep(const Duration(milliseconds: 500));
+      await Runner.sleep(milliseconds: 512);
       SessionState? state = session.state;
       if (state?.index == SessionStateOrder.running.index) {
         // report client state
         await transceiver.reportOnline(uid);
       }
     }
+  }
+
+  Future<void> start() async {
+    if (isRunning) {
+      await stop();
+      await idle();
+    }
+    /*await */run();
+  }
+
+  @override
+  Future<void> finish() async {
+    // stop session in messenger
+    Messenger? transceiver = messenger;
+    if (transceiver != null) {
+      await session?.stop();
+      _messenger = null;
+    }
+    await super.finish();
+  }
+
+  @override
+  Future<void> idle() async =>
+      await Runner.sleep(milliseconds: Duration.millisecondsPerSecond * 16);
+
+  @override
+  Future<bool> process() async {
+    // check timeout
+    DateTime now = DateTime.now();
+    if (!isExpired(_lastTime, now)) {
+      // not expired yet
+      return false;
+    }
+    // check session state
+    ClientMessenger? transceiver = messenger;
+    if (transceiver == null) {
+      // not connect
+      return false;
+    }
+    ClientSession session = transceiver.session;
+    ID? uid = session.identifier;
+    SessionState? state = session.state;
+    if (uid == null || state?.index != SessionStateOrder.running.index) {
+      // handshake not accepted
+      return false;
+    }
+    // report every 5 minutes to keep user online
+    try {
+      keepOnline(uid, transceiver);
+    } catch (e) {
+      Log.error('Terminal error: $e');
+    }
+    // update last online time
+    _lastTime = now;
+    return false;
+  }
+
+  // protected
+  bool isExpired(DateTime? last, DateTime now) {
+    if (last == null) {
+      return false;
+    }
+    // keep online every 5 minutes
+    return now.isBefore(last.add(Duration(seconds: 300)));
   }
 
   // protected
@@ -254,8 +320,12 @@ abstract class Terminal with DeviceMixin implements SessionStateDelegate {
         Log.error('failed to get remote address: $session');
         return;
       }
-      // TODO: create docker for connecting remote address
-      Log.warning('TODO: trying to connect: $remote');
+      Docker? docker = await session?.gate.fetchDocker([], remote: remote);
+      if (docker == null) {
+        Log.error('failed to connect: $remote');
+      } else {
+        Log.info('connected to: $remote');
+      }
     } else if (current.index == SessionStateOrder.handshaking.index) {
       // start handshake
       await messenger?.handshake(null);

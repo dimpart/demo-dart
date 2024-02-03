@@ -32,7 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
-import 'package:startrek/startrek.dart';
+import 'package:startrek/nio.dart';
 
 import 'dbi/session.dart';
 

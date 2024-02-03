@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Keep online.
+
 ## 0.4.0
 
 - Upgrade session state.
