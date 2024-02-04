@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Auto reconnect.
+
 ## 0.4.1
 
 - Keep online.

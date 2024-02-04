@@ -188,7 +188,7 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
       }
     }
     // pause the session
-    session.pause();
+    await session.pause();
   }
   Future<void> enterForeground() async {
     ClientMessenger? transceiver = messenger;
@@ -198,7 +198,7 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
     }
     ClientSession session = transceiver.session;
     // resume the session
-    session.resume();
+    await session.resume();
     // check signed in user
     ID? uid = session.identifier;
     if (uid != null) {
@@ -258,7 +258,7 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
     }
     // report every 5 minutes to keep user online
     try {
-      keepOnline(uid, transceiver);
+      await keepOnline(uid, transceiver);
     } catch (e) {
       Log.error('Terminal error: $e');
     }
@@ -311,13 +311,13 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
       // check current user
       ID? user = ctx.sessionID;
       if (user == null) {
-        Log.error('current user not set');
+        Log.warning('current user not set');
         return;
       }
       Log.info('connect for user: $user');
       SocketAddress? remote = session?.remoteAddress;
       if (remote == null) {
-        Log.error('failed to get remote address: $session');
+        Log.warning('failed to get remote address: $session');
         return;
       }
       Docker? docker = await session?.gate.fetchDocker([], remote: remote);
@@ -332,6 +332,8 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
     } else if (current.index == SessionStateOrder.running.index) {
       // broadcast current meta & visa document to all stations
       await messenger?.handshakeSuccess();
+      // update last online time
+      _lastTime = now;
     }
   }
 

@@ -112,15 +112,28 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
     await super.finish();
   }
 
+  int _reconnectTime = 0;
+
   @override
   Future<bool> process() async {
-    Hub? hub = _gate.hub;
-    if (hub == null) {
-      assert(false, 'gate hub not found');
-      return false;
+    // check docker for remote address
+    Docker? docker = gate.getDocker(remote: remoteAddress);
+    if (docker == null) {
+      int now = DateTime.now().millisecondsSinceEpoch;
+      if (now < _reconnectTime) {
+        return false;
+      }
+      Log.info('fetch docker: $remoteAddress');
+      docker = await gate.fetchDocker([], remote: remoteAddress);
+      if (docker == null) {
+        Log.error('gate error: $remoteAddress');
+        _reconnectTime = now + 8000;
+        return false;
+      }
     }
+    // try to process income/outgo packages
     try {
-      bool incoming = await hub.process();
+      bool incoming = await _gate.hub?.process() ?? false;
       bool outgoing = await _gate.process();
       if (incoming || outgoing) {
         // processed income/outgo packages
@@ -150,9 +163,9 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
       return true;
     }
     // try to push
-    bool ok = await _gate.sendShip(wrapper, remote: _remoteAddress);
+    bool ok = await docker.sendShip(wrapper);
     if (!ok) {
-      Log.error('gate error, failed to send data');
+      Log.error('docker error: $_remoteAddress, $docker');
     }
     return true;
   }
