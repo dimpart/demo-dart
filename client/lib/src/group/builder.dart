@@ -29,7 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import '../common/facebook.dart';
@@ -38,7 +38,7 @@ import '../common/messenger.dart';
 import 'delegate.dart';
 import 'helper.dart';
 
-class GroupHistoryBuilder {
+class GroupHistoryBuilder with Logging {
   GroupHistoryBuilder(this.delegate);
 
   // protected
@@ -70,7 +70,7 @@ class GroupHistoryBuilder {
     doc = docPair.first;
     rMsg = docPair.second;
     if (doc == null || rMsg == null) {
-      Log.warning('failed to build "document" command for group: $group');
+      warning('failed to build "document" command for group: $group');
       return messages;
     } else {
       messages.add(rMsg);
@@ -82,7 +82,7 @@ class GroupHistoryBuilder {
     reset = resPair.first;
     rMsg = resPair.second;
     if (reset == null || rMsg == null) {
-      Log.warning('failed to get "reset" command for group: $group');
+      warning('failed to get "reset" command for group: $group');
       return messages;
     } else {
       messages.add(rMsg);
@@ -95,18 +95,18 @@ class GroupHistoryBuilder {
       if (item.first is ResetCommand) {
         // 'reset' command already add to the front
         // assert(messages.length == 2, 'group history error: $group, ${history.length}');
-        Log.info('skip "reset" command for group: $group');
+        info('skip "reset" command for group: $group');
         continue;
       } else if (item.first is ResignCommand) {
         // 'resign' command, comparing it with document time
         if (DocumentHelper.isBefore(doc.time, item.first.time)) {
-          Log.warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
+          warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
       } else {
         // other commands('invite', 'join', 'quit'), comparing with 'reset' time
         if (DocumentHelper.isBefore(reset.time, item.first.time)) {
-          Log.warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
+          warning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
       }
@@ -122,7 +122,7 @@ class GroupHistoryBuilder {
     Bulletin? doc = await delegate.getBulletin(group);
     if (user == null || doc == null) {
       assert(user != null, 'failed to get current user');
-      Log.error('document not found for group: $group');
+      error('document not found for group: $group');
       return Pair(null, null);
     }
     ID me = user.identifier;
@@ -138,14 +138,14 @@ class GroupHistoryBuilder {
     ID? owner = await delegate.getOwner(group);
     if (user == null || owner == null) {
       assert(user != null, 'failed to get current user');
-      Log.error('owner not found for group: $group');
+      error('owner not found for group: $group');
       return Pair(null, null);
     }
     ID me = user.identifier;
     if (owner != me) {
       List<ID> admins = await delegate.getAdministrators(group);
       if (!admins.contains(me)) {
-        Log.warning('not permit to build "reset" command for group: $group, $me');
+        warning('not permit to build "reset" command for group: $group, $me');
         return Pair(null, null);
       }
     }

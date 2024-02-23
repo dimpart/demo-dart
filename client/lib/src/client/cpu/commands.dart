@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import '../../common/dbi/session.dart';
 import '../../common/protocol/ans.dart';
@@ -40,7 +40,7 @@ import '../facebook.dart';
 import '../messenger.dart';
 
 
-class AnsCommandProcessor extends BaseCommandProcessor {
+class AnsCommandProcessor extends BaseCommandProcessor with Logging {
   AnsCommandProcessor(super.facebook, super.messenger);
 
   @override
@@ -49,10 +49,10 @@ class AnsCommandProcessor extends BaseCommandProcessor {
     AnsCommand command = content as AnsCommand;
     Map<String, String>? records = command.records;
     if (records == null) {
-      Log.info('ANS: querying ${content.names}');
+      info('ANS: querying ${content.names}');
     } else {
       int count = await ClientFacebook.ans!.fix(records);
-      Log.info('ANS: update $count record(s), $records');
+      info('ANS: update $count record(s), $records');
     }
     return [];
   }
@@ -60,7 +60,7 @@ class AnsCommandProcessor extends BaseCommandProcessor {
 }
 
 
-class LoginCommandProcessor extends BaseCommandProcessor {
+class LoginCommandProcessor extends BaseCommandProcessor with Logging {
   LoginCommandProcessor(super.facebook, super.messenger);
 
   @override
@@ -78,9 +78,9 @@ class LoginCommandProcessor extends BaseCommandProcessor {
     // save login command to session db
     SessionDBI db = database!;
     if (await db.saveLoginCommandMessage(sender, command, rMsg)) {
-      Log.info('saved login command for user: $sender');
+      info('saved login command for user: $sender');
     } else {
-      Log.error('failed to save login command: $sender, $command');
+      error('failed to save login command: $sender, $command');
     }
     // no need to response login command
     return [];

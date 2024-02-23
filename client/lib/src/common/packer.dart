@@ -32,11 +32,11 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import 'compat/compatible.dart';
 
-abstract class CommonPacker extends MessagePacker {
+abstract class CommonPacker extends MessagePacker with Logging {
   CommonPacker(super.facebook, super.messenger);
 
   ///  Add income message in a queue for waiting sender's visa
@@ -128,7 +128,7 @@ abstract class CommonPacker extends MessagePacker {
     if (await checkReceiver(iMsg)) {
       // receiver is ready
     } else {
-      Log.warning('receiver not ready: ${iMsg.receiver}');
+      warning('receiver not ready: ${iMsg.receiver}');
       return null;
     }
     return await super.encryptMessage(iMsg);
@@ -141,7 +141,7 @@ abstract class CommonPacker extends MessagePacker {
     if (await checkSender(rMsg)) {
       // sender is ready
     } else {
-      Log.warning('sender not ready: ${rMsg.sender}');
+      warning('sender not ready: ${rMsg.sender}');
       return null;
     }
     return await super.verifyMessage(rMsg);

@@ -30,7 +30,6 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../common/archivist.dart';
@@ -67,10 +66,10 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryMeta(ID identifier) async {
     if (!isMetaQueryExpired(identifier)) {
       // query not expired yet
-      Log.info('meta query not expired yet: $identifier');
+      info('meta query not expired yet: $identifier');
       return false;
     }
-    Log.info('querying meta for: $identifier');
+    info('querying meta for: $identifier');
     var content = MetaCommand.query(identifier);
     var pair = await messenger?.sendContent(content,
       sender: null, receiver: Station.kAny, priority: 1,);
@@ -81,11 +80,11 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryDocuments(ID identifier, List<Document> documents) async {
     if (!isDocumentQueryExpired(identifier)) {
       // query not expired yet
-      Log.info('document query not expired yet: $identifier');
+      info('document query not expired yet: $identifier');
       return false;
     }
     DateTime? lastTime = await getLastDocumentTime(identifier, documents);
-    Log.info('querying documents for: $identifier, last time: $lastTime');
+    info('querying documents for: $identifier, last time: $lastTime');
     var content = DocumentCommand.query(identifier, lastTime);
     var pair = await messenger?.sendContent(content,
         sender: null, receiver: Station.kAny, priority: 1);
@@ -96,7 +95,7 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryMembers(ID group, List<ID> members) async {
     if (!isMembersQueryExpired(group)) {
       // query not expired yet
-      Log.info('members query not expired yet: $group');
+      info('members query not expired yet: $group');
       return false;
     }
     User? user = await facebook?.currentUser;
@@ -106,7 +105,7 @@ abstract class ClientArchivist extends CommonArchivist {
     }
     ID me = user.identifier;
     DateTime? lastTime = await getLastGroupHistoryTime(group);
-    Log.info('querying members for group: $group, last time: $lastTime');
+    info('querying members for group: $group, last time: $lastTime');
     // build query command for group members
     var command = GroupCommand.query(group, lastTime);
     bool ok;
@@ -129,10 +128,10 @@ abstract class ClientArchivist extends CommonArchivist {
     Pair<InstantMessage, ReliableMessage?>? pair;
     ID? lastMember = _lastActiveMembers[group];
     if (lastMember != null) {
-      Log.info('querying members from: $lastMember, group: $group');
+      info('querying members from: $lastMember, group: $group');
       pair = await messenger?.sendContent(command, sender: me, receiver: lastMember, priority: 1);
     }
-    Log.error('group not ready: $group');
+    error('group not ready: $group');
     return pair?.second != null;
   }
 
@@ -140,16 +139,16 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryMembersFromAssistants(QueryCommand command, {required ID sender, required ID group}) async {
     List<ID>? bots = await facebook?.getAssistants(group);
     if (bots == null || bots.isEmpty) {
-      Log.warning('assistants not designated for group: $group');
+      warning('assistants not designated for group: $group');
       return false;
     }
     int success = 0;
     Pair<InstantMessage, ReliableMessage?>? pair;
     // querying members from bots
-    Log.info('querying members from bots: $bots, group: $group');
+    info('querying members from bots: $bots, group: $group');
     for (ID receiver in bots) {
       if (sender == receiver) {
-        Log.warning('ignore cycled querying: $sender, group: $group');
+        warning('ignore cycled querying: $sender, group: $group');
         continue;
       }
       pair = await messenger?.sendContent(command, sender: sender, receiver: receiver, priority: 1);
@@ -165,7 +164,7 @@ abstract class ClientArchivist extends CommonArchivist {
     if (lastMember == null || bots.contains(lastMember)) {
       // last active member is a bot??
     } else {
-      Log.info('querying members from: $lastMember, group: $group');
+      info('querying members from: $lastMember, group: $group');
       await messenger?.sendContent(command, sender: sender, receiver: lastMember, priority: 1);
     }
     return true;
@@ -176,16 +175,16 @@ abstract class ClientArchivist extends CommonArchivist {
     ClientFacebook? barrack = facebook as ClientFacebook?;
     List<ID>? admins = await barrack?.getAdministrators(group);
     if (admins == null || admins.isEmpty) {
-      Log.warning('administrators not found for group: $group');
+      warning('administrators not found for group: $group');
       return false;
     }
     int success = 0;
     Pair<InstantMessage, ReliableMessage?>? pair;
     // querying members from admins
-    Log.info('querying members from admins: $admins, group: $group');
+    info('querying members from admins: $admins, group: $group');
     for (ID receiver in admins) {
       if (sender == receiver) {
-        Log.warning('ignore cycled querying: $sender, group: $group');
+        warning('ignore cycled querying: $sender, group: $group');
         continue;
       }
       pair = await messenger?.sendContent(command, sender: sender, receiver: receiver, priority: 1);
@@ -201,7 +200,7 @@ abstract class ClientArchivist extends CommonArchivist {
     if (lastMember == null || admins.contains(lastMember)) {
       // last active member is an admin, already queried
     } else {
-      Log.info('querying members from: $lastMember, group: $group');
+      info('querying members from: $lastMember, group: $group');
       await messenger?.sendContent(command, sender: sender, receiver: lastMember, priority: 1);
     }
     return true;
@@ -211,15 +210,15 @@ abstract class ClientArchivist extends CommonArchivist {
   Future<bool> queryMembersFromOwner(QueryCommand command, {required ID sender, required ID group}) async {
     ID? owner = await facebook?.getOwner(group);
     if (owner == null) {
-      Log.warning('owner not found for group: $group');
+      warning('owner not found for group: $group');
       return false;
     } else if (owner == sender) {
-      Log.error('you are the owner of group: $group');
+      error('you are the owner of group: $group');
       return false;
     }
     Pair<InstantMessage, ReliableMessage?>? pair;
     // querying members from owner
-    Log.info('querying members from owner: $owner, group: $group');
+    info('querying members from owner: $owner, group: $group');
     pair = await messenger?.sendContent(command, sender: sender, receiver: owner, priority: 1);
     if (pair?.second == null) {
       // failed
@@ -229,7 +228,7 @@ abstract class ClientArchivist extends CommonArchivist {
     if (lastMember == null || lastMember == owner) {
       // last active member is the owner, already queried
     } else {
-      Log.info('querying members from: $lastMember, group: $group');
+      info('querying members from: $lastMember, group: $group');
       messenger?.sendContent(command, sender: sender, receiver: lastMember, priority: 1);
     }
     return true;

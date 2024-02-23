@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -86,7 +85,7 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'join' command to local storage as group history
       // it should not failed unless the command is expired
-      Log.error('failed to save "join" command for group: $group');
+      error('failed to save "join" command for group: $group');
     } else {
       // the 'join' command was saved, now waiting for review.
     }

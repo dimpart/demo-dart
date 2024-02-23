@@ -31,7 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:stargate/stargate.dart';
 import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
@@ -61,7 +61,7 @@ import 'state.dart';
 ///          Station with remote IP & port, its ID will be set
 ///          when first handshake responded, and we can trust
 ///          all messages from this ID after that.
-class ClientSession extends BaseSession {
+class ClientSession extends BaseSession with Logging {
   ClientSession(SessionDBI database, this._server)
       : super(database, remote: InetSocketAddress(_server.host!, _server.port)) {
     _fsm = SessionStateMachine(this);
@@ -171,8 +171,8 @@ class ClientSession extends BaseSession {
         }
       } catch (e, st) {
         // FIXME:
-        Log.error('failed to process package: ${pack.length} bytes, error: $e');
-        Log.debug('failed to process package: ${pack.length} bytes, error: $e, $st');
+        error('failed to process package: ${pack.length} bytes, error: $e');
+        debug('failed to process package: ${pack.length} bytes, error: $e, $st');
       }
     }
     SocketAddress source = docker.remoteAddress!;

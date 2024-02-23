@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import '../common/dbi/account.dart';
 import '../common/register.dart';
@@ -42,7 +42,7 @@ import 'helper.dart';
 import 'builder.dart';
 import 'packer.dart';
 
-class GroupManager {
+class GroupManager with Logging {
   GroupManager(this.delegate);
 
   // protected
@@ -109,7 +109,7 @@ class GroupManager {
     //
     Register register = Register(database!);
     ID group = await register.createGroup(founder, name: groupName);
-    Log.info('new group: $group ($groupName), founder: $founder');
+    info('new group: $group ($groupName), founder: $founder');
 
     //
     //  3. upload meta+document to neighbor station(s)
@@ -133,9 +133,9 @@ class GroupManager {
     //  4. create & broadcast 'reset' group command with new members
     //
     if (await resetMembers(group, members)) {
-      Log.info('created group $group with ${members.length} members');
+      info('created group $group with ${members.length} members');
     } else {
-      Log.error('failed to create group $group with ${members.length} members');
+      error('failed to create group $group with ${members.length} members');
     }
 
     return group;
@@ -222,7 +222,7 @@ class GroupManager {
       assert(false, 'failed to update members of group: $group');
       return false;
     } else {
-      Log.info('group members updated: $group, ${newMembers.length}');
+      info('group members updated: $group, ${newMembers.length}');
     }
 
     //
@@ -368,13 +368,13 @@ class GroupManager {
     //  2. update local storage
     //
     if (isMember) {
-      Log.warning('quitting group: $group, $me');
+      warning('quitting group: $group, $me');
       members = [...members];
       members.remove(me);
       bool ok = await delegate.saveMembers(group, members);
       assert(ok, 'failed to save members for group: $group');
     } else {
-      Log.warning('member not in group: $group, $me');
+      warning('member not in group: $group, $me');
     }
 
     //
@@ -422,7 +422,7 @@ class GroupManager {
     CommonMessenger? transceiver = messenger;
     for (ID receiver in members) {
       if (me == receiver) {
-        Log.info('skip cycled message: $me => $receiver');
+        info('skip cycled message: $me => $receiver');
         continue;
       }
       transceiver?.sendContent(content, sender: me, receiver: receiver, priority: 1);

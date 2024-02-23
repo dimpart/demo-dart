@@ -32,14 +32,15 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import 'compat/compatible.dart';
 import 'facebook.dart';
 import 'session.dart';
 
-abstract class CommonMessenger extends Messenger implements Transmitter {
+abstract class CommonMessenger extends Messenger with Logging
+    implements Transmitter {
   CommonMessenger(this._session, this._facebook, this._database)
       : _packer = null, _processor = null;
 
@@ -73,8 +74,8 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
       return await super.encryptKey(key, receiver, iMsg);
     } catch (e, st) {
       // FIXME:
-      Log.error('failed to encrypt key for receiver: $receiver, error: $e');
-      Log.debug('failed to encrypt key for receiver: $receiver, error: $e, $st');
+      error('failed to encrypt key for receiver: $receiver, error: $e');
+      debug('failed to encrypt key for receiver: $receiver, error: $e, $st');
       return null;
     }
   }
@@ -145,11 +146,11 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     // 0. check cycled message
     if (iMsg.sender == iMsg.receiver) {
-      Log.warning('drop cycled message: ${iMsg.content} '
+      warning('drop cycled message: ${iMsg.content} '
           '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
       return null;
     } else {
-      Log.debug('send instant message (type=${iMsg.content.type}): '
+      debug('send instant message (type=${iMsg.content.type}): '
           '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
     }
     // 1. encrypt message
@@ -177,7 +178,7 @@ abstract class CommonMessenger extends Messenger implements Transmitter {
   Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) async {
     // 0. check cycled message
     if (rMsg.sender == rMsg.receiver) {
-      Log.warning('drop cycled message: ${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
+      warning('drop cycled message: ${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
       return false;
     }
     // 1. serialize message

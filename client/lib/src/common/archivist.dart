@@ -30,11 +30,12 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import 'dbi/account.dart';
 
-abstract class CommonArchivist extends Archivist implements UserDataSource, GroupDataSource {
+abstract class CommonArchivist extends Archivist with Logging
+    implements UserDataSource, GroupDataSource {
 
   final AccountDBI database;
 
@@ -71,7 +72,7 @@ abstract class CommonArchivist extends Archivist implements UserDataSource, Grou
     DateTime? docTime = doc.time;
     if (docTime == null) {
       // assert(false, 'document error: $doc');
-      Log.warning('document without time: ${doc.identifier}');
+      warning('document without time: ${doc.identifier}');
     } else {
       // calibrate the clock
       // make sure the document time is not in the far future

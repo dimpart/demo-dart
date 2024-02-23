@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -87,7 +86,7 @@ class ResignCommandProcessor extends GroupCommandProcessor {
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'resign' command to local storage as group history
       // it should not failed unless the command is expired
-      Log.error('failed to save "resign" command for group: $group');
+      error('failed to save "resign" command for group: $group');
     } else if (await saveAdministrators(group, [...admins]..remove(sender))) {
       // here try to remove the sender from admin list
       command['removed'] = [sender.toString()];

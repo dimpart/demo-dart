@@ -31,11 +31,11 @@
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:startrek/startrek.dart';
 
 
-class MessageQueue {
+class MessageQueue with Logging {
 
   final List<int> _priorities = [];
   final Map<int, List<MessageWrapper>> _fleets = {};
@@ -64,7 +64,7 @@ class MessageQueue {
       for (MessageWrapper wrapper in array) {
         item = wrapper.message;
         if (item != null && _isDuplicated(item, rMsg)) {
-          Log.warning('[QUEUE] duplicated message: $signature');
+          warning('[QUEUE] duplicated message: $signature');
           ok = false;
           break;
         }

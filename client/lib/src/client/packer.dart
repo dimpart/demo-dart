@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
 
 import '../common/packer.dart';
 
@@ -136,7 +135,7 @@ abstract class ClientMessagePacker extends CommonPacker {
       // receiver is ready
     } else {
       // receiver (group) not ready
-      Log.warning('receiver not ready: ${rMsg.receiver}');
+      warning('receiver not ready: ${rMsg.receiver}');
       return null;
     }
     return await super.verifyMessage(rMsg);

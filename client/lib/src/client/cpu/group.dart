@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import '../../common/facebook.dart';
@@ -39,7 +39,7 @@ import '../../group/delegate.dart';
 import '../../group/helper.dart';
 import '../../group/builder.dart';
 
-class HistoryCommandProcessor extends BaseCommandProcessor {
+class HistoryCommandProcessor extends BaseCommandProcessor with Logging {
   HistoryCommandProcessor(super.facebook, super.messenger);
 
   @override
@@ -206,7 +206,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
   Future<bool> sendGroupHistories({required ID group, required ID receiver}) async {
     List<ReliableMessage> messages = await builder.buildGroupHistories(group);
     if (messages.isEmpty) {
-      Log.warning('failed to build history for group: $group');
+      warning('failed to build history for group: $group');
       return false;
     }
     Content content = ForwardContent.create(secrets: messages);

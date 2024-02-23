@@ -29,14 +29,14 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import '../common/dbi/account.dart';
 
 import 'delegate.dart';
 
-class GroupCommandHelper {
+class GroupCommandHelper with Logging {
   GroupCommandHelper(this.delegate);
 
   // protected
@@ -51,7 +51,7 @@ class GroupCommandHelper {
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async {
     assert(group == content.group, 'group ID error: $group, $content');
     if (await isCommandExpired(content)) {
-      Log.warning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
+      warning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
       return false;
     }
     // check command time
@@ -70,7 +70,7 @@ class GroupCommandHelper {
     // update group history
     AccountDBI? db = database;
     if (content is ResetCommand) {
-      Log.warning('cleaning group history for "reset" command: ${rMsg.sender} => $group');
+      warning('cleaning group history for "reset" command: ${rMsg.sender} => $group');
       await db!.clearGroupMemberHistories(group: group);
     }
     return await db!.saveGroupHistory(content, rMsg, group: group);

@@ -29,7 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:stargate/websocket.dart';
 import 'package:startrek/fsm.dart';
 import 'package:startrek/nio.dart';
@@ -38,7 +38,7 @@ import 'package:startrek/startrek.dart';
 import 'queue.dart';
 
 
-abstract class GateKeeper extends Runner implements DockerDelegate {
+abstract class GateKeeper extends Runner with Logging implements DockerDelegate {
   GateKeeper({required SocketAddress remote}) {
     _remoteAddress = remote;
     _gate = createGate(remote);
@@ -123,10 +123,10 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
       if (now < _reconnectTime) {
         return false;
       }
-      Log.info('fetch docker: $remoteAddress');
+      info('fetch docker: $remoteAddress');
       docker = await gate.fetchDocker([], remote: remoteAddress);
       if (docker == null) {
-        Log.error('gate error: $remoteAddress');
+        error('gate error: $remoteAddress');
         _reconnectTime = now + 8000;
         return false;
       }
@@ -140,7 +140,7 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
         return true;
       }
     } catch (e) {
-      Log.error('gate process error: $e');
+      error('gate process error: $e');
       return false;
     }
     if (!isActive) {
@@ -165,7 +165,7 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
     // try to push
     bool ok = await docker.sendShip(wrapper);
     if (!ok) {
-      Log.error('docker error: $_remoteAddress, $docker');
+      error('docker error: $_remoteAddress, $docker');
     }
     return true;
   }
@@ -185,12 +185,12 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
 
   @override
   Future<void> onDockerStatusChanged(DockerStatus previous, DockerStatus current, Docker docker) async {
-    Log.info('docker status changed: $previous => $current, $docker');
+    info('docker status changed: $previous => $current, $docker');
   }
 
   @override
   Future<void> onDockerReceived(Arrival ship, Docker docker) async {
-    Log.debug("docker received a ship: $ship, $docker");
+    debug("docker received a ship: $ship, $docker");
   }
 
   @override
@@ -200,12 +200,12 @@ abstract class GateKeeper extends Runner implements DockerDelegate {
 
   @override
   Future<void> onDockerFailed(IOError error, Departure ship, Docker docker) async {
-    Log.error("docker failed to send ship: $ship, $docker");
+    this.error("docker failed to send ship: $ship, $docker");
   }
 
   @override
   Future<void> onDockerError(IOError error, Departure ship, Docker docker) async {
-    Log.error("docker error while sending ship: $ship, $docker");
+    this.error("docker error while sending ship: $ship, $docker");
   }
 
 }

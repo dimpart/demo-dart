@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 import 'package:startrek/fsm.dart' show Runner;
 import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
@@ -87,7 +87,8 @@ mixin DeviceMixin {
 
 }
 
-abstract class Terminal extends Runner with DeviceMixin implements SessionStateDelegate {
+abstract class Terminal extends Runner with DeviceMixin, Logging
+    implements SessionStateDelegate {
   Terminal(this.facebook, this.sdb) : _messenger = null;
 
   final SessionDBI sdb;
@@ -109,7 +110,7 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
       if (session.isActive) {
         // current session is active
         Station station = session.station;
-        Log.debug('current station: $station');
+        debug('current station: $station');
         if (station.host == host && station.port == port) {
           // same target
           return old;
@@ -118,7 +119,7 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
       session.stop();
       _messenger = null;
     }
-    Log.info('connecting to $host:$port ...');
+    info('connecting to $host:$port ...');
     // create new messenger with session
     Station station = createStation(host, port);
     ClientSession session = createSession(station);
@@ -260,7 +261,7 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
     try {
       await keepOnline(uid, transceiver);
     } catch (e) {
-      Log.error('Terminal error: $e');
+      error('Terminal error: $e');
     }
     // update last online time
     _lastTime = now;
@@ -311,20 +312,20 @@ abstract class Terminal extends Runner with DeviceMixin implements SessionStateD
       // check current user
       ID? user = ctx.sessionID;
       if (user == null) {
-        Log.warning('current user not set');
+        warning('current user not set');
         return;
       }
-      Log.info('connect for user: $user');
+      info('connect for user: $user');
       SocketAddress? remote = session?.remoteAddress;
       if (remote == null) {
-        Log.warning('failed to get remote address: $session');
+        warning('failed to get remote address: $session');
         return;
       }
       Docker? docker = await session?.gate.fetchDocker([], remote: remote);
       if (docker == null) {
-        Log.error('failed to connect: $remote');
+        error('failed to connect: $remote');
       } else {
-        Log.info('connected to: $remote');
+        info('connected to: $remote');
       }
     } else if (current.index == SessionStateOrder.handshaking.index) {
       // start handshake

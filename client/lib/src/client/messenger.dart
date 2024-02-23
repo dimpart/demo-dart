@@ -30,7 +30,6 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
 
 import '../common/messenger.dart';
 import '../common/protocol/handshake.dart';
@@ -102,22 +101,22 @@ abstract class ClientMessenger extends CommonMessenger {
     List<ID> contacts = await facebook.getContacts(me);
     for (ID item in contacts) {
       if (archivist.isDocumentResponseExpired(item, updated)) {
-        Log.info('sending visa to $item');
+        info('sending visa to $item');
         await sendContent(command, sender: me, receiver: item, priority: 1);
       } else {
         // not expired yet
-        Log.debug('visa response not expired yet: $me => $item');
+        debug('visa response not expired yet: $me => $item');
       }
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
     if (archivist.isDocumentResponseExpired(ID.kEveryone, updated)) {
-      Log.info('sending visa to ${ID.kEveryone}');
+      info('sending visa to ${ID.kEveryone}');
       await sendContent(command, sender: me, receiver: ID.kEveryone, priority: 1);
     } else {
       // not expired yet
-      Log.debug('visa response not expired yet: $me => ${ID.kEveryone}');
+      debug('visa response not expired yet: $me => ${ID.kEveryone}');
     }
   }
 

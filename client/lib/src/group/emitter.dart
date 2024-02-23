@@ -29,7 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import '../common/facebook.dart';
 import '../common/messenger.dart';
@@ -37,7 +37,7 @@ import '../common/messenger.dart';
 import 'delegate.dart';
 import 'packer.dart';
 
-class GroupEmitter {
+class GroupEmitter with Logging {
 
   // NOTICE: group assistants (bots) can help the members to redirect messages
   //
@@ -148,10 +148,10 @@ class GroupEmitter {
       // it is a tiny group, split this message before encrypting and signing,
       // then send this group message to all members one by one
       int success = await _splitAndSendMessage(iMsg, members, group: group, priority: priority);
-      Log.info('split $success message(s) for group: $group');
+      info('split $success message(s) for group: $group');
       return null;
     } else {
-      Log.info('splitting message for ${members.length} members of group: $group');
+      info('splitting message for ${members.length} members of group: $group');
       // encrypt and sign this message first,
       // then split and send to all members one by one
       return await _disperseMessage(iMsg, members, group: group, priority: priority);
@@ -278,7 +278,7 @@ class GroupEmitter {
       //
       rMsg = await transceiver?.sendInstantMessage(msg, priority: priority);
       if (rMsg == null) {
-        Log.error('failed to send message: $sender => $receiver, $group');
+        error('failed to send message: $sender => $receiver, $group');
         continue;
       }
       success += 1;

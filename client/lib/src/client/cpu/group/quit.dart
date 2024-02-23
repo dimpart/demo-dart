@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/lnc.dart';
 import 'package:object_key/object_key.dart';
 
 import '../group.dart';
@@ -97,7 +96,7 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'quit' command to local storage as group history
       // it should not failed unless the command is expired
-      Log.error('failed to save "quit" command for group: $group');
+      error('failed to save "quit" command for group: $group');
     } else if (await saveMembers(group, [...members]..remove(sender))) {
       // here try to remove the sender from member list
       command['removed'] = [sender.toString()];

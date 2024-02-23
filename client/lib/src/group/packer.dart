@@ -30,11 +30,11 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import 'delegate.dart';
 
-class GroupPacker {
+class GroupPacker with Logging {
   GroupPacker(this.delegate);
 
   // protected
@@ -77,10 +77,10 @@ class GroupPacker {
     InstantMessage? item;
     for (ID receiver in allMembers) {
       if (sender == receiver) {
-        Log.info('skip cycled message: $receiver, ${iMsg.group}');
+        this.info('skip cycled message: $receiver, ${iMsg.group}');
         continue;
       }
-      Log.info('split group message for member: $receiver');
+      this.info('split group message for member: $receiver');
       info = iMsg.copyMap(false);
       // replace 'receiver' with member ID
       info['receiver'] = receiver.toString();
@@ -108,10 +108,10 @@ class GroupPacker {
     ReliableMessage? item;
     for (ID receiver in allMembers) {
       if (sender == receiver) {
-        Log.info('skip cycled message: $receiver, ${rMsg.group}');
+        this.info('skip cycled message: $receiver, ${rMsg.group}');
         continue;
       }
-      Log.info('split group message for member: $receiver');
+      this.info('split group message for member: $receiver');
       info = rMsg.copyMap(false);
       // replace 'receiver' with member ID
       info['receiver'] = receiver.toString();

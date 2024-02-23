@@ -30,14 +30,14 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import '../../common/protocol/handshake.dart';
 
 import '../network/session.dart';
 import '../messenger.dart';
 
-class HandshakeCommandProcessor extends BaseCommandProcessor {
+class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
   HandshakeCommandProcessor(super.facebook, super.messenger);
 
   @override
@@ -54,7 +54,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
     ID sender = rMsg.sender;
     if (oid.isBroadcast) {
       station.identifier = sender;
-      Log.info('update station ID: $oid => $sender');
+      info('update station ID: $oid => $sender');
     } else {
       assert(oid == sender, 'station ID not match: $oid, $sender');
     }
@@ -85,7 +85,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
         session.key = newKey;
       } else if (oldKey == newKey) {
         // duplicated handshake response?
-        Log.warning("duplicated handshake response");
+        warning("duplicated handshake response");
         // set it again here to invoke the flutter channel
         session.key = newKey;
       } else {
@@ -95,7 +95,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor {
       }
     } else {
       // C -> S: Hello world!
-      Log.warning("Handshake from other user? $sender: $content");
+      warning("Handshake from other user? $sender: $content");
     }
     return [];
   }

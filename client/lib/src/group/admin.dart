@@ -30,14 +30,14 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/lnc.dart';
+import 'package:lnc/log.dart';
 
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
 import 'delegate.dart';
 
-class AdminManager {
+class AdminManager with Logging {
   AdminManager(this.delegate);
 
   // protected
@@ -98,7 +98,7 @@ class AdminManager {
       assert(false, 'failed to save document for group: $group');
       return false;
     } else {
-      Log.info('group document updated: $group');
+      info('group document updated: $group');
     }
 
     //
@@ -157,7 +157,7 @@ class AdminManager {
     }
     for (ID item in members) {
       if (me == item) {
-        Log.info('skip cycled message: $item, $group');
+        info('skip cycled message: $item, $group');
         continue;
       }
       transceiver?.sendContent(content, sender: me, receiver: item, priority: 1);
