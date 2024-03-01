@@ -1,3 +1,7 @@
+## 0.4.4
+
+- Active Session.
+
 ## 0.4.3
 
 - Logging.

@@ -86,7 +86,7 @@ class ResignCommandProcessor extends GroupCommandProcessor {
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'resign' command to local storage as group history
       // it should not failed unless the command is expired
-      error('failed to save "resign" command for group: $group');
+      logError('failed to save "resign" command for group: $group');
     } else if (await saveAdministrators(group, [...admins]..remove(sender))) {
       // here try to remove the sender from admin list
       command['removed'] = [sender.toString()];

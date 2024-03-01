@@ -206,7 +206,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
   Future<bool> sendGroupHistories({required ID group, required ID receiver}) async {
     List<ReliableMessage> messages = await builder.buildGroupHistories(group);
     if (messages.isEmpty) {
-      warning('failed to build history for group: $group');
+      logWarning('failed to build history for group: $group');
       return false;
     }
     Content content = ForwardContent.create(secrets: messages);

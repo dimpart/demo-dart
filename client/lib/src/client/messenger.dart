@@ -101,22 +101,22 @@ abstract class ClientMessenger extends CommonMessenger {
     List<ID> contacts = await facebook.getContacts(me);
     for (ID item in contacts) {
       if (archivist.isDocumentResponseExpired(item, updated)) {
-        info('sending visa to $item');
+        logInfo('sending visa to $item');
         await sendContent(command, sender: me, receiver: item, priority: 1);
       } else {
         // not expired yet
-        debug('visa response not expired yet: $me => $item');
+        logDebug('visa response not expired yet: $me => $item');
       }
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
     if (archivist.isDocumentResponseExpired(ID.kEveryone, updated)) {
-      info('sending visa to ${ID.kEveryone}');
+      logInfo('sending visa to ${ID.kEveryone}');
       await sendContent(command, sender: me, receiver: ID.kEveryone, priority: 1);
     } else {
       // not expired yet
-      debug('visa response not expired yet: $me => ${ID.kEveryone}');
+      logDebug('visa response not expired yet: $me => ${ID.kEveryone}');
     }
   }
 

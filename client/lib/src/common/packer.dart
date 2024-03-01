@@ -128,7 +128,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
     if (await checkReceiver(iMsg)) {
       // receiver is ready
     } else {
-      warning('receiver not ready: ${iMsg.receiver}');
+      logWarning('receiver not ready: ${iMsg.receiver}');
       return null;
     }
     return await super.encryptMessage(iMsg);
@@ -141,7 +141,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
     if (await checkSender(rMsg)) {
       // sender is ready
     } else {
-      warning('sender not ready: ${rMsg.sender}');
+      logWarning('sender not ready: ${rMsg.sender}');
       return null;
     }
     return await super.verifyMessage(rMsg);

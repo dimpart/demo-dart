@@ -171,8 +171,8 @@ class ClientSession extends BaseSession with Logging {
         }
       } catch (e, st) {
         // FIXME:
-        error('failed to process package: ${pack.length} bytes, error: $e');
-        debug('failed to process package: ${pack.length} bytes, error: $e, $st');
+        logError('failed to process package: ${pack.length} bytes, error: $e');
+        logDebug('failed to process package: ${pack.length} bytes, error: $e, $st');
       }
     }
     SocketAddress source = docker.remoteAddress!;

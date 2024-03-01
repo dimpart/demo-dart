@@ -51,7 +51,7 @@ class GroupCommandHelper with Logging {
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async {
     assert(group == content.group, 'group ID error: $group, $content');
     if (await isCommandExpired(content)) {
-      warning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
+      logWarning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
       return false;
     }
     // check command time
@@ -70,7 +70,7 @@ class GroupCommandHelper with Logging {
     // update group history
     AccountDBI? db = database;
     if (content is ResetCommand) {
-      warning('cleaning group history for "reset" command: ${rMsg.sender} => $group');
+      logWarning('cleaning group history for "reset" command: ${rMsg.sender} => $group');
       await db!.clearGroupMemberHistories(group: group);
     }
     return await db!.saveGroupHistory(content, rMsg, group: group);

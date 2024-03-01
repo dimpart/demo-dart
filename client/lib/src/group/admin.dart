@@ -98,7 +98,7 @@ class AdminManager with Logging {
       assert(false, 'failed to save document for group: $group');
       return false;
     } else {
-      info('group document updated: $group');
+      logInfo('group document updated: $group');
     }
 
     //
@@ -157,7 +157,7 @@ class AdminManager with Logging {
     }
     for (ID item in members) {
       if (me == item) {
-        info('skip cycled message: $item, $group');
+        logInfo('skip cycled message: $item, $group');
         continue;
       }
       transceiver?.sendContent(content, sender: me, receiver: item, priority: 1);

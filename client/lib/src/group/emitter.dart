@@ -148,10 +148,10 @@ class GroupEmitter with Logging {
       // it is a tiny group, split this message before encrypting and signing,
       // then send this group message to all members one by one
       int success = await _splitAndSendMessage(iMsg, members, group: group, priority: priority);
-      info('split $success message(s) for group: $group');
+      logInfo('split $success message(s) for group: $group');
       return null;
     } else {
-      info('splitting message for ${members.length} members of group: $group');
+      logInfo('splitting message for ${members.length} members of group: $group');
       // encrypt and sign this message first,
       // then split and send to all members one by one
       return await _disperseMessage(iMsg, members, group: group, priority: priority);
@@ -278,7 +278,7 @@ class GroupEmitter with Logging {
       //
       rMsg = await transceiver?.sendInstantMessage(msg, priority: priority);
       if (rMsg == null) {
-        error('failed to send message: $sender => $receiver, $group');
+        logError('failed to send message: $sender => $receiver, $group');
         continue;
       }
       success += 1;

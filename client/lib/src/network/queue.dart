@@ -64,7 +64,7 @@ class MessageQueue with Logging {
       for (MessageWrapper wrapper in array) {
         item = wrapper.message;
         if (item != null && _isDuplicated(item, rMsg)) {
-          warning('[QUEUE] duplicated message: $signature');
+          logWarning('[QUEUE] duplicated message: $signature');
           ok = false;
           break;
         }

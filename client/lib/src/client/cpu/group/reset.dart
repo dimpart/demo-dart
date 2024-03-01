@@ -120,11 +120,11 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to save the 'reset' command to local storage as group history
       // it should not failed unless the command is expired
-      error('failed to save "reset" command for group: $group');
+      logError('failed to save "reset" command for group: $group');
     } else if (addList.isEmpty && removeList.isEmpty) {
       // nothing changed
     } else if (await saveMembers(group, newMembers)) {
-      info('new members saved in group: $group');
+      logInfo('new members saved in group: $group');
       if (addList.isNotEmpty) {
         command['added'] = ID.revert(addList);
       }

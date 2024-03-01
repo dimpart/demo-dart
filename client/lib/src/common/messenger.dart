@@ -74,8 +74,8 @@ abstract class CommonMessenger extends Messenger with Logging
       return await super.encryptKey(key, receiver, iMsg);
     } catch (e, st) {
       // FIXME:
-      error('failed to encrypt key for receiver: $receiver, error: $e');
-      debug('failed to encrypt key for receiver: $receiver, error: $e, $st');
+      logError('failed to encrypt key for receiver: $receiver, error: $e');
+      logDebug('failed to encrypt key for receiver: $receiver, error: $e, $st');
       return null;
     }
   }
@@ -146,11 +146,11 @@ abstract class CommonMessenger extends Messenger with Logging
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     // 0. check cycled message
     if (iMsg.sender == iMsg.receiver) {
-      warning('drop cycled message: ${iMsg.content} '
+      logWarning('drop cycled message: ${iMsg.content} '
           '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
       return null;
     } else {
-      debug('send instant message (type=${iMsg.content.type}): '
+      logDebug('send instant message (type=${iMsg.content.type}): '
           '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
     }
     // 1. encrypt message
@@ -178,7 +178,7 @@ abstract class CommonMessenger extends Messenger with Logging
   Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) async {
     // 0. check cycled message
     if (rMsg.sender == rMsg.receiver) {
-      warning('drop cycled message: ${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
+      logWarning('drop cycled message: ${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
       return false;
     }
     // 1. serialize message

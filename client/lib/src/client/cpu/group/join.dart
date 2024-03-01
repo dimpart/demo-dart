@@ -85,7 +85,7 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'join' command to local storage as group history
       // it should not failed unless the command is expired
-      error('failed to save "join" command for group: $group');
+      logError('failed to save "join" command for group: $group');
     } else {
       // the 'join' command was saved, now waiting for review.
     }

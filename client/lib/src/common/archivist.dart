@@ -72,7 +72,7 @@ abstract class CommonArchivist extends Archivist with Logging
     DateTime? docTime = doc.time;
     if (docTime == null) {
       // assert(false, 'document error: $doc');
-      warning('document without time: ${doc.identifier}');
+      logWarning('document without time: ${doc.identifier}');
     } else {
       // calibrate the clock
       // make sure the document time is not in the far future

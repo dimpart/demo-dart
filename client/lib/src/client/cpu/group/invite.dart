@@ -107,7 +107,7 @@ class InviteCommandProcessor extends GroupCommandProcessor {
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'invite' command to local storage as group history
       // it should not failed unless the command is expired
-      error('failed to save "invite" command for group: $group');
+      logError('failed to save "invite" command for group: $group');
     } else if (!canReset) {
       // the sender cannot reset the group, means it's invited by ordinary member,
       // and the 'invite' command was saved, now waiting for review.
@@ -117,7 +117,7 @@ class InviteCommandProcessor extends GroupCommandProcessor {
       //        usually it should send a 'reset' command instead;
       //        if we received the 'invite' command here, maybe it was confused,
       //        anyway, we just append the new members directly.
-      warning('invited by administrator: $sender, group: $group');
+      logWarning('invited by administrator: $sender, group: $group');
       command['added'] = ID.revert(addedList);
     } else {
       // DB error?

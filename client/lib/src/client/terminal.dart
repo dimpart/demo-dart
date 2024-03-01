@@ -89,37 +89,44 @@ mixin DeviceMixin {
 
 abstract class Terminal extends Runner with DeviceMixin, Logging
     implements SessionStateDelegate {
-  Terminal(this.facebook, this.sdb) : _messenger = null;
+  Terminal(this.facebook, this.sdb) : _messenger = null, super(60 * Duration.millisecondsPerSecond);
 
   final SessionDBI sdb;
   final CommonFacebook facebook;
 
   ClientMessenger? _messenger;
 
-  DateTime? _lastTime;  // last online time
+  DateTime? _lastOnlineTime;
 
   ClientMessenger? get messenger => _messenger;
 
   ClientSession? get session => _messenger?.session;
+
+  //
+  //  Connection
+  //
 
   Future<ClientMessenger> connect(String host, int port) async {
     // check old session
     ClientMessenger? old = _messenger;
     if (old != null) {
       ClientSession session = old.session;
-      if (session.isActive) {
-        // current session is active
-        Station station = session.station;
-        debug('current station: $station');
-        if (station.host == host && station.port == port) {
-          // same target
-          return old;
+      if (session.isRunning) {
+        if (session.isActive) {
+          // current session is active
+          Station station = session.station;
+          logDebug('current station: $station');
+          if (station.port == port && station.host == host) {
+            // same target
+            logWarning('active session connected to $host:$port .');
+            return old;
+          }
         }
+        session.stop();
       }
-      session.stop();
       _messenger = null;
     }
-    info('connecting to $host:$port ...');
+    logInfo('connecting to $host:$port ...');
     // create new messenger with session
     Station station = createStation(host, port);
     ClientSession session = createSession(station);
@@ -132,6 +139,13 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
     transceiver.processor = createProcessor(facebook, transceiver);
     // set weak reference to messenger
     session.messenger = transceiver;
+    // login with current user
+    User? user = await facebook.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+    } else {
+      session.setIdentifier(user.identifier);
+    }
     return transceiver;
   }
 
@@ -143,12 +157,11 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   }
 
   // protected
-  ClientSession createSession(Station station);
-  // ClientSession createSession(Station station) {
-  //   ClientSession session = ClientSession(station, sdb);
-  //   session.start(this);
-  //   return session;
-  // }
+  ClientSession createSession(Station station) {
+    ClientSession session = ClientSession(sdb, station);
+    session.start(this);
+    return session;
+  }
 
   // protected
   Packer createPacker(CommonFacebook facebook, ClientMessenger messenger);
@@ -159,15 +172,9 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   // protected
   ClientMessenger createMessenger(ClientSession session, CommonFacebook facebook);
 
-  bool login(ID current) {
-    ClientSession? clientSession = session;
-    if (clientSession == null) {
-      return false;
-    } else {
-      clientSession.setIdentifier(current);
-      return true;
-    }
-  }
+  //
+  //  App Lifecycle
+  //
 
   Future<void> enterBackground() async {
     ClientMessenger? transceiver = messenger;
@@ -213,6 +220,10 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
     }
   }
 
+  //
+  //  Threading
+  //
+
   Future<void> start() async {
     if (isRunning) {
       await stop();
@@ -234,60 +245,60 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
 
   @override
   Future<void> idle() async =>
-      await Runner.sleep(milliseconds: Duration.millisecondsPerSecond * 16);
+      await Runner.sleep(milliseconds: 16 * Duration.millisecondsPerSecond);
 
   @override
   Future<bool> process() async {
-    // check timeout
-    DateTime now = DateTime.now();
-    if (!isExpired(_lastTime, now)) {
-      // not expired yet
+    // 1. check connection
+    if (session?.identifier == null) {
+      // user not login
       return false;
-    }
-    // check session state
-    ClientMessenger? transceiver = messenger;
-    if (transceiver == null) {
-      // not connect
-      return false;
-    }
-    ClientSession session = transceiver.session;
-    ID? uid = session.identifier;
-    SessionState? state = session.state;
-    if (uid == null || state?.index != SessionStateOrder.running.index) {
+    } else if (session?.state?.index != SessionStateOrder.running.index) {
       // handshake not accepted
       return false;
     }
-    // report every 5 minutes to keep user online
-    try {
-      await keepOnline(uid, transceiver);
-    } catch (e) {
-      error('Terminal error: $e');
+    // 2. check timeout
+    DateTime now = DateTime.now();
+    if (needsKeepOnline(_lastOnlineTime, now)) {
+      // update last online time
+      _lastOnlineTime = now;
+    } else {
+      // not expired yet
+      return false;
     }
-    // update last online time
-    _lastTime = now;
+    // 3. try to report every 5 minutes to keep user online
+    try {
+      await keepOnline();
+    } catch (e) {
+      logError('Terminal error: $e');
+    }
     return false;
   }
 
   // protected
-  bool isExpired(DateTime? last, DateTime now) {
+  bool needsKeepOnline(DateTime? last, DateTime now) {
     if (last == null) {
+      // not login yet
       return false;
     }
     // keep online every 5 minutes
-    return now.isBefore(last.add(Duration(seconds: 300)));
+    return last.add(Duration(seconds: 300)).isBefore(now);
   }
 
   // protected
-  Future<void> keepOnline(ID uid, ClientMessenger messenger) async {
-    if (uid.type == EntityType.kStation) {
+  Future<void> keepOnline() async {
+    User? user = await facebook.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+    } else if (user.type == EntityType.kStation) {
       // a station won't login to another station, if here is a station,
       // it must be a station bridge for roaming messages, we just send
       // report command to the target station to keep session online.
-      await messenger.reportOnline(uid);
+      await messenger?.reportOnline(user.identifier);
     } else {
       // send login command to everyone to provide more information.
       // this command can keep the user online too.
-      await messenger.broadcastLogin(uid, userAgent);
+      await messenger?.broadcastLogin(user.identifier, userAgent);
     }
   }
 
@@ -304,7 +315,8 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   Future<void> exitState(SessionState? previous, SessionStateMachine ctx, DateTime now) async {
     // called after state changed
     SessionState? current = ctx.currentState;
-    if (current == null) {
+    if (current == null || current.index == SessionStateOrder.error.index) {
+      _lastOnlineTime = null;
       return;
     }
     if (current.index == SessionStateOrder.init.index ||
@@ -312,20 +324,20 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
       // check current user
       ID? user = ctx.sessionID;
       if (user == null) {
-        warning('current user not set');
+        logWarning('current user not set');
         return;
       }
-      info('connect for user: $user');
+      logInfo('connect for user: $user');
       SocketAddress? remote = session?.remoteAddress;
       if (remote == null) {
-        warning('failed to get remote address: $session');
+        logWarning('failed to get remote address: $session');
         return;
       }
       Docker? docker = await session?.gate.fetchDocker([], remote: remote);
       if (docker == null) {
-        error('failed to connect: $remote');
+        logError('failed to connect: $remote');
       } else {
-        info('connected to: $remote');
+        logInfo('connected to: $remote');
       }
     } else if (current.index == SessionStateOrder.handshaking.index) {
       // start handshake
@@ -334,7 +346,7 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
       // broadcast current meta & visa document to all stations
       await messenger?.handshakeSuccess();
       // update last online time
-      _lastTime = now;
+      _lastOnlineTime = now;
     }
   }
 

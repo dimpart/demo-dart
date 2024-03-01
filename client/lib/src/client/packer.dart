@@ -135,7 +135,7 @@ abstract class ClientMessagePacker extends CommonPacker {
       // receiver is ready
     } else {
       // receiver (group) not ready
-      warning('receiver not ready: ${rMsg.receiver}');
+      logWarning('receiver not ready: ${rMsg.receiver}');
       return null;
     }
     return await super.verifyMessage(rMsg);

@@ -96,7 +96,7 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     } else if (!await saveGroupHistory(group, command, rMsg)) {
       // here try to append the 'quit' command to local storage as group history
       // it should not failed unless the command is expired
-      error('failed to save "quit" command for group: $group');
+      logError('failed to save "quit" command for group: $group');
     } else if (await saveMembers(group, [...members]..remove(sender))) {
       // here try to remove the sender from member list
       command['removed'] = [sender.toString()];

@@ -77,10 +77,10 @@ class GroupPacker with Logging {
     InstantMessage? item;
     for (ID receiver in allMembers) {
       if (sender == receiver) {
-        this.info('skip cycled message: $receiver, ${iMsg.group}');
+        logInfo('skip cycled message: $receiver, ${iMsg.group}');
         continue;
       }
-      this.info('split group message for member: $receiver');
+      logInfo('split group message for member: $receiver');
       info = iMsg.copyMap(false);
       // replace 'receiver' with member ID
       info['receiver'] = receiver.toString();
@@ -108,10 +108,10 @@ class GroupPacker with Logging {
     ReliableMessage? item;
     for (ID receiver in allMembers) {
       if (sender == receiver) {
-        this.info('skip cycled message: $receiver, ${rMsg.group}');
+        logInfo('skip cycled message: $receiver, ${rMsg.group}');
         continue;
       }
-      this.info('split group message for member: $receiver');
+      logInfo('split group message for member: $receiver');
       info = rMsg.copyMap(false);
       // replace 'receiver' with member ID
       info['receiver'] = receiver.toString();

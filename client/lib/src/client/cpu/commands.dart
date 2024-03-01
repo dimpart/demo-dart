@@ -49,10 +49,10 @@ class AnsCommandProcessor extends BaseCommandProcessor with Logging {
     AnsCommand command = content as AnsCommand;
     Map<String, String>? records = command.records;
     if (records == null) {
-      info('ANS: querying ${content.names}');
+      logInfo('ANS: querying ${content.names}');
     } else {
       int count = await ClientFacebook.ans!.fix(records);
-      info('ANS: update $count record(s), $records');
+      logInfo('ANS: update $count record(s), $records');
     }
     return [];
   }
@@ -78,9 +78,9 @@ class LoginCommandProcessor extends BaseCommandProcessor with Logging {
     // save login command to session db
     SessionDBI db = database!;
     if (await db.saveLoginCommandMessage(sender, command, rMsg)) {
-      info('saved login command for user: $sender');
+      logInfo('saved login command for user: $sender');
     } else {
-      error('failed to save login command: $sender, $command');
+      logError('failed to save login command: $sender, $command');
     }
     // no need to response login command
     return [];

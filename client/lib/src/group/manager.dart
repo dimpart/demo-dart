@@ -109,7 +109,7 @@ class GroupManager with Logging {
     //
     Register register = Register(database!);
     ID group = await register.createGroup(founder, name: groupName);
-    info('new group: $group ($groupName), founder: $founder');
+    logInfo('new group: $group ($groupName), founder: $founder');
 
     //
     //  3. upload meta+document to neighbor station(s)
@@ -133,9 +133,9 @@ class GroupManager with Logging {
     //  4. create & broadcast 'reset' group command with new members
     //
     if (await resetMembers(group, members)) {
-      info('created group $group with ${members.length} members');
+      logInfo('created group $group with ${members.length} members');
     } else {
-      error('failed to create group $group with ${members.length} members');
+      logError('failed to create group $group with ${members.length} members');
     }
 
     return group;
@@ -222,7 +222,7 @@ class GroupManager with Logging {
       assert(false, 'failed to update members of group: $group');
       return false;
     } else {
-      info('group members updated: $group, ${newMembers.length}');
+      logInfo('group members updated: $group, ${newMembers.length}');
     }
 
     //
@@ -368,13 +368,13 @@ class GroupManager with Logging {
     //  2. update local storage
     //
     if (isMember) {
-      warning('quitting group: $group, $me');
+      logWarning('quitting group: $group, $me');
       members = [...members];
       members.remove(me);
       bool ok = await delegate.saveMembers(group, members);
       assert(ok, 'failed to save members for group: $group');
     } else {
-      warning('member not in group: $group, $me');
+      logWarning('member not in group: $group, $me');
     }
 
     //
@@ -422,7 +422,7 @@ class GroupManager with Logging {
     CommonMessenger? transceiver = messenger;
     for (ID receiver in members) {
       if (me == receiver) {
-        info('skip cycled message: $me => $receiver');
+        logInfo('skip cycled message: $me => $receiver');
         continue;
       }
       transceiver?.sendContent(content, sender: me, receiver: receiver, priority: 1);

@@ -54,7 +54,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
     ID sender = rMsg.sender;
     if (oid.isBroadcast) {
       station.identifier = sender;
-      info('update station ID: $oid => $sender');
+      logInfo('update station ID: $oid => $sender');
     } else {
       assert(oid == sender, 'station ID not match: $oid, $sender');
     }
@@ -85,7 +85,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
         session.key = newKey;
       } else if (oldKey == newKey) {
         // duplicated handshake response?
-        warning("duplicated handshake response");
+        logWarning('duplicated handshake response');
         // set it again here to invoke the flutter channel
         session.key = newKey;
       } else {
@@ -95,7 +95,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
       }
     } else {
       // C -> S: Hello world!
-      warning("Handshake from other user? $sender: $content");
+      logWarning('Handshake from other user? $sender: $content');
     }
     return [];
   }
