@@ -139,9 +139,12 @@ class SessionStateTransitionBuilder {
   getDefaultConnectingTransition() => SessionStateTransition(
     SessionStateOrder.connecting, (ctx, now) async {
       // change to 'connecting' when current user set
-      return ctx.sessionID != null;
-      // DockerStatus status = ctx.status;
-      // return status == DockerStatus.kPreparing || status == DockerStatus.kReady;
+      if (ctx.sessionID == null) {
+        // current user not set yet
+        return false;
+      }
+      DockerStatus status = ctx.status;
+      return status == DockerStatus.preparing || status == DockerStatus.ready;
     },
   );
 

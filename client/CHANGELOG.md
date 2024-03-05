@@ -1,3 +1,7 @@
+## 0.4.5
+
+- Session State Transition.
+
 ## 0.4.4
 
 - Active Session.

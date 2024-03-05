@@ -91,27 +91,6 @@ abstract class GateKeeper extends Runner with Logging implements DockerDelegate 
     return true;
   }
 
-  @override
-  bool get isRunning => super.isRunning && _gate.isRunning;
-
-  @override
-  Future<void> stop() async {
-    await super.stop();
-    await _gate.stop();
-  }
-
-  @override
-  Future<void> setup() async {
-    await super.setup();
-    await _gate.start();
-  }
-
-  @override
-  Future<void> finish() async {
-    await _gate.stop();
-    await super.finish();
-  }
-
   int _reconnectTime = 0;
 
   @override
