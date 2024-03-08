@@ -112,15 +112,13 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
     if (old != null) {
       ClientSession session = old.session;
       if (session.isRunning) {
-        if (session.isActive) {
-          // current session is active
-          Station station = session.station;
-          logDebug('current station: $station');
-          if (station.port == port && station.host == host) {
-            // same target
-            logWarning('active session connected to $host:$port .');
-            return old;
-          }
+        // current session is running
+        Station station = session.station;
+        logDebug('current station: $station');
+        if (station.port == port && station.host == host) {
+          // same target
+          logWarning('active session connected to $host:$port .');
+          return old;
         }
         session.stop();
       }

@@ -1,3 +1,7 @@
+## 0.4.6
+
+- Check running session.
+
 ## 0.4.5
 
 - Session State Transition.
