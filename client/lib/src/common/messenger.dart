@@ -142,24 +142,56 @@ abstract class CommonMessenger extends Messenger with Logging
     return Pair(iMsg, rMsg);
   }
 
+  // private
+  Future<bool> attachVisaTime(ID sender, InstantMessage iMsg) async {
+    if (iMsg.content is Command) {
+      // no need to attach times for command
+      return false;
+    }
+    Visa? doc = await facebook.getVisa(sender);
+    if (doc == null) {
+      assert(false, 'failed to get visa document for sender: $sender');
+      return false;
+    }
+    // attach sender document time
+    DateTime? lastDocumentTime = doc.time;
+    if (lastDocumentTime == null) {
+      assert(false, 'document error: $doc');
+    } else {
+      iMsg.setDateTime('SDT', lastDocumentTime);
+    }
+    return true;
+  }
+
   @override
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
-    // 0. check cycled message
-    if (iMsg.sender == iMsg.receiver) {
+    ID sender = iMsg.sender;
+    //
+    //  0. check cycled message
+    //
+    if (sender == iMsg.receiver) {
       logWarning('drop cycled message: ${iMsg.content} '
           '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
       return null;
     } else {
       logDebug('send instant message (type=${iMsg.content.type}): '
           '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
+      // attach sender's document times
+      // for the receiver to check whether user info synchronized
+      bool ok = await attachVisaTime(sender, iMsg);
+      assert(ok, 'failed to attach document time: $sender');
     }
-    // 1. encrypt message
+    //
+    //  1. encrypt message
+    //
     SecureMessage? sMsg = await encryptMessage(iMsg);
     if (sMsg == null) {
       // assert(false, 'public key not found?');
       return null;
     }
-    // 2. sign message
+    //
+    //  2. sign message
+    //
     ReliableMessage? rMsg = await signMessage(sMsg);
     if (rMsg == null) {
       // TODO: set msg.state = error

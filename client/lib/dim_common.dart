@@ -28,5 +28,6 @@ export 'src/common/archivist.dart';
 export 'src/common/facebook.dart';
 export 'src/common/messenger.dart';
 export 'src/common/packer.dart';
+export 'src/common/processor.dart';
 export 'src/common/session.dart';
 export 'src/common/register.dart';

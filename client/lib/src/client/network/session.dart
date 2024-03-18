@@ -82,11 +82,35 @@ class ClientSession extends BaseSession with Logging {
 
   set key(String? sessionKey) => _key = sessionKey;
 
+  Connection? get connection {
+    Docker? docker = gate.getDocker(remote: remoteAddress);
+    if (docker is StarDocker) {
+      return docker.connection;
+    }
+    assert(docker == null, 'unknown docker: $docker');
+    return null;
+  }
+
+  ConnectionStateMachine? get connectionStateMachine {
+    Connection? conn = connection;
+    if (conn is BaseConnection) {
+      return conn.stateMachine;
+    }
+    assert(conn == null, 'unknown connection: $conn');
+    return null;
+  }
+
   /// pause state machine
-  Future<void> pause() async => await _fsm.pause();
+  Future<void> pause() async {
+    await _fsm.pause();
+    await connectionStateMachine?.pause();
+  }
 
   /// resume state machine
-  Future<void> resume() async => await _fsm.resume();
+  Future<void> resume() async {
+    await connectionStateMachine?.resume();
+    await _fsm.resume();
+  }
 
   /// start session in background thread
   /// start session state machine

@@ -31,33 +31,30 @@
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 
-import '../common/facebook.dart';
-import '../common/messenger.dart';
+import '../common/processor.dart';
 import '../common/protocol/handshake.dart';
 
 import 'cpu/creator.dart';
 
 import 'archivist.dart';
+import 'messenger.dart';
 
-class ClientMessageProcessor extends MessageProcessor {
+class ClientMessageProcessor extends CommonProcessor {
   ClientMessageProcessor(super.facebook, super.messenger);
 
   @override
-  CommonMessenger? get messenger => super.messenger as CommonMessenger?;
-
-  @override
-  CommonFacebook? get facebook => super.facebook as CommonFacebook?;
+  ClientMessenger? get messenger => super.messenger as ClientMessenger?;
 
   // private
-  void checkGroupTimes(Content content, ReliableMessage rMsg) async {
+  Future<bool> checkGroupTimes(Content content, ReliableMessage rMsg) async {
     ID? group = content.group;
     if (group == null) {
-      return;
+      return false;
     }
     ClientArchivist? archivist = facebook?.archivist as ClientArchivist?;
     if (archivist == null) {
       assert(false, 'should not happen');
-      return;
+      return false;
     }
     DateTime now = DateTime.now();
     bool docUpdated = false;
@@ -70,6 +67,11 @@ class ClientMessageProcessor extends MessageProcessor {
         lastDocumentTime = now;
       }
       docUpdated = archivist.setLastDocumentTime(group, lastDocumentTime);
+      // check whether needs update
+      if (docUpdated) {
+        logInfo('checking for new bulletin: $group');
+        await facebook?.getDocuments(group);
+      }
     }
     // check group history time
     DateTime? lastHistoryTime = rMsg.getDateTime('GHT', null);
@@ -79,24 +81,22 @@ class ClientMessageProcessor extends MessageProcessor {
         lastHistoryTime = now;
       }
       memUpdated = archivist.setLastGroupHistoryTime(group, lastHistoryTime);
+      if (memUpdated) {
+        archivist.setLastActiveMember(group: group, member: rMsg.sender);
+        logInfo('checking for group members: $group');
+        await facebook?.getMembers(group);
+      }
     }
-    // check whether needs update
-    if (docUpdated) {
-      facebook?.getDocuments(group);
-    }
-    if (memUpdated) {
-      archivist.setLastActiveMember(group: group, member: rMsg.sender);
-      facebook?.getMembers(group);
-    }
+    return docUpdated || memUpdated;
   }
 
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     List<Content> responses = await super.processContent(content, rMsg);
 
-    // check group document & history times from the message
+    // check group's document & history times from the message
     // to make sure the group info synchronized
-    checkGroupTimes(content, rMsg);
+    await checkGroupTimes(content, rMsg);
 
     if (responses.isEmpty) {
       // respond nothing
