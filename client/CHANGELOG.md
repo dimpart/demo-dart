@@ -1,3 +1,7 @@
+## 0.4.7
+
+- Attach visa time.
+
 ## 0.4.6
 
 - Check running session.

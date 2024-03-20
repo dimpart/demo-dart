@@ -42,7 +42,7 @@ class SessionStateTransition extends BaseTransition<SessionStateMachine> {
   final SessionStateEvaluate eval;
 
   @override
-  Future<bool> evaluate(SessionStateMachine ctx, DateTime now) async => eval(ctx, now);
+  bool evaluate(SessionStateMachine ctx, DateTime now) => eval(ctx, now);
 
 }
 

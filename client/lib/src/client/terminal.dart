@@ -31,7 +31,7 @@
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
-import 'package:startrek/fsm.dart' show Runner;
+import 'package:startrek/skywalker.dart' show Runner;
 import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
 

@@ -31,7 +31,7 @@
 import 'package:dimp/dimp.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/websocket.dart';
-import 'package:startrek/fsm.dart';
+import 'package:startrek/skywalker.dart';
 import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
 
