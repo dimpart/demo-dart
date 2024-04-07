@@ -49,6 +49,23 @@ abstract class ClientMessenger extends CommonMessenger {
   // protected
   ClientArchivist get archivist => facebook.archivist as ClientArchivist;
 
+  @override
+  Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
+    if (session.key == null) {
+      // not login yet
+      Content content = iMsg.content;
+      if (content is! Command) {
+        logWarning('not handshake yet, suspend message: $content => ${iMsg.receiver}');
+        // TODO: suspend instant message
+      } else if (content.cmd != HandshakeCommand.kHandshake) {
+        logWarning('not handshake yet, drop command: $content => ${iMsg.receiver}');
+        // TODO: suspend instant message
+        return null;
+      }
+    }
+    return await super.sendInstantMessage(iMsg, priority: priority);
+  }
+
   ///  Send handshake command to current station
   ///
   /// @param sessionKey - respond session key
@@ -80,6 +97,7 @@ abstract class ClientMessenger extends CommonMessenger {
   Future<void> handshakeSuccess() async {
     // broadcast current documents after handshake success
     await broadcastDocument();
+    // TODO: let a service bot to do this job
   }
 
   ///  Broadcast meta & visa document to all stations

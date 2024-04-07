@@ -179,7 +179,7 @@ abstract class CommonMessenger extends Messenger with Logging
       // attach sender's document times
       // for the receiver to check whether user info synchronized
       bool ok = await attachVisaTime(sender, iMsg);
-      assert(ok, 'failed to attach document time: $sender');
+      assert(ok || iMsg.content is Command, 'failed to attach document time: $sender => ${iMsg.content}');
     }
     //
     //  1. encrypt message

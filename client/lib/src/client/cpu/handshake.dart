@@ -67,14 +67,17 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
       // S -> C: station ask client to handshake again
       if (oldKey == null) {
         // first handshake response with new session key
+        logInfo('[DIM] handshake with session key: $newKey');
         await messenger?.handshake(newKey);
       } else if (oldKey == newKey) {
         // duplicated handshake response?
         // or session expired and the station ask to handshake again?
+        logWarning('[DIM] handshake response duplicated: $newKey');
         await messenger?.handshake(newKey);
       } else {
         // connection changed?
         // erase session key to handshake again
+        logWarning('[DIM] handshake again: $oldKey => $newKey');
         session.key = null;
       }
     } else if (title == "DIM!") {
@@ -82,15 +85,17 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
       if (oldKey == null) {
         // normal handshake response,
         // update session key to change state to 'running'
+        logInfo('[DIM] handshake success with session key: $newKey');
         session.key = newKey;
       } else if (oldKey == newKey) {
         // duplicated handshake response?
-        logWarning('duplicated handshake response');
+        logWarning('[DIM] handshake success duplicated: $newKey');
         // set it again here to invoke the flutter channel
         session.key = newKey;
       } else {
         // FIXME: handshake error
         // erase session key to handshake again
+        logError('[DIM] handshake again: $oldKey, $newKey');
         session.key = null;
       }
     } else {

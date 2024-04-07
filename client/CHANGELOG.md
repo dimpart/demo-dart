@@ -1,3 +1,7 @@
+## 0.4.8
+
+- Check login before sending messages.
+
 ## 0.4.7
 
 - Attach visa time.

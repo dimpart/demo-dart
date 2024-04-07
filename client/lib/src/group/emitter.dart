@@ -121,7 +121,7 @@ class GroupEmitter with Logging {
       // attach group's document & history times
       // for the receiver to check whether group info synchronized
       bool ok = await attachGroupTimes(group, iMsg);
-      assert(ok, 'failed to attach group times: $group');
+      assert(ok || content is Command, 'failed to attach group times: $group => $content');
     }
     assert(iMsg.receiver == group, 'group message error: $iMsg');
 
