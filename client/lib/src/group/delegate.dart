@@ -33,13 +33,14 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:startrek/skywalker.dart';
 
-import '../common/dbi/account.dart';
+import '../client/archivist.dart';
+import '../client/facebook.dart';
 import '../common/archivist.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
-
-import '../client/facebook.dart';
 import '../common/session.dart';
+import '../common/dbi/account.dart';
+
 
 class GroupDelegate extends TwinsHelper implements GroupDataSource {
   GroupDelegate(CommonFacebook facebook, CommonMessenger messenger)
@@ -227,6 +228,8 @@ class _GroupBotsManager extends Runner with Logging {
 
   void setMessenger(CommonMessenger messenger) => _transceiver = messenger;
 
+  /// When received receipt command from the bot
+  /// update the speed of this bot.
   bool updateRespondTime(ReceiptCommand content, Envelope envelope) {
     // 1. check sender
     ID sender = envelope.sender;
@@ -258,6 +261,8 @@ class _GroupBotsManager extends Runner with Logging {
     return true;
   }
 
+  /// When received new config from current Service Provider,
+  /// set common assistants of this SP.
   void setCommonAssistants(List<ID> bots) {
     _candidates.addAll(bots);
     _commonAssistants = bots;
@@ -303,45 +308,56 @@ class _GroupBotsManager extends Runner with Logging {
 
   @override
   Future<bool> process() async {
-    CommonMessenger? messenger = _transceiver;
-    if (messenger == null) {
-      return false;
-    }
-    Session session = messenger.session;
-    if (session.key == null || !session.isActive) {
+    //
+    //  1. check session
+    //
+    Session? session = _transceiver?.session;
+    if (session == null || session.key == null || !session.isActive) {
       // not login yet
       return false;
     }
+    //
+    //  2. get visa
+    //
+    Visa? visa;
+    try {
+      User? me = await _transceiver?.facebook.currentUser;
+      visa = await me?.visa;
+      if (visa == null) {
+        logError('failed to get visa: $me');
+        return false;
+      }
+    } catch (e, st) {
+      logError('failed to get current user: $e, $st');
+      return false;
+    }
+    //
+    //  3. get archivist
+    //
+    CommonArchivist? archivist = _transceiver?.facebook.archivist;
+    if (archivist is! ClientArchivist) {
+      assert(false, 'archivist error: $archivist');
+      return false;
+    }
+    //
+    //  4. check candidates
+    //
     Set<ID> bots = _candidates;
     _candidates = {};
     for (ID item in bots) {
+      if (_respondTimes[item] != null) {
+        // no need to check again
+        logInfo('group bot already responded: $item');
+        continue;
+      }
+      // no respond yet, try to push visa to the bot
       try {
-        _queryAssistant(item, messenger);
+        await archivist.sendDocument(visa, item);
       } catch (e, st) {
         logError('failed to query assistant: $item, $e, $st');
       }
     }
     return false;
-  }
-
-  Future<bool> _queryAssistant(ID bot, CommonMessenger messenger) async {
-    Duration? duration = _respondTimes[bot];
-    if (duration != null) {
-      // no need to check again
-      logInfo('group bot already responded: $duration, $bot');
-      return false;
-    }
-    CommonFacebook facebook = messenger.facebook;
-    User? me = await facebook.currentUser;
-    Meta? meta = await me?.meta;
-    Visa? visa = await me?.visa;
-    if (meta == null || visa == null) {
-      logError('failed to get visa: $me');
-      return false;
-    }
-    var content = DocumentCommand.response(visa.identifier, meta, visa);
-    var res = await messenger.sendContent(content, sender: me?.identifier, receiver: bot);
-    return res.second != null;
   }
 
 }

@@ -39,6 +39,7 @@ import '../common/protocol/report.dart';
 import 'archivist.dart';
 import 'network/session.dart';
 
+
 ///  Client Messenger for Handshake & Broadcast Report
 abstract class ClientMessenger extends CommonMessenger {
   ClientMessenger(super.session, super.facebook, super.mdb);
@@ -109,33 +110,18 @@ abstract class ClientMessenger extends CommonMessenger {
       assert(false, 'visa not found: $user');
       return;
     }
-    ID me = user!.identifier;
-    Meta meta = await user.meta;
-    DocumentCommand command = DocumentCommand.response(me, meta, visa);
-
+    ID me = visa.identifier;
     //
     //  send to all contacts
     //
     List<ID> contacts = await facebook.getContacts(me);
     for (ID item in contacts) {
-      if (archivist.isDocumentResponseExpired(item, updated)) {
-        logInfo('sending visa to $item');
-        await sendContent(command, sender: me, receiver: item, priority: 1);
-      } else {
-        // not expired yet
-        logDebug('visa response not expired yet: $me => $item');
-      }
+      await archivist.sendDocument(visa, item, updated: updated);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    if (archivist.isDocumentResponseExpired(ID.kEveryone, updated)) {
-      logInfo('sending visa to ${ID.kEveryone}');
-      await sendContent(command, sender: me, receiver: ID.kEveryone, priority: 1);
-    } else {
-      // not expired yet
-      logDebug('visa response not expired yet: $me => ${ID.kEveryone}');
-    }
+    await archivist.sendDocument(visa, ID.kEveryone, updated: updated);
   }
 
   ///  Send login command to keep roaming

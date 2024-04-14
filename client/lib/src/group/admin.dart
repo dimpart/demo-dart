@@ -96,11 +96,11 @@ class AdminManager extends TripletsHelper {
     //
     //  3. broadcast bulletin document
     //
-    return broadcastDocument(doc);
+    return broadcastGroupDocument(doc);
   }
 
   /// Broadcast group document
-  Future<bool> broadcastDocument(Bulletin doc) async {
+  Future<bool> broadcastGroupDocument(Bulletin doc) async {
     CommonFacebook? barrack = facebook;
     CommonMessenger? transceiver = messenger;
     assert(barrack != null && transceiver != null, 'facebook messenger not ready: $barrack, $transceiver');

@@ -152,8 +152,8 @@ class SharedGroupManager implements GroupDataSource {
   Future<bool> isOwner(ID user, {required ID group}) async =>
       await delegate.isOwner(user, group: group);
 
-  Future<bool> broadcastDocument(Document doc) async =>
-      await adminManager.broadcastDocument(doc as Bulletin);
+  Future<bool> broadcastGroupDocument(Bulletin doc) async =>
+      await adminManager.broadcastGroupDocument(doc);
 
   //
   //  Group Manage
