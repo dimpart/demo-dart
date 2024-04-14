@@ -29,30 +29,20 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
-
-import '../common/facebook.dart';
-import '../common/messenger.dart';
 
 import 'delegate.dart';
 import 'helper.dart';
 
-class GroupHistoryBuilder with Logging {
-  GroupHistoryBuilder(this.delegate);
 
-  // protected
-  final GroupDelegate delegate;
+class GroupHistoryBuilder extends TripletsHelper {
+  GroupHistoryBuilder(super.delegate);
+
   // protected
   late final GroupCommandHelper helper = createHelper();
 
   /// override for customized helper
   GroupCommandHelper createHelper() => GroupCommandHelper(delegate);
-
-  // protected
-  CommonFacebook? get facebook => delegate.facebook;
-  // protected
-  CommonMessenger? get messenger => delegate.messenger;
 
   /// build command list for group history:
   ///     0. document command

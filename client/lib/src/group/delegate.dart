@@ -30,14 +30,22 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/log.dart';
+import 'package:startrek/skywalker.dart';
 
+import '../common/dbi/account.dart';
+import '../common/archivist.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
 import '../client/facebook.dart';
+import '../common/session.dart';
 
 class GroupDelegate extends TwinsHelper implements GroupDataSource {
-  GroupDelegate(super.facebook, super.messenger);
+  GroupDelegate(CommonFacebook facebook, CommonMessenger messenger)
+      : super(facebook, messenger) {
+    _GroupBotsManager().setMessenger(messenger);
+  }
 
   @override
   CommonFacebook? get facebook => super.facebook as CommonFacebook?;
@@ -94,15 +102,28 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
       await facebook?.getOwner(group);
 
   @override
-  Future<List<ID>> getAssistants(ID group) async =>
-      await facebook!.getAssistants(group);
-
-  @override
   Future<List<ID>> getMembers(ID group) async =>
       await facebook!.getMembers(group);
 
   Future<bool> saveMembers(ID group, List<ID> members) async =>
       await (facebook as ClientFacebook).saveMembers(members, group);
+
+  //
+  //  Group Assistants
+  //
+
+  @override
+  Future<List<ID>> getAssistants(ID group) async =>
+      await _GroupBotsManager().getAssistants(group) ?? [];
+
+  Future<ID?> getFastestAssistant(ID group) async =>
+      await _GroupBotsManager().getFastestAssistant(group);
+
+  void setCommonAssistants(List<ID> bots) =>
+      _GroupBotsManager().setCommonAssistants(bots);
+
+  bool updateRespondTime(ReceiptCommand content, Envelope envelope) =>
+      _GroupBotsManager().updateRespondTime(content, envelope);
 
   //
   //  Administrators
@@ -163,6 +184,164 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(user.isUser && group.isGroup, 'ID error: $user, $group');
     List<ID> bots = await getAssistants(group);
     return bots.contains(user);
+  }
+
+}
+
+
+// protected
+abstract class TripletsHelper with Logging {
+  TripletsHelper(this.delegate);
+
+  // protected
+  final GroupDelegate delegate;
+
+  // protected
+  CommonFacebook? get facebook => delegate.facebook;
+
+  // protected
+  CommonMessenger? get messenger => delegate.messenger;
+
+  // protected
+  CommonArchivist? get archivist => facebook?.archivist;
+
+  // protected
+  AccountDBI? get database => facebook?.archivist.database;
+
+}
+
+
+class _GroupBotsManager extends Runner with Logging {
+  factory _GroupBotsManager() => _instance;
+  static final _GroupBotsManager _instance = _GroupBotsManager._internal();
+  _GroupBotsManager._internal() : super(Runner.intervalSlow) {
+    /* await */run();
+  }
+
+  List<ID>? _commonAssistants;
+
+  CommonMessenger? _transceiver;
+
+  Set<ID> _candidates = {};                    // group IDs to be check
+  final Map<ID, Duration> _respondTimes = {};  // group IDs with respond time
+
+  void setMessenger(CommonMessenger messenger) => _transceiver = messenger;
+
+  bool updateRespondTime(ReceiptCommand content, Envelope envelope) {
+    // 1. check sender
+    ID sender = envelope.sender;
+    if (sender.type != EntityType.kBot) {
+      return false;
+    }
+    ID? originalReceiver = content.originalEnvelope?.receiver;
+    if (originalReceiver != sender) {
+      assert(false, 'sender error: $sender, $originalReceiver');
+      return false;
+    }
+    // 2. check send time
+    DateTime? time = content.originalEnvelope?.time;
+    if (time == null) {
+      assert(false, 'original time not found: $content');
+      return false;
+    }
+    Duration duration = DateTime.now().difference(time);
+    if (duration.inMicroseconds <= 0) {
+      assert(false, 'receipt time error: $time');
+      return false;
+    }
+    // 3. check duration
+    Duration? cached = _respondTimes[sender];
+    if (cached != null && cached.inMicroseconds <= duration.inMicroseconds) {
+      return false;
+    }
+    _respondTimes[sender] = duration;
+    return true;
+  }
+
+  void setCommonAssistants(List<ID> bots) {
+    _candidates.addAll(bots);
+    _commonAssistants = bots;
+  }
+
+  Future<List<ID>?> getAssistants(ID group) async {
+    CommonFacebook? facebook = _transceiver?.facebook;
+    List<ID>? bots = await facebook?.getAssistants(group);
+    if (bots == null || bots.isEmpty) {
+      return _commonAssistants;
+    }
+    _candidates.addAll(bots);
+    return bots;
+  }
+
+  /// Get the fastest group bot
+  Future<ID?> getFastestAssistant(ID group) async {
+    List<ID>? bots = await getAssistants(group);
+    if (bots == null || bots.isEmpty) {
+      logWarning('group bots not found: $group');
+      return null;
+    }
+    ID? prime;
+    Duration? primeDuration;
+    Duration? duration;
+    for (ID ass in bots) {
+      duration = _respondTimes[ass];
+      if (duration == null) {
+        logInfo('group bot not respond yet, ignore it: $ass');
+        continue;
+      } else if (primeDuration != null && primeDuration < duration) {
+        logInfo('this bot $ass is slower than $prime, skip it.');
+        continue;
+      }
+      prime = ass;
+      primeDuration = primeDuration;
+    }
+    if (prime != null) {
+      logInfo('got the fastest bot with respond time: $primeDuration, $prime');
+    }
+    return prime;
+  }
+
+  @override
+  Future<bool> process() async {
+    CommonMessenger? messenger = _transceiver;
+    if (messenger == null) {
+      return false;
+    }
+    Session session = messenger.session;
+    if (session.key == null || !session.isActive) {
+      // not login yet
+      return false;
+    }
+    Set<ID> bots = _candidates;
+    _candidates = {};
+    for (ID item in bots) {
+      try {
+        _queryAssistant(item, messenger);
+      } catch (e, st) {
+        logError('failed to query assistant: $item, $e, $st');
+      }
+    }
+    return false;
+  }
+
+  Future<bool> _queryAssistant(ID bot, CommonMessenger messenger) async {
+    Duration? duration = _respondTimes[bot];
+    if (duration != null) {
+      // no need to check again
+      logInfo('group bot already responded: $duration, $bot');
+      return false;
+    }
+    CommonFacebook facebook = messenger.facebook;
+    User? me = await facebook.currentUser;
+    Meta? meta = await me?.meta;
+    Visa? visa = await me?.visa;
+    if (meta == null || visa == null) {
+      logError('failed to get visa: $me');
+      return false;
+    }
+    var content = DocumentCommand.response(visa.identifier, meta, visa);
+    var res = await messenger.sendContent(content, sender: me?.identifier, receiver: bot);
+    return res.second != null;
   }
 
 }

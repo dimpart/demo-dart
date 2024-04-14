@@ -30,23 +30,15 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/log.dart';
 
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
 import 'delegate.dart';
 
-class AdminManager with Logging {
-  AdminManager(this.delegate);
 
-  // protected
-  final GroupDelegate delegate;
-
-  // protected
-  CommonFacebook? get facebook => delegate.facebook;
-  // protected
-  CommonMessenger? get messenger => delegate.messenger;
+class AdminManager extends TripletsHelper {
+  AdminManager(super.delegate);
 
   ///  Update 'administrators' in bulletin document
   ///  (broadcast new document to all members and neighbor station)

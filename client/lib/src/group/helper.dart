@@ -29,21 +29,15 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import '../common/dbi/account.dart';
 
 import 'delegate.dart';
 
-class GroupCommandHelper with Logging {
-  GroupCommandHelper(this.delegate);
 
-  // protected
-  final GroupDelegate delegate;
-
-  // protected
-  AccountDBI? get database => delegate.facebook?.archivist.database;
+class GroupCommandHelper extends TripletsHelper {
+  GroupCommandHelper(super.delegate);
 
   ///
   /// Group History Command

@@ -29,15 +29,15 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:lnc/log.dart';
 
-import '../common/facebook.dart';
 import '../common/messenger.dart';
 
 import 'delegate.dart';
 import 'packer.dart';
 
-class GroupEmitter with Logging {
+
+class GroupEmitter extends TripletsHelper {
+  GroupEmitter(super.delegate);
 
   // NOTICE: group assistants (bots) can help the members to redirect messages
   //
@@ -63,20 +63,11 @@ class GroupEmitter with Logging {
   //
   static int kSecretGroupLimit = 16;
 
-  GroupEmitter(this.delegate);
-
-  // protected
-  final GroupDelegate delegate;
   // protected
   late final GroupPacker packer = createPacker();
 
   /// override for customized packer
   GroupPacker createPacker() => GroupPacker(delegate);
-
-  // protected
-  CommonFacebook? get facebook => delegate.facebook;
-  // protected
-  CommonMessenger? get messenger => delegate.messenger;
 
   // private
   Future<bool> attachGroupTimes(ID group, InstantMessage iMsg) async {
@@ -97,7 +88,7 @@ class GroupEmitter with Logging {
       iMsg.setDateTime('GDT', lastDocumentTime);
     }
     // attach group history time
-    DateTime? lastHistoryTime = await facebook?.archivist.getLastGroupHistoryTime(group);
+    DateTime? lastHistoryTime = await archivist?.getLastGroupHistoryTime(group);
     if (lastHistoryTime == null) {
       assert(false, 'failed to get history time: $group');
     } else {
@@ -121,7 +112,7 @@ class GroupEmitter with Logging {
       // attach group's document & history times
       // for the receiver to check whether group info synchronized
       bool ok = await attachGroupTimes(group, iMsg);
-      assert(ok || content is Command, 'failed to attach group times: $group => $content');
+      assert(ok || content is GroupCommand, 'failed to attach group times: $group => $content');
     }
     assert(iMsg.receiver == group, 'group message error: $iMsg');
 
@@ -133,11 +124,10 @@ class GroupEmitter with Logging {
     //
     //  1. check group bots
     //
-    List<ID> bots = await delegate.getAssistants(group);
-    if (bots.isNotEmpty) {
+    ID? prime = await delegate.getFastestAssistant(group);
+    if (prime != null) {
       // group bots found, forward this message to any bot to let it split for me;
       // this can reduce my jobs.
-      ID prime = bots.first;
       return await _forwardMessage(iMsg, prime, group: group, priority: priority);
     }
 

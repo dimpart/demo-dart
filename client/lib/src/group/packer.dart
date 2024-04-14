@@ -30,18 +30,12 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/log.dart';
 
 import 'delegate.dart';
 
-class GroupPacker with Logging {
-  GroupPacker(this.delegate);
 
-  // protected
-  final GroupDelegate delegate;
-
-  // protected
-  Messenger? get messenger => delegate.messenger;
+class GroupPacker extends TripletsHelper {
+  GroupPacker(super.delegate);
 
   ///  Pack as broadcast message
   Future<ReliableMessage?> packMessage(Content content, {required ID sender}) async {

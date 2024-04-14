@@ -35,7 +35,7 @@ import 'package:lnc/log.dart';
 import '../../common/dbi/session.dart';
 import '../../common/protocol/ans.dart';
 import '../../common/protocol/login.dart';
-
+import '../../group/shared.dart';
 import '../facebook.dart';
 import '../messenger.dart';
 
@@ -95,6 +95,9 @@ class ReceiptCommandProcessor extends BaseCommandProcessor {
   Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is ReceiptCommand, 'receipt command error: $content');
     // no need to response receipt command
+    if (content is ReceiptCommand) {
+      SharedGroupManager().delegate.updateRespondTime(content, rMsg.envelope);
+    }
     return [];
   }
 }

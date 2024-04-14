@@ -30,11 +30,8 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/log.dart';
 
-import '../common/dbi/account.dart';
 import '../common/register.dart';
-import '../common/facebook.dart';
 import '../common/messenger.dart';
 
 import 'delegate.dart';
@@ -42,11 +39,9 @@ import 'helper.dart';
 import 'builder.dart';
 import 'packer.dart';
 
-class GroupManager with Logging {
-  GroupManager(this.delegate);
 
-  // protected
-  final GroupDelegate delegate;
+class GroupManager extends TripletsHelper {
+  GroupManager(super.delegate);
 
   // protected
   late final GroupPacker packer = createPacker();
@@ -63,14 +58,6 @@ class GroupManager with Logging {
   GroupCommandHelper createHelper() => GroupCommandHelper(delegate);
   /// override for customized builder
   GroupHistoryBuilder createBuilder() => GroupHistoryBuilder(delegate);
-
-  // protected
-  CommonFacebook? get facebook => delegate.facebook;
-  // protected
-  CommonMessenger? get messenger => delegate.messenger;
-
-  // protected
-  AccountDBI? get database => facebook?.archivist.database;
 
   ///  Create new group with members
   ///  (broadcast document & members to all members and neighbor station)

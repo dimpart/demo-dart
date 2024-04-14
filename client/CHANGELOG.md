@@ -1,3 +1,7 @@
+## 0.4.9
+
+- Shared Group Manager.
+
 ## 0.4.8
 
 - Check login before sending messages.
