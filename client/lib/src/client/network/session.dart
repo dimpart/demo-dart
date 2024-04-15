@@ -72,15 +72,30 @@ class ClientSession extends BaseSession with Logging {
   late final SessionStateMachine _fsm;
 
   String? _key;
+  bool _accepted = false;
 
   Station get station => _server;
 
   SessionState? get state => _fsm.currentState ?? _fsm.defaultState;
 
   @override
+  bool setActive(bool flag, DateTime? when) {
+    if (flag == false) {
+      _accepted = false;
+    }
+    return super.setActive(flag, when);
+  }
+
+  @override
   String? get key => _key;
 
   set key(String? sessionKey) => _key = sessionKey;
+
+  bool get isAccepted => _accepted;
+  set accepted(bool flag) => _accepted = flag;
+
+  bool get isReady => isActive && isAccepted
+      && identifier != null && key != null;
 
   Connection? get connection {
     Docker? docker = gate.getDocker(remote: remoteAddress);

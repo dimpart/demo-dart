@@ -31,6 +31,7 @@
 import 'package:startrek/fsm.dart';
 import 'package:startrek/startrek.dart';
 
+import 'session.dart';
 import 'state.dart';
 
 
@@ -222,12 +223,14 @@ class SessionStateTransitionBuilder {
         // connection lost, state will be changed to 'error'
         return false;
       }
-      if (ctx.sessionID == null) {
-        // user logout / switched?
-        return true;
-      }
-      // force user login again?
-      return ctx.sessionKey == null;
+      ClientSession? session = ctx.session;
+      return session?.isReady != true;
+      // if (ctx.sessionID == null) {
+      //   // user logout / switched?
+      //   return true;
+      // }
+      // // force user login again?
+      // return ctx.sessionKey == null;
     },
   );
 

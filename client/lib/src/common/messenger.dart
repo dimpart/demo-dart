@@ -36,8 +36,10 @@ import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import 'compat/compatible.dart';
+
 import 'facebook.dart';
 import 'session.dart';
+
 
 abstract class CommonMessenger extends Messenger with Logging
     implements Transmitter {
@@ -175,7 +177,7 @@ abstract class CommonMessenger extends Messenger with Logging
       return null;
     } else {
       logDebug('send instant message (type=${iMsg.content.type}): '
-          '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
+          '$sender => ${iMsg.receiver}, ${iMsg.group}');
       // attach sender's document times
       // for the receiver to check whether user info synchronized
       bool ok = await attachVisaTime(sender, iMsg);
@@ -197,7 +199,9 @@ abstract class CommonMessenger extends Messenger with Logging
       // TODO: set msg.state = error
       throw Exception('failed to sign message: $sMsg');
     }
-    // 3. send message
+    //
+    //  3. send message
+    //
     if (await sendReliableMessage(rMsg, priority: priority)) {
       return rMsg;
     } else {

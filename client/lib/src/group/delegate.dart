@@ -115,7 +115,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
 
   @override
   Future<List<ID>> getAssistants(ID group) async =>
-      await _GroupBotsManager().getAssistants(group) ?? [];
+      await _GroupBotsManager().getAssistants(group);
 
   Future<ID?> getFastestAssistant(ID group) async =>
       await _GroupBotsManager().getFastestAssistant(group);
@@ -219,7 +219,7 @@ class _GroupBotsManager extends Runner with Logging {
     /* await */run();
   }
 
-  List<ID>? _commonAssistants;
+  List<ID> _commonAssistants = [];
 
   CommonMessenger? _transceiver;
 
@@ -231,6 +231,11 @@ class _GroupBotsManager extends Runner with Logging {
   /// When received receipt command from the bot
   /// update the speed of this bot.
   bool updateRespondTime(ReceiptCommand content, Envelope envelope) {
+    // var app = content['app'];
+    // app ??= content['app_id'];
+    // if (app != 'chat.dim.group.assistant') {
+    //   return false;
+    // }
     // 1. check sender
     ID sender = envelope.sender;
     if (sender.type != EntityType.kBot) {
@@ -238,7 +243,7 @@ class _GroupBotsManager extends Runner with Logging {
     }
     ID? originalReceiver = content.originalEnvelope?.receiver;
     if (originalReceiver != sender) {
-      assert(false, 'sender error: $sender, $originalReceiver');
+      assert(originalReceiver?.isBroadcast == true, 'sender error: $sender, $originalReceiver');
       return false;
     }
     // 2. check send time
@@ -264,11 +269,12 @@ class _GroupBotsManager extends Runner with Logging {
   /// When received new config from current Service Provider,
   /// set common assistants of this SP.
   void setCommonAssistants(List<ID> bots) {
+    logInfo('add group bots: $bots into $_candidates');
     _candidates.addAll(bots);
     _commonAssistants = bots;
   }
 
-  Future<List<ID>?> getAssistants(ID group) async {
+  Future<List<ID>> getAssistants(ID group) async {
     CommonFacebook? facebook = _transceiver?.facebook;
     List<ID>? bots = await facebook?.getAssistants(group);
     if (bots == null || bots.isEmpty) {
@@ -281,7 +287,7 @@ class _GroupBotsManager extends Runner with Logging {
   /// Get the fastest group bot
   Future<ID?> getFastestAssistant(ID group) async {
     List<ID>? bots = await getAssistants(group);
-    if (bots == null || bots.isEmpty) {
+    if (bots.isEmpty) {
       logWarning('group bots not found: $group');
       return null;
     }
@@ -291,17 +297,22 @@ class _GroupBotsManager extends Runner with Logging {
     for (ID ass in bots) {
       duration = _respondTimes[ass];
       if (duration == null) {
-        logInfo('group bot not respond yet, ignore it: $ass');
+        logInfo('group bot not respond yet, ignore it: $ass, $group');
         continue;
-      } else if (primeDuration != null && primeDuration < duration) {
-        logInfo('this bot $ass is slower than $prime, skip it.');
+      } else if (primeDuration == null) {
+        // first responded bot
+      } else if (primeDuration < duration) {
+        logInfo('this bot $ass is slower than $prime, skip it, $group');
         continue;
       }
       prime = ass;
       primeDuration = primeDuration;
     }
-    if (prime != null) {
-      logInfo('got the fastest bot with respond time: $primeDuration, $prime');
+    if (prime == null) {
+      prime = bots.first;
+      logInfo('no bot responded, take the first one: $bots, $group');
+    } else {
+      logInfo('got the fastest bot with respond time: $primeDuration, $prime, $group');
     }
     return prime;
   }

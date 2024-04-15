@@ -52,19 +52,40 @@ abstract class ClientMessenger extends CommonMessenger {
 
   @override
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
-    if (session.key == null) {
+    if (session.isReady) {
+      // OK, any message can go out
+    } else {
       // not login yet
       Content content = iMsg.content;
       if (content is! Command) {
         logWarning('not handshake yet, suspend message: $content => ${iMsg.receiver}');
         // TODO: suspend instant message
-      } else if (content.cmd != HandshakeCommand.kHandshake) {
+      } else if (content.cmd == HandshakeCommand.kHandshake) {
+        // NOTICE: only handshake message can go out
+        iMsg['pass'] = 'handshaking';
+      } else {
         logWarning('not handshake yet, drop command: $content => ${iMsg.receiver}');
         // TODO: suspend instant message
         return null;
       }
     }
     return await super.sendInstantMessage(iMsg, priority: priority);
+  }
+
+  @override
+  Future<bool> sendReliableMessage(ReliableMessage rMsg, {int priority = 0}) async {
+    var passport = rMsg.remove('pass');
+    if (session.isReady) {
+      // OK, any message can go out
+      assert(passport == null, 'should not happen: $rMsg');
+    } if (passport == 'handshaking') {
+      // not login in yet, let the handshake message go out only
+    } else {
+      logError('not handshake yet, suspend message: ${rMsg.sender} => ${rMsg.receiver}');
+      // TODO: suspend reliable message
+      return false;
+    }
+    return await super.sendReliableMessage(rMsg, priority: priority);
   }
 
   ///  Send handshake command to current station
@@ -96,6 +117,9 @@ abstract class ClientMessenger extends CommonMessenger {
 
   ///  Callback for handshake success
   Future<void> handshakeSuccess() async {
+    // change the flag of current session
+    logInfo('handshake success, change session accepted: ${session.isAccepted} => true');
+    session.accepted = true;
     // broadcast current documents after handshake success
     await broadcastDocument();
     // TODO: let a service bot to do this job

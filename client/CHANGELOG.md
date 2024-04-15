@@ -1,3 +1,7 @@
+## 0.5.0
+
+- Flag to indicate session is ready.
+
 ## 0.4.9
 
 - Shared Group Manager.
