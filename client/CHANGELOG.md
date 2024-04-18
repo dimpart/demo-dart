@@ -1,3 +1,7 @@
+## 0.5.1
+
+- Broadcast login after session is ready.
+
 ## 0.5.0
 
 - Flag to indicate session is ready.

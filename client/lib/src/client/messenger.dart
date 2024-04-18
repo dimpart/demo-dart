@@ -78,7 +78,7 @@ abstract class ClientMessenger extends CommonMessenger {
     if (session.isReady) {
       // OK, any message can go out
       assert(passport == null, 'should not happen: $rMsg');
-    } if (passport == 'handshaking') {
+    } else if (passport == 'handshaking') {
       // not login in yet, let the handshake message go out only
     } else {
       logError('not handshake yet, suspend message: ${rMsg.sender} => ${rMsg.receiver}');

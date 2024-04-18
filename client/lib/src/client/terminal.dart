@@ -248,11 +248,11 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   @override
   Future<bool> process() async {
     // 1. check connection
-    if (session?.identifier == null) {
-      // user not login
-      return false;
-    } else if (session?.state?.index != SessionStateOrder.running.index) {
+    if (session?.state?.index != SessionStateOrder.running.index) {
       // handshake not accepted
+      return false;
+    } else if (session?.isReady != true) {
+      // session not ready
       return false;
     }
     // 2. check timeout
