@@ -35,10 +35,14 @@ import 'factory.dart';
 
 /// M3U8
 class LiveStream extends Dictionary {
-  LiveStream(super.dict, {Uri? url}) {
+  LiveStream(super.dict, {Uri? url, String? label}) {
     // M3U8
     if (url != null) {
       setValue('url', url.toString());
+    }
+    // title
+    if (label != null) {
+      setValue('label', label);
     }
   }
 
@@ -48,11 +52,13 @@ class LiveStream extends Dictionary {
     return m3u8 == null ? null : parseUri(m3u8);
   }
 
+  String? get label => getValue('label', null);
+
   @override
   String toString() {
     Type clazz = runtimeType;
     var m3u8 = getValue('url', null);
-    return '<$clazz url="$m3u8" />';
+    return '<$clazz title="$label" url="$m3u8" />';
   }
 
   @override

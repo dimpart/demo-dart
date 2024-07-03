@@ -43,27 +43,23 @@ class LiveGenre extends Dictionary {
     }
   }
 
-  /// Group name
+  /// Name of channel group
   String get title => getValue('title', '');
+
+  /// Count of channels
+  int get count => getValue('channels', []).length;
 
   @override
   String toString() {
     Type clazz = runtimeType;
-    int count = getValue('channels', []).length;
-    return '<$clazz title="$title" size=$count />';
+    return '<$clazz title="$title" count=$count />';
   }
 
   @override
-  int get length {
-    List array = getValue('channels', []);
-    return array.length;
-  }
+  bool get isEmpty => count == 0;
 
   @override
-  bool get isEmpty => getValue('channels', []).isEmpty;
-
-  @override
-  bool get isNotEmpty => getValue('channels', []).isNotEmpty;
+  bool get isNotEmpty => count > 0;
 
   /// Live Channels
   List<LiveChannel> get channels =>

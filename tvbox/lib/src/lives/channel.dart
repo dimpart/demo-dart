@@ -30,8 +30,8 @@
  */
 import '../types/dictionary.dart';
 
-import 'factory.dart';
 import 'stream.dart';
+import 'factory.dart';
 
 
 /// TV Channel
@@ -43,27 +43,23 @@ class LiveChannel extends Dictionary {
     }
   }
 
-  /// Channel name
+  /// Name of channel
   String get name => getValue('name', '');
+
+  /// Count of streams
+  int get count => getValue('streams', []).length;
 
   @override
   String toString() {
     Type clazz = runtimeType;
-    int count = getValue('streams', []).length;
-    return '<$clazz name="$name" size=$count />';
+    return '<$clazz name="$name" count=$count />';
   }
 
   @override
-  int get length {
-    List array = getValue('streams', []);
-    return array.length;
-  }
+  bool get isEmpty => count == 0;
 
   @override
-  bool get isEmpty => getValue('streams', []).isEmpty;
-
-  @override
-  bool get isNotEmpty => getValue('streams', []).isNotEmpty;
+  bool get isNotEmpty => count > 0;
 
   /// Stream Sources
   List<LiveStream> get streams =>

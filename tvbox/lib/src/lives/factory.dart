@@ -28,16 +28,16 @@
  * SOFTWARE.
  * ==============================================================================
  */
+import 'stream.dart';
 import 'channel.dart';
 import 'genre.dart';
-import 'stream.dart';
 
 
 // Customizable Creator
 class LiveCreator {
 
-  LiveStream createStream(Map? info, {Uri? url}) {
-    return LiveStream(info, url: url);
+  LiveStream createStream(Map? info, {Uri? url, String? label}) {
+    return LiveStream(info, url: url, label: label);
   }
 
   LiveChannel createChannel(Map? info, {String? name}) {
@@ -57,7 +57,7 @@ class LiveFactory {
   static final LiveFactory _instance = LiveFactory._internal();
   LiveFactory._internal();
 
-  final Map<String, LiveStream> _streams = {};  // URL -> Stream
+  final Map<Uri, LiveStream> _streams = {};  // URL -> Stream
 
   LiveCreator creator = LiveCreator();
 
@@ -68,34 +68,27 @@ class LiveFactory {
   /// create stream with map info
   LiveStream? createStream(Map info) {
     String? urlString = info['url'];
-    if (urlString == null || urlString.isEmpty) {
-      return null;
-    }
-    // check URL string
-    Uri? url = LiveStream.parseUri(urlString);
+    Uri? url = urlString == null ? null : LiveStream.parseUri(urlString);
     if (url == null) {
       assert(false, 'stream url error: $urlString');
       return null;
-    } else {
-      urlString = url.toString();
     }
     // check cache
-    LiveStream? src = _streams[urlString];
+    LiveStream? src = _streams[url];
     if (src == null) {
-      src = creator.createStream(info, url: null);
-      _streams[urlString] = src;
+      src = creator.createStream(info, url: null, label: null);
+      _streams[url] = src;
     }
     return src;
   }
 
   /// create stream with url
-  LiveStream newStream(Uri url) {
-    String urlString = url.toString();
+  LiveStream newStream(Uri url, {required String? label}) {
     // check cache
-    LiveStream? src = _streams[urlString];
+    LiveStream? src = _streams[url];
     if (src == null) {
-      src = creator.createStream(null, url: url);
-      _streams[urlString] = src;
+      src = creator.createStream(null, url: url, label: label);
+      _streams[url] = src;
     }
     return src;
   }

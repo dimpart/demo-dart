@@ -30,35 +30,25 @@
  */
 import '../types/tuple.dart';
 
-import 'channel.dart';
-import 'factory.dart';
-import 'genre.dart';
 import 'stream.dart';
+import 'channel.dart';
+import 'genre.dart';
+import 'factory.dart';
 
 
 class LiveParser {
-  LiveParser({LiveFactory? factory})
-      : factory = factory ?? LiveFactory();
+  LiveParser();
 
-  final LiveFactory factory;
+  final LiveFactory factory = LiveFactory();
 
   List<LiveGenre> parse(String text) => parseLines(text.split('\n'));
 
   // protected
   List<LiveGenre> parseLines(List<String> lines) {
-    List<LiveGenre> groups = [];
-    LiveGenre current = factory.newGenre('');
-    String text;
-    String? title;              // group title
-    String? name;               // channel name
-    Pair<String?, List<Uri>> pair;
-    LiveChannel channel;
-    Set<LiveStream> streams;
-    //
-    //  parse each line
-    //
+    List<LiveGenre> allGroups = [];
+    LiveGenre current = factory.newGenre('Default');
     for (String item in lines) {
-      text = item.trim();
+      String text = item.trim();
       if (text.isEmpty) {
         continue;
       } else if (text.startsWith(r'#')) {
@@ -67,51 +57,88 @@ class LiveParser {
         continue;
       }
       //
-      //  1. check group name
+      //  1. check genre
       //
-      title = fetchGenre(text);
-      if (title != null) {
-        // add current group
+      var genre = fetchGenre(text);
+      if (genre != null) {
+        // alternate current group
         if (current.isNotEmpty) {
-          groups.add(current);
+          allGroups.add(current);
         }
         // create next group
-        current = factory.newGenre(title);
+        current = genre;
         continue;
       }
       //
-      //  2. parse channel
+      //  2. check channel
       //
-      pair = fetchChannel(text);
-      name = pair.first;
-      if (name == null) {
-        assert(false, 'channel error: $item');
+      var pair = fetchChannel(text);
+      var channel = pair.first;
+      if (channel == null) {
+        // empty line?
         continue;
       }
-      channel = factory.newChannel(name);
+      // split streams
+      var sources = pair.second.split(r'#');
       //
       //  3. create streams
       //
-      streams = {};
-      for (Uri url in pair.second) {
-        streams.add(factory.newStream(url));
+      Set<LiveStream> streams = {};
+      for (var src in sources) {
+        var m3u8 = fetchStream(src);
+        if (m3u8 != null) {
+          streams.add(m3u8);
+        }
       }
       channel.addStreams(streams);
       current.addChannel(channel);
     }
     // add last group
     if (current.isNotEmpty) {
-      groups.add(current);
+      allGroups.add(current);
     }
-    return groups;
+    return allGroups;
   }
 
   //
-  //  Text Parsers
+  //  Creators (protected)
   //
 
   /// get group title
-  static String? fetchGenre(String text) {
+  LiveGenre? fetchGenre(String text) {
+    String? title = splitGenre(text);
+    if (title == null) {
+      return null;
+    }
+    return factory.newGenre(title);
+  }
+
+  /// get channel name & stream sources
+  Pair<LiveChannel?, String> fetchChannel(String text) {
+    Pair<String?, String> pair = splitChannel(text);
+    String? name = pair.first;
+    if (name == null) {
+      return Pair(null, text);
+    }
+    LiveChannel channel = factory.newChannel(name);
+    return Pair(channel, pair.second);
+  }
+
+  /// split stream sources with '#'
+  LiveStream? fetchStream(String text) {
+    Pair<Uri?, String?> pair = splitStream(text);
+    Uri? url = pair.first;
+    if (url == null) {
+      return null;
+    }
+    return factory.newStream(url, label: pair.second);
+  }
+
+  //
+  //  Split Utils
+  //
+
+  static String? splitGenre(String text) {
     int pos = text.indexOf(r',#genre#');
     if (pos < 0) {
       return null;
@@ -120,12 +147,11 @@ class LiveParser {
     return title.trim();
   }
 
-  /// get channel name & stream sources
-  static Pair<String?, List<Uri>> fetchChannel(String text) {
+  static Pair<String?, String> splitChannel(String text) {
     int pos = text.indexOf(r',http');
     if (pos < 0) {
       // not a channel line
-      return Pair(null, []);
+      return Pair(null, text);
     }
     // fetch channel name
     String name = text.substring(0, pos);
@@ -133,27 +159,29 @@ class LiveParser {
     // cut the head
     pos += 1;  // skip ','
     text = text.substring(pos);
-    // cut the tail
-    pos = text.indexOf(r'$');
-    if (pos > 0) {
-      text = text.substring(0, pos);
-    }
-    // fetch sources
-    return Pair(name, splitStreams(text));
+    return Pair(name, text);
   }
 
-  /// split stream sources with '#'
-  static List<Uri> splitStreams(String text) {
-    List<String> array = text.split(r'#');
+  static Pair<Uri?, String?> splitStream(String text) {
     Uri? url;
-    List<Uri> sources = [];
-    for (String item in array) {
-      url = LiveStream.parseUri(item);
-      if (url != null) {
-        sources.add(url);
+    String? label;
+    List<String> array = text.split(r'$');
+    if (array.length == 1) {
+      url = LiveStream.parseUri(text.trim());
+    } else {
+      assert(array.length == 2, 'stream info error: $text');
+      String first = array[0].trim();
+      String second = array[1].trim();
+      // check for url
+      if (first.indexOf(r'://') > 0) {
+        url = LiveStream.parseUri(first);
+        label = second;
+      } else if (second.indexOf(r'://') > 0) {
+        url = LiveStream.parseUri(second);
+        label = first;
       }
     }
-    return sources;
+    return Pair(url, label);
   }
 
 }

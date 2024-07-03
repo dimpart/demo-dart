@@ -1,6 +1,6 @@
 name: tvbox
 description: Live channels for TVBox.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/dimchat/demo-dart
 repository: https://github.com/dimchat/demo-dart
 issue_tracker: https://github.com/dimchat/demo-dart/issues
