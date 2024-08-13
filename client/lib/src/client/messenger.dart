@@ -51,6 +51,68 @@ abstract class ClientMessenger extends CommonMessenger {
   ClientArchivist get archivist => facebook.archivist as ClientArchivist;
 
   @override
+  Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async {
+    List<ReliableMessage> responses = await super.processReliableMessage(rMsg);
+    if (responses.isEmpty && await needsReceipt(rMsg)) {
+      var res = await buildReceipt(rMsg.envelope);
+      if (res != null) {
+        responses.add(res);
+      }
+    }
+    return responses;
+  }
+
+  // protected
+  Future<ReliableMessage?> buildReceipt(Envelope originalEnvelope) async {
+    User? currentUser = await facebook.currentUser;
+    if (currentUser == null) {
+      assert(false, 'failed to get current user');
+      return null;
+    }
+    String text = 'Message received.';
+    var res = ReceiptCommand.create(text, originalEnvelope, null);
+    var env = Envelope.create(sender: currentUser.identifier, receiver: originalEnvelope.sender);
+    var iMsg = InstantMessage.create(env, res);
+    var sMsg = await encryptMessage(iMsg);
+    if (sMsg == null) {
+      assert(false, 'failed to encrypt message: $currentUser -> ${originalEnvelope.sender}');
+      return null;
+    }
+    var rMsg = await signMessage(sMsg);
+    if (rMsg == null) {
+      assert(false, 'failed to sign message: $currentUser -> ${originalEnvelope.sender}');
+    }
+    return rMsg;
+  }
+
+  // protected
+  Future<bool> needsReceipt(ReliableMessage rMsg) async {
+    if (rMsg.type == ContentType.kCommand) {
+      // filter for looping message (receipt for receipt)
+      return false;
+    }
+    ID sender = rMsg.sender;
+    // ID receiver = rMsg.receiver;
+    // if (sender.type == EntityType.kStation || sender.type == EntityType.kBot) {
+    //   if (receiver.type == EntityType.kStation || receiver.type == EntityType.kBot) {
+    //     // message between bots
+    //     return false;
+    //   }
+    // }
+    if (sender.type != EntityType.kUser/* && receiver.type != EntityType.kUser*/) {
+      // message between bots
+      return false;
+    }
+    // User? currentUser = await facebook.currentUser;
+    // if (receiver != currentUser.identifier) {
+    //   // forward message
+    //   return true;
+    // }
+    // TODO: other condition?
+    return true;
+  }
+
+  @override
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     if (session.isReady) {
       // OK, any message can go out

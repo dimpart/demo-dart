@@ -64,12 +64,12 @@ class AckEnablePorter extends PlainPorter {
       } else if (payload[0] == _jsonBegin) {
         Uint8List? sig = _fetchValue(payload, DataUtils.bytes('signature'));
         Uint8List? sec = _fetchValue(payload, DataUtils.bytes('time'));
-        Log.info('receive signature: $sig, time: $sec');
         if (sig != null && sec != null) {
           // respond
           String? signature = UTF8.decode(sig);
           String? timestamp = UTF8.decode(sec);
           String text = 'ACK:{"time":$timestamp,"signature":"$signature"}';
+          Log.info('sending response: $text');
           await send(DataUtils.bytes(text), DeparturePriority.kSlower);
         }
       }
@@ -108,6 +108,7 @@ Uint8List? _fetchValue(Uint8List data, Uint8List tag) {
     }
   }
   Uint8List value = data.sublist(pos, end);
+  value = DataUtils.strip(value, removing: DataUtils.bytes(' '));
   value = DataUtils.strip(value, removing: DataUtils.bytes('"'));
   value = DataUtils.strip(value, removing: DataUtils.bytes("'"));
   return value;
