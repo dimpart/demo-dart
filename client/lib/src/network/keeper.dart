@@ -35,10 +35,11 @@ import 'package:startrek/skywalker.dart';
 import 'package:startrek/nio.dart';
 import 'package:startrek/startrek.dart';
 
+import 'gate.dart';
 import 'queue.dart';
 
 
-abstract class GateKeeper extends Runner with Logging implements DockerDelegate {
+abstract class GateKeeper extends Runner with Logging implements PorterDelegate {
   GateKeeper({required SocketAddress remote}) : super(Runner.intervalSlow) {
     _remoteAddress = remote;
     _gate = createGate(remote);
@@ -55,7 +56,7 @@ abstract class GateKeeper extends Runner with Logging implements DockerDelegate 
 
   // protected
   CommonGate createGate(SocketAddress remote) {
-    CommonGate gate = ClientGate(this);
+    CommonGate gate = AckEnableGate(this);
     gate.hub = createHub(gate, remote);
     return gate;
   }
@@ -96,14 +97,14 @@ abstract class GateKeeper extends Runner with Logging implements DockerDelegate 
   @override
   Future<bool> process() async {
     // check docker for remote address
-    Docker? docker = gate.getDocker(remote: remoteAddress);
+    Porter? docker = gate.getPorter(remote: remoteAddress);
     if (docker == null) {
       int now = DateTime.now().millisecondsSinceEpoch;
       if (now < _reconnectTime) {
         return false;
       }
       logInfo('fetch docker: $remoteAddress');
-      docker = await gate.fetchDocker([], remote: remoteAddress);
+      docker = await gate.fetchPorter(remote: remoteAddress);
       if (docker == null) {
         logError('gate error: $remoteAddress');
         _reconnectTime = now + 8000;
@@ -149,12 +150,6 @@ abstract class GateKeeper extends Runner with Logging implements DockerDelegate 
     return true;
   }
 
-  // // protected
-  // Future<Departure> dockerPack(Uint8List payload, int priority) async {
-  //   Docker? docker = await _gate.fetchDocker([], remote: remoteAddress);
-  //   return (docker as DeparturePacker).packData(payload, priority);
-  // }
-
   // protected
   bool queueAppend(ReliableMessage rMsg, Departure ship) => _queue.append(rMsg, ship);
 
@@ -163,28 +158,28 @@ abstract class GateKeeper extends Runner with Logging implements DockerDelegate 
   //
 
   @override
-  Future<void> onDockerStatusChanged(DockerStatus previous, DockerStatus current, Docker docker) async {
-    logInfo('docker status changed: $previous => $current, $docker');
+  Future<void> onPorterStatusChanged(PorterStatus previous, PorterStatus current, Porter porter) async {
+    logInfo('docker status changed: $previous => $current, $porter');
   }
 
   @override
-  Future<void> onDockerReceived(Arrival ship, Docker docker) async {
-    logDebug('docker received a ship: $ship, $docker');
+  Future<void> onPorterReceived(Arrival ship, Porter porter) async {
+    logDebug('docker received a ship: $ship, $porter');
   }
 
   @override
-  Future<void> onDockerSent(Departure ship, Docker docker) async {
+  Future<void> onPorterSent(Departure ship, Porter porter) async {
     // TODO: remove sent message from local cache
   }
 
   @override
-  Future<void> onDockerFailed(IOError error, Departure ship, Docker docker) async {
-    logError('docker failed to send ship: $ship, $docker');
+  Future<void> onPorterFailed(IOError error, Departure ship, Porter porter) async {
+    logError('docker failed to send ship: $ship, $porter');
   }
 
   @override
-  Future<void> onDockerError(IOError error, Departure ship, Docker docker) async {
-    logError('docker error while sending ship: $ship, $docker');
+  Future<void> onPorterError(IOError error, Departure ship, Porter porter) async {
+    logError('docker error while sending ship: $ship, $porter');
   }
 
 }

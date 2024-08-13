@@ -88,15 +88,15 @@ class SessionStateMachine
   // @override
   // SessionState? getDefaultState() => super.getDefaultState();
 
-  DockerStatus get status {
+  PorterStatus get status {
     ClientSession? cs = session;
     if (cs == null) {
-      return DockerStatus.error;
+      return PorterStatus.error;
     }
     CommonGate gate = cs.gate;
-    Docker? docker = gate.getDocker(remote: cs.remoteAddress);
+    Porter? docker = gate.getPorter(remote: cs.remoteAddress);
     if (docker == null) {
-      return DockerStatus.error;
+      return PorterStatus.error;
     }
     return docker.status;
   }

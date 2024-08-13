@@ -1,3 +1,7 @@
+## 0.5.2
+
+- Star Porter.
+
 ## 0.5.1
 
 - Broadcast login after session is ready.

@@ -76,8 +76,8 @@ class SessionStateTransitionBuilder {
         // current user not set yet
         return false;
       }
-      DockerStatus status = ctx.status;
-      return status == DockerStatus.preparing || status == DockerStatus.ready;
+      PorterStatus status = ctx.status;
+      return status == PorterStatus.preparing || status == PorterStatus.ready;
     },
   );
 
@@ -88,8 +88,8 @@ class SessionStateTransitionBuilder {
   ///  The session ID must be set, and the session key must be empty now.
   getConnectingConnectedTransition() => SessionStateTransition(
     SessionStateOrder.connected, (ctx, now) {
-      DockerStatus status = ctx.status;
-      return status == DockerStatus.ready;
+      PorterStatus status = ctx.status;
+      return status == PorterStatus.ready;
     },
   );
 
@@ -104,8 +104,8 @@ class SessionStateTransitionBuilder {
         // connecting expired, do it again
         return true;
       }
-      DockerStatus status = ctx.status;
-      return !(status == DockerStatus.preparing || status == DockerStatus.ready);
+      PorterStatus status = ctx.status;
+      return !(status == PorterStatus.preparing || status == PorterStatus.ready);
     },
   );
 
@@ -121,8 +121,8 @@ class SessionStateTransitionBuilder {
         //        state will be changed to 'error'
         return false;
       }
-      DockerStatus status = ctx.status;
-      return status == DockerStatus.ready;
+      PorterStatus status = ctx.status;
+      return status == PorterStatus.ready;
     },
   );
 
@@ -137,8 +137,8 @@ class SessionStateTransitionBuilder {
         // FIXME: current user lost?
         return true;
       }
-      DockerStatus status = ctx.status;
-      return status != DockerStatus.ready;
+      PorterStatus status = ctx.status;
+      return status != PorterStatus.ready;
     },
   );
 
@@ -154,8 +154,8 @@ class SessionStateTransitionBuilder {
         //        state will be changed to 'error'
         return false;
       }
-      DockerStatus status = ctx.status;
-      if (status != DockerStatus.ready) {
+      PorterStatus status = ctx.status;
+      if (status != PorterStatus.ready) {
         // connection lost, state will be changed to 'error'
         return false;
       }
@@ -177,8 +177,8 @@ class SessionStateTransitionBuilder {
         //        state will be changed to 'error'
         return false;
       }
-      DockerStatus status = ctx.status;
-      if (status != DockerStatus.ready) {
+      PorterStatus status = ctx.status;
+      if (status != PorterStatus.ready) {
         // connection lost, state will be changed to 'error'
         return false;
       }
@@ -203,8 +203,8 @@ class SessionStateTransitionBuilder {
         //        state will be changed to 'error'
         return true;
       }
-      DockerStatus status = ctx.status;
-      return status != DockerStatus.ready;
+      PorterStatus status = ctx.status;
+      return status != PorterStatus.ready;
     },
   );
 
@@ -218,8 +218,8 @@ class SessionStateTransitionBuilder {
   ///  it means force the user login again.
   getRunningDefaultTransition() => SessionStateTransition(
     SessionStateOrder.init, (ctx, now) {
-      DockerStatus status = ctx.status;
-      if (status != DockerStatus.ready) {
+      PorterStatus status = ctx.status;
+      if (status != PorterStatus.ready) {
         // connection lost, state will be changed to 'error'
         return false;
       }
@@ -239,8 +239,8 @@ class SessionStateTransitionBuilder {
   ///  When connection lost.
   getRunningErrorTransition() => SessionStateTransition(
     SessionStateOrder.error, (ctx, now) {
-      DockerStatus status = ctx.status;
-      return status != DockerStatus.ready;
+      PorterStatus status = ctx.status;
+      return status != PorterStatus.ready;
     },
   );
 
@@ -249,8 +249,8 @@ class SessionStateTransitionBuilder {
   ///  When connection reset.
   getErrorDefaultTransition() => SessionStateTransition(
     SessionStateOrder.init, (ctx, now) {
-      DockerStatus status = ctx.status;
-      return status != DockerStatus.error;
+      PorterStatus status = ctx.status;
+      return status != PorterStatus.error;
     },
   );
 

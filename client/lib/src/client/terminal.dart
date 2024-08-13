@@ -331,7 +331,7 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
         logWarning('failed to get remote address: $session');
         return;
       }
-      Docker? docker = await session?.gate.fetchDocker([], remote: remote);
+      Porter? docker = await session?.gate.fetchPorter(remote: remote);
       if (docker == null) {
         logError('failed to connect: $remote');
       } else {

@@ -98,8 +98,8 @@ class ClientSession extends BaseSession with Logging {
       && identifier != null && key != null;
 
   Connection? get connection {
-    Docker? docker = gate.getDocker(remote: remoteAddress);
-    if (docker is StarDocker) {
+    Porter? docker = gate.getPorter(remote: remoteAddress);
+    if (docker is StarPorter) {
       return docker.connection;
     }
     assert(docker == null, 'unknown docker: $docker');
@@ -174,22 +174,22 @@ class ClientSession extends BaseSession with Logging {
   //
 
   @override
-  Future<void> onDockerStatusChanged(DockerStatus previous, DockerStatus current, Docker docker) async {
-    // await super.onDockerStatusChanged(previous, current, docker);
-    if (current == DockerStatus.error) {
+  Future<void> onPorterStatusChanged(PorterStatus previous, PorterStatus current, Porter porter) async {
+    // await super.onPorterStatusChanged(previous, current, porter);
+    if (current == PorterStatus.error) {
       // connection error or session finished
       // TODO: reconnect?
       setActive(false, null);
       // TODO: clear session ID and handshake again
-    } else if (current == DockerStatus.ready) {
+    } else if (current == PorterStatus.ready) {
       // connected/ reconnected
       setActive(true, null);
     }
   }
 
   @override
-  Future<void> onDockerReceived(Arrival ship, Docker docker) async {
-    // await super.onDockerReceived(ship, docker);
+  Future<void> onPorterReceived(Arrival ship, Porter porter) async {
+    // await super.onPorterReceived(ship, porter);
     List<Uint8List> allResponses = [];
     // 1. get data packages from arrival ship's payload
     List<Uint8List> packages = _getDataPackages(ship);
@@ -214,8 +214,8 @@ class ClientSession extends BaseSession with Logging {
         logDebug('failed to process package: ${pack.length} bytes, error: $e, $st');
       }
     }
-    SocketAddress source = docker.remoteAddress!;
-    SocketAddress? destination = docker.localAddress;
+    SocketAddress source = porter.remoteAddress!;
+    SocketAddress? destination = porter.localAddress;
     // 3. send responses separately
     for (Uint8List res in allResponses) {
       await gate.sendResponse(res, ship, remote: source, local: destination);
