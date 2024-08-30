@@ -1,3 +1,7 @@
+## 0.6.0
+
+- PNF for images.
+
 ## 0.5.3
 
 - Respond receipt.
