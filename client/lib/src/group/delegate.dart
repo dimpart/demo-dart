@@ -33,8 +33,8 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:startrek/skywalker.dart';
 
-import '../client/archivist.dart';
 import '../client/facebook.dart';
+import '../client/messenger.dart';
 import '../common/archivist.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
@@ -223,8 +223,8 @@ class _GroupBotsManager extends Runner with Logging {
 
   CommonMessenger? _transceiver;
 
-  Set<ID> _candidates = {};                    // group IDs to be check
-  final Map<ID, Duration> _respondTimes = {};  // group IDs with respond time
+  Set<ID> _candidates = {};                    // bot IDs to be check
+  final Map<ID, Duration> _respondTimes = {};  // bot IDs with respond time
 
   void setMessenger(CommonMessenger messenger) => _transceiver = messenger;
 
@@ -306,7 +306,7 @@ class _GroupBotsManager extends Runner with Logging {
         continue;
       }
       prime = ass;
-      primeDuration = primeDuration;
+      primeDuration = duration;
     }
     if (prime == null) {
       prime = bots.first;
@@ -319,11 +319,15 @@ class _GroupBotsManager extends Runner with Logging {
 
   @override
   Future<bool> process() async {
+    CommonMessenger? messenger = _transceiver;
+    if (messenger is! ClientMessenger) {
+      return false;
+    }
     //
     //  1. check session
     //
-    Session? session = _transceiver?.session;
-    if (session == null || session.key == null || !session.isActive) {
+    Session? session = messenger.session;
+    if (session.key == null || !session.isActive) {
       // not login yet
       return false;
     }
@@ -343,15 +347,7 @@ class _GroupBotsManager extends Runner with Logging {
       return false;
     }
     //
-    //  3. get archivist
-    //
-    CommonArchivist? archivist = _transceiver?.facebook.archivist;
-    if (archivist is! ClientArchivist) {
-      assert(false, 'archivist error: $archivist');
-      return false;
-    }
-    //
-    //  4. check candidates
+    //  3. check candidates
     //
     Set<ID> bots = _candidates;
     _candidates = {};
@@ -363,7 +359,7 @@ class _GroupBotsManager extends Runner with Logging {
       }
       // no respond yet, try to push visa to the bot
       try {
-        await archivist.sendDocument(visa, item);
+        await messenger.sendVisa(visa, item);
       } catch (e, st) {
         logError('failed to query assistant: $item, $e, $st');
       }

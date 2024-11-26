@@ -33,6 +33,7 @@ import 'package:dimp/dimp.dart';
 import '../common/packer.dart';
 
 import 'facebook.dart';
+import 'messenger.dart';
 
 abstract class ClientMessagePacker extends CommonPacker {
   ClientMessagePacker(super.facebook, super.messenger);
@@ -139,6 +140,102 @@ abstract class ClientMessagePacker extends CommonPacker {
       return null;
     }
     return await super.verifyMessage(rMsg);
+  }
+
+  @override
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
+    InstantMessage? iMsg;
+    try {
+      iMsg = await super.decryptMessage(sMsg);
+    } catch (e, st) {
+      String errMsg = e.toString();
+      if (errMsg.contains('failed to decrypt message key')) {
+        // Exception from 'SecureMessagePacker::decrypt(sMsg, receiver)'
+        logWarning('decrypt message error: $e, $st');
+        // visa.key changed?
+        // push my newest visa to the sender
+      } else if (errMsg.contains('receiver error')) {
+        // Exception from 'MessagePacker::decryptMessage(sMsg)'
+        logError('decrypt message error: $e, $st');
+        // not for you?
+        // just ignore it
+        return null;
+      } else {
+        rethrow;
+      }
+    }
+    if (iMsg == null) {
+      // failed to decrypt message, visa.key changed?
+      // 1. push new visa document to this message sender
+      /*await */pushVisa(sMsg.sender);
+      // 2. build 'failed' message
+      iMsg = await getFailedMessage(sMsg);
+    } else {
+      Content content = iMsg.content;
+      if (content is FileContent) {
+        if (content.password == null && content.url != null) {
+          // now received file content with remote data,
+          // which must be encrypted before upload to CDN;
+          // so keep the password here for decrypting after downloaded.
+          SymmetricKey? key = await messenger?.getDecryptKey(sMsg);
+          assert(key != null, 'failed to get msg key: '
+              '${sMsg.sender} => ${sMsg.receiver}, ${sMsg['group']}');
+          // keep password to decrypt data after downloaded
+          content.password = key;
+        }
+      }
+    }
+    return iMsg;
+  }
+
+  // protected
+  Future<bool> pushVisa(ID contact) async {
+    // visa.key not updated?
+    User? user = await facebook?.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+      return false;
+    }
+    Visa? visa = await user.visa;
+    if (visa == null || !visa.isValid) {
+      // FIXME: user visa not found?
+      throw Exception('user visa error: $user');
+    }
+    var transceiver = messenger;
+    if (transceiver is! ClientMessenger) {
+      assert(false, 'messenger error: $transceiver');
+      return false;
+    }
+    return await transceiver.sendVisa(visa, contact);
+  }
+
+  // protected
+  Future<InstantMessage?> getFailedMessage(SecureMessage sMsg) async {
+    ID sender = sMsg.sender;
+    ID? group = sMsg.group;
+    int? type = sMsg.type;
+    if (type == ContentType.kCommand || type == ContentType.kHistory) {
+      logWarning('ignore message unable to decrypt (type=$type) from "$sender"');
+      return null;
+    }
+    // create text content
+    Content content = TextContent.create('Failed to decrypt message.');
+    content.addAll({
+      'template': 'Failed to decrypt message (type=\${type}) from "\${sender}".',
+      'replacements': {
+        'type': type,
+        'sender': sender.toString(),
+        'group': group?.toString(),
+      }
+    });
+    if (group != null) {
+      content.group = group;
+    }
+    // pack instant message
+    Map info = sMsg.copyMap(false);
+    info.remove('data');
+    info['content'] = content.toMap();
+    return InstantMessage.parse(info);
   }
 
 }

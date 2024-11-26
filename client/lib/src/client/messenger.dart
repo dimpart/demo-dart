@@ -122,6 +122,7 @@ abstract class ClientMessenger extends CommonMessenger {
       if (content is! Command) {
         logWarning('not handshake yet, suspend message: $content => ${iMsg.receiver}');
         // TODO: suspend instant message
+        return null;
       } else if (content.cmd == HandshakeCommand.kHandshake) {
         // NOTICE: only handshake message can go out
         iMsg['pass'] = 'handshaking';
@@ -167,6 +168,8 @@ abstract class ClientMessenger extends CommonMessenger {
       content.group = Station.kEvery;
       // create instant message with meta & visa
       InstantMessage iMsg = InstantMessage.create(env, content);
+      // MessageHelper.setMeta(await user.meta, iMsg);
+      // MessageHelper.setVisa(await user.visa, iMsg);
       iMsg.setMap('meta', await user.meta);
       iMsg.setMap('visa', await user.visa);
       await sendInstantMessage(iMsg, priority: -1);
@@ -183,12 +186,12 @@ abstract class ClientMessenger extends CommonMessenger {
     logInfo('handshake success, change session accepted: ${session.isAccepted} => true');
     session.accepted = true;
     // broadcast current documents after handshake success
-    await broadcastDocument();
+    await broadcastDocuments();
     // TODO: let a service bot to do this job
   }
 
   ///  Broadcast meta & visa document to all stations
-  Future<void> broadcastDocument({bool updated = false}) async {
+  Future<void> broadcastDocuments({bool updated = false}) async {
     User? user = await facebook.currentUser;
     assert(user != null, 'current user not found');
     Visa? visa = await user?.visa;
@@ -202,12 +205,32 @@ abstract class ClientMessenger extends CommonMessenger {
     //
     List<ID> contacts = await facebook.getContacts(me);
     for (ID item in contacts) {
-      await archivist.sendDocument(visa, item, updated: updated);
+      await sendVisa(visa, item, updated: updated);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await archivist.sendDocument(visa, ID.kEveryone, updated: updated);
+    await sendVisa(visa, ID.kEveryone, updated: updated);
+  }
+
+  ///  Send my visa document to contact
+  ///  if document is updated, force to send it again.
+  ///  else only send once every 10 minutes.
+  Future<bool> sendVisa(Visa visa, ID contact, {bool updated = false}) async {
+    ID me = visa.identifier;
+    if (me == contact) {
+      logWarning('skip cycled message: $contact, $visa');
+      return false;
+    }
+    if (!archivist.isDocumentResponseExpired(contact, updated)) {
+      // response not expired yet
+      logDebug('visa response not expired yet: $contact');
+      return false;
+    }
+    logInfo('push visa document: $me => $contact');
+    DocumentCommand command = DocumentCommand.response(me, null, visa);
+    var res = await sendContent(command, sender: me, receiver: contact, priority: 1);
+    return res.second != null;
   }
 
   ///  Send login command to keep roaming

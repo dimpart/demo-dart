@@ -234,24 +234,4 @@ abstract class ClientArchivist extends CommonArchivist {
     return true;
   }
 
-  ///  Send document to contact
-  ///  if document is updated, force to send it again.
-  ///  else only send once every 10 minutes.
-  Future<bool> sendDocument(Visa visa, ID contact, {bool updated = false}) async {
-    ID me = visa.identifier;
-    if (me == contact) {
-      logWarning('skip cycled message: $contact, $visa');
-      return false;
-    }
-    if (!isDocumentResponseExpired(contact, updated)) {
-      // response not expired yet
-      logDebug('visa response not expired yet: $contact');
-      return false;
-    }
-    logInfo('push visa document: $me => $contact');
-    DocumentCommand command = DocumentCommand.response(me, null, visa);
-    var res = await messenger?.sendContent(command, sender: me, receiver: contact, priority: 1);
-    return res?.second != null;
-  }
-
 }
