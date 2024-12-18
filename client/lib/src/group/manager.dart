@@ -45,7 +45,6 @@ class GroupManager extends TripletsHelper {
 
   // protected
   late final GroupPacker packer = createPacker();
-
   // protected
   late final GroupCommandHelper helper = createHelper();
   // protected
@@ -119,7 +118,7 @@ class GroupManager extends TripletsHelper {
     //
     //  4. create & broadcast 'reset' group command with new members
     //
-    if (await resetMembers(group, members)) {
+    if (await resetMembers(members, group: group)) {
       logInfo('created group $group with ${members.length} members');
     } else {
       logError('failed to create group $group with ${members.length} members');
@@ -145,7 +144,7 @@ class GroupManager extends TripletsHelper {
   /// @param group      - group ID
   /// @param newMembers - new member list
   /// @return false on error
-  Future<bool> resetMembers(ID group, List<ID> newMembers) async {
+  Future<bool> resetMembers(List<ID> newMembers, {required ID group}) async {
     assert(group.isGroup && newMembers.isNotEmpty, 'params error: $group, $newMembers');
 
     //
@@ -205,7 +204,7 @@ class GroupManager extends TripletsHelper {
     if (!await helper.saveGroupHistory(group, reset, rMsg)) {
       assert(false, 'failed to save "reset" command for group: $group');
       return false;
-    } else if (!await delegate.saveMembers(group, newMembers)) {
+    } else if (!await delegate.saveMembers(newMembers, group)) {
       assert(false, 'failed to update members of group: $group');
       return false;
     } else {
@@ -238,7 +237,7 @@ class GroupManager extends TripletsHelper {
   /// @param group      - group ID
   /// @param newMembers - inviting member list
   /// @return false on error
-  Future<bool> inviteMembers(ID group, List<ID> newMembers) async {
+  Future<bool> inviteMembers(List<ID> newMembers, {required ID group}) async {
     assert(group.isGroup && newMembers.isNotEmpty, 'params error: $group, $newMembers');
 
     //
@@ -270,7 +269,7 @@ class GroupManager extends TripletsHelper {
           members.add(item);
         }
       }
-      return resetMembers(group, members);
+      return resetMembers(members, group: group);
     } else if (!isMember) {
       assert(false, 'cannot invite member into group: $group');
       return false;
@@ -318,7 +317,7 @@ class GroupManager extends TripletsHelper {
   ///
   /// @param group - group ID
   /// @return false on error
-  Future<bool> quitGroup(ID group) async {
+  Future<bool> quitGroup({required ID group}) async {
     assert(group.isGroup, 'group ID error: $group');
 
     //
@@ -358,7 +357,7 @@ class GroupManager extends TripletsHelper {
       logWarning('quitting group: $group, $me');
       members = [...members];
       members.remove(me);
-      bool ok = await delegate.saveMembers(group, members);
+      bool ok = await delegate.saveMembers(members, group);
       assert(ok, 'failed to save members for group: $group');
     } else {
       logWarning('member not in group: $group, $me');

@@ -39,7 +39,7 @@ class GroupPacker extends TripletsHelper {
 
   ///  Pack as broadcast message
   Future<ReliableMessage?> packMessage(Content content, {required ID sender}) async {
-    Envelope envelope = Envelope.create(sender: sender, receiver: ID.kAnyone);
+    Envelope envelope = Envelope.create(sender: sender, receiver: ID.ANYONE);
     InstantMessage iMsg = InstantMessage.create(envelope, content);
     iMsg.setString('group', content.group);  // expose group ID
     return await encryptAndSignMessage(iMsg);

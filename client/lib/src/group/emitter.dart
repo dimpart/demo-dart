@@ -49,7 +49,8 @@ class GroupEmitter extends TripletsHelper {
   //          set 'assistants' in the bulletin document to tell all members
   //          that they can let the group bot to do the job for them.
   //
-  static int kPolylogueLimit = 32;
+  // ignore: non_constant_identifier_names
+  static int POLYLOGUE_LIMIT = 32;
 
   // NOTICE: expose group ID to reduce encrypting time
   //
@@ -61,7 +62,8 @@ class GroupEmitter extends TripletsHelper {
   //          encrypt message by one symmetric key for this group, after that,
   //          split and send to all members directly.
   //
-  static int kSecretGroupLimit = 16;
+  // ignore: non_constant_identifier_names
+  static int SECRET_GROUP_LIMIT = 16;
 
   // protected
   late final GroupPacker packer = createPacker();
@@ -88,7 +90,8 @@ class GroupEmitter extends TripletsHelper {
       iMsg.setDateTime('GDT', lastDocumentTime);
     }
     // attach group history time
-    DateTime? lastHistoryTime = await archivist?.getLastGroupHistoryTime(group);
+    var checker = facebook?.checker;
+    DateTime? lastHistoryTime = await checker?.getLastGroupHistoryTime(group);
     if (lastHistoryTime == null) {
       assert(false, 'failed to get history time: $group');
     } else {
@@ -141,7 +144,7 @@ class GroupEmitter extends TripletsHelper {
     }
     // no 'assistants' found in group's bulletin document?
     // split group messages and send to all members one by one
-    if (members.length < kSecretGroupLimit) {
+    if (members.length < SECRET_GROUP_LIMIT) {
       // it is a tiny group, split this message before encrypting and signing,
       // then send this group message to all members one by one
       int success = await _splitAndSendMessage(iMsg, members, group: group, priority: priority);
@@ -171,6 +174,14 @@ class GroupEmitter extends TripletsHelper {
     // all members will received a message split by the group bot,
     // but the group bots cannot decrypt it.
     iMsg.setString('group', group);
+
+    // the group bot can only get the message 'signature',
+    // but cannot know the 'sn' because it cannot decrypt the content,
+    // this is usually not a problem;
+    // but sometimes we want to respond a receipt with original sn,
+    // so I suggest to expose 'sn' too.
+    int sn = iMsg.content.sn;
+    iMsg['sn'] = sn;
 
     //
     //  1. pack message

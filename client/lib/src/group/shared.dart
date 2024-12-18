@@ -51,21 +51,11 @@ class SharedGroupManager implements GroupDataSource {
   CommonMessenger? get messenger => _transceiver?.target;
 
   set facebook(CommonFacebook? delegate) {
-    if (delegate == null) {
-      assert(false, 'should not happen');
-      _barrack = null;
-    } else {
-      _barrack = WeakReference(delegate);
-    }
+    _barrack = delegate == null ? null : WeakReference(delegate);
     _clearDelegates();
   }
   set messenger(CommonMessenger? delegate) {
-    if (delegate == null) {
-      assert(false, 'should not happen');
-      _transceiver = null;
-    } else {
-      _transceiver = WeakReference(delegate);
-    }
+    _transceiver = delegate == null ? null : WeakReference(delegate);
     _clearDelegates();
   }
 
@@ -167,21 +157,21 @@ class SharedGroupManager implements GroupDataSource {
   ///
   /// @param newAdmins - new administrator ID list
   /// @return true on success
-  Future<bool> updateAdministrators(ID group, List<ID> newAdmins) async =>
-      await adminManager.updateAdministrators(group, newAdmins);
+  Future<bool> updateAdministrators(List<ID> newAdmins, {required ID group}) async =>
+      await adminManager.updateAdministrators(newAdmins, group: group);
 
   ///  Reset group members
   ///
   /// @param newMembers - new member ID list
   /// @return true on success
-  Future<bool> resetGroupMembers(ID group, List<ID> newMembers) async =>
-      await manager.resetMembers(group, newMembers);
+  Future<bool> resetGroupMembers(List<ID> newMembers, {required ID group}) async =>
+      await manager.resetMembers(newMembers, group: group);
 
   ///  Expel members from this group
   ///
   /// @param expelMembers - members to be removed
   /// @return true on success
-  Future<bool> expelGroupMembers(ID group, List<ID> expelMembers) async {
+  Future<bool> expelGroupMembers(List<ID> expelMembers, {required ID group}) async {
     assert(group.isGroup && expelMembers.isNotEmpty, 'params error: $group, $expelMembers');
 
     User? user = await facebook?.currentUser;
@@ -204,7 +194,7 @@ class SharedGroupManager implements GroupDataSource {
       for (ID item in expelMembers) {
         members.remove(item);
       }
-      return await resetGroupMembers(group, members);
+      return await resetGroupMembers(members, group: group);
     }
 
     // not an admin/owner
@@ -215,13 +205,14 @@ class SharedGroupManager implements GroupDataSource {
   ///
   /// @param newMembers - new member ID list to be added
   /// @return true on success
-  Future<bool> inviteGroupMembers(ID group, List<ID> newMembers) async =>
-      await manager.inviteMembers(group, newMembers);
+  Future<bool> inviteGroupMembers(List<ID> newMembers, {required ID group}) async =>
+      await manager.inviteMembers(newMembers, group: group);
 
   ///  Quit from this group
   ///
   /// @return true on success
-  Future<bool> quitGroup(ID group) async => await manager.quitGroup(group);
+  Future<bool> quitGroup({required ID group}) async =>
+      await manager.quitGroup(group: group);
 
   //
   //  Sending group message
@@ -229,9 +220,7 @@ class SharedGroupManager implements GroupDataSource {
 
   ///  Send group message content
   ///
-  /// @param content  - group message content
-  /// @param sender
-  /// @param receiver - group ID
+  /// @param iMsg
   /// @param priority
   /// @return
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {

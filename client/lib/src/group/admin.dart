@@ -46,7 +46,7 @@ class AdminManager extends TripletsHelper {
   /// @param group     - group ID
   /// @param newAdmins - administrator list
   /// @return false on error
-  Future<bool> updateAdministrators(ID group, List<ID> newAdmins) async {
+  Future<bool> updateAdministrators(List<ID> newAdmins, {required ID group}) async {
     assert(group.isGroup, 'group ID error: $group');
     CommonFacebook? barrack = facebook;
     assert(barrack != null, 'facebook not ready');
@@ -75,18 +75,27 @@ class AdminManager extends TripletsHelper {
     //
     //  2. update document
     //
-    Bulletin? doc = await delegate.getBulletin(group);
-    if (doc == null) {
+    Bulletin? bulletin = await delegate.getBulletin(group);
+    if (bulletin == null) {
       // TODO: create new one?
       assert(false, 'failed to get group document: $group, owner: $me');
       return false;
+    } else {
+      // clone for modifying
+      Document? clone = Document.parse(bulletin.copyMap(false));
+      if (clone is Bulletin) {
+        bulletin = clone;
+      } else {
+        assert(false, 'bulletin error: $bulletin, $group');
+        return false;
+      }
     }
-    doc.setProperty('administrators', ID.revert(newAdmins));
-    var signature = sKey == null ? null : doc.sign(sKey);
+    bulletin.setProperty('administrators', ID.revert(newAdmins));
+    var signature = sKey == null ? null : bulletin.sign(sKey);
     if (signature == null) {
       assert(false, 'failed to sign document for group: $group, owner: $me');
       return false;
-    } else if (!await delegate.saveDocument(doc)) {
+    } else if (!await delegate.saveDocument(bulletin)) {
       assert(false, 'failed to save document for group: $group');
       return false;
     } else {
@@ -96,7 +105,7 @@ class AdminManager extends TripletsHelper {
     //
     //  3. broadcast bulletin document
     //
-    return broadcastGroupDocument(doc);
+    return broadcastGroupDocument(bulletin);
   }
 
   /// Broadcast group document

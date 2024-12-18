@@ -52,6 +52,13 @@ class SQLConditions {
     _condition = _RelatedCondition(_condition, relation, cond);
   }
 
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    appendEscapeValue(sb);
+    return sb.toString();
+  }
+
 }
 
 //
@@ -76,6 +83,13 @@ class _CompareCondition implements _Condition {
     sb.write(_left);
     sb.write(_op);
     SQLValues.appendEscapeValue(sb, _right);
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    appendEscapeValue(sb);
+    return sb.toString();
   }
 
 }
@@ -104,6 +118,13 @@ class _RelatedCondition implements _Condition {
         || _relation == SQLConditions.kOr, 'relation error: $_relation');
     sb.write(_relation);
     _appendEscapeValue(sb, _right);
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    appendEscapeValue(sb);
+    return sb.toString();
   }
 
 }

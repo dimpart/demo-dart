@@ -71,6 +71,17 @@ class SQLValues {
     }
   }
 
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    appendValues(sb);
+    return sb.toString();
+  }
+
+  //
+  //  Utils
+  //
+
   static void appendStringList(StringBuffer sb, List<String> array) {
     StringBuffer tmp = StringBuffer();
     for (dynamic item in array) {

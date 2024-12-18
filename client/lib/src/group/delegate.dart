@@ -31,10 +31,8 @@
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
-import 'package:startrek/skywalker.dart';
+import 'package:stargate/skywalker.dart';
 
-import '../client/facebook.dart';
-import '../client/messenger.dart';
 import '../common/archivist.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
@@ -45,7 +43,7 @@ import '../common/dbi/account.dart';
 class GroupDelegate extends TwinsHelper implements GroupDataSource {
   GroupDelegate(CommonFacebook facebook, CommonMessenger messenger)
       : super(facebook, messenger) {
-    _GroupBotsManager().setMessenger(messenger);
+    _GroupBotsManager().messenger = messenger;
   }
 
   @override
@@ -106,8 +104,8 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   Future<List<ID>> getMembers(ID group) async =>
       await facebook!.getMembers(group);
 
-  Future<bool> saveMembers(ID group, List<ID> members) async =>
-      await (facebook as ClientFacebook).saveMembers(members, group);
+  Future<bool> saveMembers(List<ID> members, ID group) async =>
+      await facebook!.saveMembers(members, group);
 
   //
   //  Group Assistants
@@ -117,7 +115,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   Future<List<ID>> getAssistants(ID group) async =>
       await _GroupBotsManager().getAssistants(group);
 
-  Future<ID?> getFastestAssistant(ID group) async =>
+  Future<ID?> getFastestAssistant(group) async =>
       await _GroupBotsManager().getFastestAssistant(group);
 
   void setCommonAssistants(List<ID> bots) =>
@@ -131,10 +129,10 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   //
 
   Future<List<ID>> getAdministrators(ID group) async =>
-      await (facebook as ClientFacebook).getAdministrators(group);
+      await facebook!.getAdministrators(group);
 
-  Future<bool> saveAdministrators(ID group, List<ID> admins) async =>
-      await (facebook as ClientFacebook).saveAdministrators(admins, group);
+  Future<bool> saveAdministrators(List<ID> admins, ID group) async =>
+      await facebook!.saveAdministrators(admins, group);
 
   //
   //  Membership
@@ -162,7 +160,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     if (owner != null) {
       return owner == user;
     }
-    if (group.type == EntityType.kGroup) {
+    if (group.type == EntityType.GROUP) {
       // this is a polylogue
       return await isFounder(user, group: group);
     }
@@ -215,18 +213,22 @@ abstract class TripletsHelper with Logging {
 class _GroupBotsManager extends Runner with Logging {
   factory _GroupBotsManager() => _instance;
   static final _GroupBotsManager _instance = _GroupBotsManager._internal();
-  _GroupBotsManager._internal() : super(Runner.intervalSlow) {
+  _GroupBotsManager._internal() : super(Runner.INTERVAL_SLOW) {
     /* await */run();
   }
 
   List<ID> _commonAssistants = [];
 
-  CommonMessenger? _transceiver;
-
   Set<ID> _candidates = {};                    // bot IDs to be check
   final Map<ID, Duration> _respondTimes = {};  // bot IDs with respond time
 
-  void setMessenger(CommonMessenger messenger) => _transceiver = messenger;
+  WeakReference<CommonMessenger>? _transceiver;
+
+  CommonMessenger? get messenger => _transceiver?.target;
+  set messenger(CommonMessenger? delegate) =>
+      _transceiver = delegate == null ? null : WeakReference(delegate);
+
+  CommonFacebook? get facebook => messenger?.facebook;
 
   /// When received receipt command from the bot
   /// update the speed of this bot.
@@ -236,9 +238,11 @@ class _GroupBotsManager extends Runner with Logging {
     // if (app != 'chat.dim.group.assistant') {
     //   return false;
     // }
-    // 1. check sender
+    //
+    //  1. check sender
+    //
     ID sender = envelope.sender;
-    if (sender.type != EntityType.kBot) {
+    if (sender.type != EntityType.BOT) {
       return false;
     }
     ID? originalReceiver = content.originalEnvelope?.receiver;
@@ -246,7 +250,9 @@ class _GroupBotsManager extends Runner with Logging {
       assert(originalReceiver?.isBroadcast == true, 'sender error: $sender, $originalReceiver');
       return false;
     }
-    // 2. check send time
+    //
+    //  2. check send time
+    //
     DateTime? time = content.originalEnvelope?.time;
     if (time == null) {
       assert(false, 'original time not found: $content');
@@ -257,7 +263,9 @@ class _GroupBotsManager extends Runner with Logging {
       assert(false, 'receipt time error: $time');
       return false;
     }
-    // 3. check duration
+    //
+    //  3. check duration
+    //
     Duration? cached = _respondTimes[sender];
     if (cached != null && cached.inMicroseconds <= duration.inMicroseconds) {
       return false;
@@ -275,7 +283,6 @@ class _GroupBotsManager extends Runner with Logging {
   }
 
   Future<List<ID>> getAssistants(ID group) async {
-    CommonFacebook? facebook = _transceiver?.facebook;
     List<ID>? bots = await facebook?.getAssistants(group);
     if (bots == null || bots.isEmpty) {
       return _commonAssistants;
@@ -319,15 +326,15 @@ class _GroupBotsManager extends Runner with Logging {
 
   @override
   Future<bool> process() async {
-    CommonMessenger? messenger = _transceiver;
-    if (messenger is! ClientMessenger) {
+    CommonMessenger? transceiver = messenger;
+    if (transceiver == null) {
       return false;
     }
     //
     //  1. check session
     //
-    Session? session = messenger.session;
-    if (session.key == null || !session.isActive) {
+    Session session = transceiver.session;
+    if (session.sessionKey == null || !session.isActive) {
       // not login yet
       return false;
     }
@@ -336,7 +343,7 @@ class _GroupBotsManager extends Runner with Logging {
     //
     Visa? visa;
     try {
-      User? me = await _transceiver?.facebook.currentUser;
+      User? me = await facebook?.currentUser;
       visa = await me?.visa;
       if (visa == null) {
         logError('failed to get visa: $me');
@@ -346,6 +353,7 @@ class _GroupBotsManager extends Runner with Logging {
       logError('failed to get current user: $e, $st');
       return false;
     }
+    var checker = facebook!.checker;
     //
     //  3. check candidates
     //
@@ -359,7 +367,7 @@ class _GroupBotsManager extends Runner with Logging {
       }
       // no respond yet, try to push visa to the bot
       try {
-        await messenger.sendVisa(visa, item);
+        await checker.sendVisa(visa, item);
       } catch (e, st) {
         logError('failed to query assistant: $item, $e, $st');
       }

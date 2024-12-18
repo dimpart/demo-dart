@@ -70,7 +70,7 @@ class AckEnablePorter extends PlainPorter {
           String? timestamp = UTF8.decode(sec);
           String text = 'ACK:{"time":$timestamp,"signature":"$signature"}';
           Log.info('sending response: $text');
-          await send(DataUtils.bytes(text), DeparturePriority.kSlower);
+          await send(DataUtils.bytes(text), DeparturePriority.SLOWER);
         }
       }
     }
@@ -182,7 +182,7 @@ abstract interface class DataUtils {
           return data;
         }
       }
-      // matched, remove the leading bytes
+      // matched, remove the tailing bytes
       data = data.sublist(0, m);
     }
   }

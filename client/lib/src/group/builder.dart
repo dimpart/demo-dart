@@ -139,15 +139,17 @@ class GroupHistoryBuilder extends TripletsHelper {
         return Pair(null, null);
       }
     }
+    // check members
     members ??= await delegate.getMembers(group);
     assert(members.isNotEmpty, 'group members not found: $group');
+
     ResetCommand command = GroupCommand.reset(group, members: members);
     ReliableMessage? rMsg = await _packBroadcastMessage(me, command);
     return Pair(command, rMsg);
   }
 
   Future<ReliableMessage?> _packBroadcastMessage(ID sender, Content content) async {
-    Envelope envelope = Envelope.create(sender: sender, receiver: ID.kAnyone);
+    Envelope envelope = Envelope.create(sender: sender, receiver: ID.ANYONE);
     InstantMessage iMsg = InstantMessage.create(envelope, content);
     SecureMessage? sMsg = await messenger?.encryptMessage(iMsg);
     if (sMsg == null) {

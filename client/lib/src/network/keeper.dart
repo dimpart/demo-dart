@@ -30,17 +30,16 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:lnc/log.dart';
+import 'package:stargate/skywalker.dart';
+import 'package:stargate/startrek.dart';
 import 'package:stargate/websocket.dart';
-import 'package:startrek/skywalker.dart';
-import 'package:startrek/nio.dart';
-import 'package:startrek/startrek.dart';
 
 import 'gate.dart';
 import 'queue.dart';
 
 
 abstract class GateKeeper extends Runner with Logging implements PorterDelegate {
-  GateKeeper({required SocketAddress remote}) : super(Runner.intervalSlow) {
+  GateKeeper({required SocketAddress remote}) : super(Runner.INTERVAL_SLOW) {
     _remoteAddress = remote;
     _gate = createGate(remote);
     _queue = MessageQueue();
