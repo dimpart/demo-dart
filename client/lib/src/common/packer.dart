@@ -44,24 +44,19 @@ abstract class CommonPacker extends MessagePacker with Logging {
   /// @param rMsg - incoming message
   /// @param info - error info
   // protected
-  void suspendReliableMessage(ReliableMessage rMsg, Map info);
+  Future<void> suspendReliableMessage(ReliableMessage rMsg, Map info);
 
   ///  Add outgo message in a queue for waiting receiver's visa
   ///
   /// @param iMsg - outgo message
   /// @param info - error info
   // protected
-  void suspendInstantMessage(InstantMessage iMsg, Map info);
+  Future<void> suspendInstantMessage(InstantMessage iMsg, Map info);
 
   /// for checking whether user's ready
   // protected
   Future<EncryptKey?> getVisaKey(ID user) async =>
       await facebook?.getPublicKeyForEncryption(user);
-
-  /// for checking whether group's ready
-  // protected
-  Future<List<ID>> getMembers(ID group) async =>
-      await facebook!.getMembers(group);
 
   ///  Check sender before verifying received message
   ///
@@ -75,9 +70,10 @@ abstract class CommonPacker extends MessagePacker with Logging {
     Visa? visa = MessageHelper.getVisa(rMsg);
     if (visa != null) {
       // first handshake?
-      assert(visa.identifier == sender, 'visa ID not match: $sender');
+      bool matched = visa.identifier == sender;
       //assert Meta.matches(sender, rMsg.getMeta()) : "meta error: " + rMsg;
-      return visa.identifier == sender;
+      assert(matched, 'visa ID not match: $sender');
+      return matched;
     } else if (await getVisaKey(sender) != null) {
       // sender is OK
       return true;

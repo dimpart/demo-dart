@@ -32,7 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
-import 'package:startrek/nio.dart';
+import 'package:stargate/startrek.dart';
 
 import 'dbi/session.dart';
 
@@ -45,8 +45,8 @@ abstract interface class Transmitter {
   /// @param content  - message content
   /// @param priority - smaller is faster
   /// @return (iMsg, None) on error
-  Future<Pair<InstantMessage, ReliableMessage?>> sendContent(Content content,
-      {required ID? sender, required ID receiver, int priority = 0});
+  Future<Pair<InstantMessage, ReliableMessage?>> sendContent(Content content, {
+    required ID? sender, required ID receiver, int priority = 0});
 
   ///  Send instant message with priority
   ///
@@ -73,7 +73,7 @@ abstract interface class Session implements Transmitter {
   SocketAddress get remoteAddress;
 
   /// session key
-  String? get key;
+  String? get sessionKey;
 
   ///  Update user ID
   ///
@@ -97,4 +97,5 @@ abstract interface class Session implements Transmitter {
   /// @param priority - smaller is faster
   /// @return false on error
   bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0});
+
 }

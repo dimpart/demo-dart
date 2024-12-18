@@ -28,68 +28,72 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
-
-import '../protocol/version.dart';
 
 
-// TODO: remove after all server/client upgraded
-abstract interface class Compatible {
+///  Frequency checker for duplicated queries
+class FrequencyChecker <K> {
+  FrequencyChecker(Duration lifeSpan) : _expires = lifeSpan;
 
-  static void fixMetaAttachment(ReliableMessage rMsg) {
-    Map? meta = rMsg['meta'];
-    if (meta != null) {
-      fixMetaVersion(meta);
+  final Map<K, DateTime> _records = {};
+  final Duration _expires;
+
+  bool _checkExpired(K key, DateTime now) {
+    DateTime? expired = _records[key];
+    if (expired != null && expired.isAfter(now)) {
+      // record exists and not expired yet
+      return false;
+    }
+    _records[key] = now.add(_expires);
+    return true;
+  }
+
+  bool _forceExpired(K key, DateTime now) {
+    _records[key] = now.add(_expires);
+    return true;
+  }
+  bool isExpired(K key, {DateTime? now, bool force = false}) {
+    now ??= DateTime.now();
+    // if force == true:
+    //     ignore last updated time, force to update now
+    // else:
+    //     check last update time
+    if (force) {
+      return _forceExpired(key, now);
+    } else {
+      return _checkExpired(key, now);
     }
   }
 
-  static void fixMetaVersion(Map meta) {
-    dynamic type = meta['type'];
-    if (type == null) {
-      type = meta['version'];
-    } else if (type is String && !meta.containsKey('algorithm')) {
-      // TODO: check number
-      if (type.length > 2) {
-        meta['algorithm'] = type;
-      }
+}
+
+
+/// Recent time checker for querying
+class RecentTimeChecker <K> {
+
+  final Map<K, DateTime> _times = {};
+
+  bool setLastTime(K key, DateTime? now) {
+    if (now == null) {
+      assert(false, 'recent time empty: $key');
+      return false;
     }
-    int version = MetaType.parseInt(type, 0);
-    if (version > 0) {
-      meta['type'] = version;
-      meta['version'] = version;
+    // TODO: calibration clock
+
+    DateTime? last = _times[key];
+    if (last == null || last.isBefore(now)) {
+      _times[key] = now;
+      return true;
     }
+    return false;
   }
 
-  static Command fixCommand(Command content) {
-    // 1. fix 'cmd'
-    content = fixCmd(content);
-    // 2. fix other commands
-    if (content is ReceiptCommand) {
-      fixReceiptCommand(content);
-    } else if (content is MetaCommand) {
-      Map? meta = content['meta'];
-      if (meta != null) {
-        fixMetaVersion(meta);
-      }
+  bool isExpired(K key, DateTime? now) {
+    if (now == null) {
+      // assert(false, 'recent time empty: $key');
+      return true;
     }
-    // OK
-    return content;
-  }
-
-  static Command fixCmd(Command content) {
-    String? cmd = content['cmd'];
-    if (cmd == null) {
-      cmd = content['command'];
-      content['cmd'] = cmd;
-    } else if (!content.containsKey('command')) {
-      content['command'] = cmd;
-      content = Command.parse(content.toMap())!;
-    }
-    return content;
-  }
-
-  static void fixReceiptCommand(ReceiptCommand content) {
-    // TODO: check for v2.0
+    DateTime? last = _times[key];
+    return last != null && last.isAfter(now);
   }
 
 }

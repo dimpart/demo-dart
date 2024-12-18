@@ -46,9 +46,10 @@ import 'package:dimp/dimp.dart';
 class MuteCommand extends BaseCommand {
   MuteCommand(super.dict);
 
-  static const String kMute  = 'mute';
+  // ignore: constant_identifier_names
+  static const String MUTE  = 'mute';
 
-  MuteCommand.fromList(List<ID> contacts) : super.fromName(kMute) {
+  MuteCommand.fromList(List<ID> contacts) : super.fromName(MUTE) {
     list = contacts;
   }
 

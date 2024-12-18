@@ -34,11 +34,11 @@ import 'package:dimsdk/dimsdk.dart';
 class AddressNameServer implements AddressNameService {
   AddressNameServer() {
     // constant ANS records
-    _caches['all']      = ID.kEveryone;
-    _caches['everyone'] = ID.kEveryone;
-    _caches['anyone']   = ID.kAnyone;
-    _caches['owner']    = ID.kAnyone;
-    _caches['founder']  = ID.kFounder;
+    _caches['all']      = ID.EVERYONE;
+    _caches['everyone'] = ID.EVERYONE;
+    _caches['anyone']   = ID.ANYONE;
+    _caches['owner']    = ID.ANYONE;
+    _caches['founder']  = ID.FOUNDER;
     // reserved names
     for (String item in AddressNameService.keywords) {
       _reserved[item] = true;

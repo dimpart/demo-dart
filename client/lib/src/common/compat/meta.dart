@@ -31,14 +31,13 @@
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
-
-import 'btc.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 
 
 ///  Default Meta to build ID with 'name@address'
 ///
 ///  version:
-///      0x01 - MKM
+///      1 = MKM
 ///
 ///  algorithm:
 ///      CT      = fingerprint = sKey.sign(seed);
@@ -48,33 +47,38 @@ import 'btc.dart';
 class _DefaultMeta extends BaseMeta {
   _DefaultMeta(super.dict);
 
-  _DefaultMeta.from(int version, VerifyKey key, String seed, TransportableData fingerprint)
-      : super.from(version, key, seed:seed, fingerprint:fingerprint);
+  _DefaultMeta.from(String type, VerifyKey key, String seed, TransportableData fingerprint)
+      : super.from(type, key, seed: seed, fingerprint: fingerprint);
+
+  @override
+  bool get hasSeed => true;
 
   // caches
   final Map<int, Address> _cachedAddresses = {};
 
   @override
   Address generateAddress(int? network) {
-    assert(type == MetaType.kMKM, 'meta type error: $type');
+    // assert(type == Meta.MKM || type == '1', 'meta type error: $type');
     assert(network != null, 'address type should not be empty');
     // check caches
-    Address? address = _cachedAddresses[network];
-    if (address == null) {
+    Address? cached = _cachedAddresses[network];
+    if (cached == null) {
       // generate and cache it
-      address = CompatibleBTCAddress.generate(fingerprint!, network!);
-      _cachedAddresses[network] = address;
+      var data = fingerprint;
+      assert(data != null && data.isNotEmpty, 'meta.fingerprint empty');
+      cached = BTCAddress.generate(data!, network!);
+      _cachedAddresses[network] = cached;
     }
-    return address;
+    return cached;
   }
+
 }
 
 
 ///  Meta to build BTC address for ID
 ///
 ///  version:
-///      0x02 - BTC
-///      0x03 - ExBTC
+///      2 = BTC
 ///
 ///  algorithm:
 ///      CT      = key.data;
@@ -82,91 +86,150 @@ class _DefaultMeta extends BaseMeta {
 ///      code    = sha256(sha256(network + hash)).prefix(4);
 ///      address = base58_encode(network + hash + code);
 class _BTCMeta extends BaseMeta {
-  _BTCMeta(super.dict) : _cachedAddress = null;
+  _BTCMeta(super.dict);
 
-  _BTCMeta.from(int version, VerifyKey key, {String? seed, TransportableData? fingerprint})
-      : super.from(version, key, seed: seed, fingerprint: fingerprint) {
-    _cachedAddress = null;
+  _BTCMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
+      : super.from(type, key, seed: seed, fingerprint: fingerprint);
+
+  @override
+  bool get hasSeed => true;
+
+  // caches
+  final Map<int, Address> _cachedAddresses = {};
+
+  @override
+  Address generateAddress(int? network) {
+    // assert(type == Meta.BTC || type == '2', 'meta type error: $type');
+    assert(network != null, 'address type should not be empty');
+    // check caches
+    Address? cached = _cachedAddresses[network];
+    if (cached == null) {
+      // TODO: compress public key?
+      VerifyKey key = publicKey;
+      Uint8List data = key.data;
+      // generate and cache it
+      cached = BTCAddress.generate(data, network!);
+      _cachedAddresses[network] = cached;
+    }
+    return cached;
   }
+}
+
+
+///  Meta to build ETH address for ID
+///
+///  version:
+///      4 = ETH
+///
+///  algorithm:
+///      CT      = key.data;  // without prefix byte
+///      digest  = keccak256(CT);
+///      address = hex_encode(digest.suffix(20));
+class _ETHMeta extends BaseMeta {
+  _ETHMeta(super.dict);
+
+  _ETHMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
+      : super.from(type, key, seed: seed, fingerprint: fingerprint);
+
+  @override
+  bool get hasSeed => true;
 
   // cache
   Address? _cachedAddress;
 
   @override
   Address generateAddress(int? network) {
-    assert(type == MetaType.kBTC || type == MetaType.kExBTC, 'meta type error: $type');
-    // assert(network == NetworkID.kBTCMain, 'BTC address type error: $network');
-    Address? address = _cachedAddress;
-    if (address == null || address.type != network) {
-      // if (type == MetaType.kBTC) {
-      //   // TODO: compress public key?
-      //   key['compressed'] = 1;
-      // }
-      Uint8List data = publicKey.data;
+    assert(type == Meta.ETH || type == '4', 'meta type error: $type');
+    assert(network == null || network == EntityType.USER, 'address type error: $network');
+    // check cache
+    Address? cached = _cachedAddress;
+    if (cached == null/* || cached.type != network*/) {
+      // 64 bytes key data without prefix 0x04
+      VerifyKey key = publicKey;
+      Uint8List data = key.data;
       // generate and cache it
-      _cachedAddress = address = CompatibleBTCAddress.generate(data, network!);
+      cached = ETHAddress.generate(data);
+      _cachedAddress = cached;
     }
-    return address;
+    return cached;
   }
 }
 
 
-class _CompatibleMetaFactory implements MetaFactory {
-  _CompatibleMetaFactory(this._version);
-
-  final int _version;
+class _CompatibleMetaFactory extends GeneralMetaFactory {
+  _CompatibleMetaFactory(super.version);
 
   @override
   Meta createMeta(VerifyKey pKey, {String? seed, TransportableData? fingerprint}) {
-    switch (_version) {
-      case MetaType.kMKM:
-      // MKM
-        return _DefaultMeta.from(_version, pKey, seed!, fingerprint!);
-      case MetaType.kBTC:
-      // BTC
-        return _BTCMeta.from(_version, pKey);
-      case MetaType.kExBTC:
-      // ExBTC
-        return _BTCMeta.from(_version, pKey, seed: seed, fingerprint: fingerprint);
-      case MetaType.kETH:
-    }
-    throw Exception('unknown meta type: $_version');
-  }
+    Meta out;
+    switch (type) {
 
-  @override
-  Meta generateMeta(SignKey sKey, {String? seed}) {
-    TransportableData? fingerprint;
-    if (seed == null) {
-      fingerprint = null;
-    } else {
-      Uint8List sig = sKey.sign(UTF8.encode(seed));
-      fingerprint = TransportableData.create(sig);
+      case Meta.MKM:
+        out = _DefaultMeta.from('1', pKey, seed!, fingerprint!);
+        break;
+
+      case Meta.BTC:
+        out = _BTCMeta.from('2', pKey);
+        break;
+
+      case Meta.ETH:
+        out = _ETHMeta.from('4', pKey);
+        break;
+
+      default:
+        throw Exception('unknown meta type: $type');
     }
-    VerifyKey pKey = (sKey as PrivateKey).publicKey;
-    return createMeta(pKey, seed: seed, fingerprint: fingerprint);
+    assert(out.isValid, 'meta error: $out');
+    return out;
   }
 
   @override
   Meta? parseMeta(Map meta) {
     Meta out;
     AccountFactoryManager man = AccountFactoryManager();
-    int? type = man.generalFactory.getMetaType(meta, 0);
-    assert(type != null, 'failed to get meta type: $meta');
-    if (type == MetaType.kMKM) {
-      // MKM
-      out = _DefaultMeta(meta);
-    } else if (type == MetaType.kBTC || type == MetaType.kExBTC) {
-      // BTC, ExBTC
-      out = _BTCMeta(meta);
-    } else {
-      throw Exception('unknown meta type: $type');
+    String? version = man.generalFactory.getMetaType(meta, '');
+    switch (version) {
+
+      case 'MKM':
+      case 'mkm':
+      case '1':
+        out = _DefaultMeta(meta);
+        break;
+
+      case 'BTC':
+      case 'btc':
+      case '2':
+        out = _BTCMeta(meta);
+        break;
+
+      case 'ETH':
+      case 'eth':
+      case '4':
+        out = _ETHMeta(meta);
+        break;
+
+      default:
+        throw Exception('unknown meta type: $type');
     }
     return out.isValid ? out : null;
   }
 }
 
+
 void registerCompatibleMetaFactories() {
-  Meta.setFactory(MetaType.kMKM,   _CompatibleMetaFactory(MetaType.kMKM));
-  Meta.setFactory(MetaType.kBTC,   _CompatibleMetaFactory(MetaType.kBTC));
-  Meta.setFactory(MetaType.kExBTC, _CompatibleMetaFactory(MetaType.kExBTC));
+  var mkm = _CompatibleMetaFactory(Meta.MKM);
+  var btc = _CompatibleMetaFactory(Meta.BTC);
+  var eth = _CompatibleMetaFactory(Meta.ETH);
+
+  Meta.setFactory('1', mkm);
+  Meta.setFactory('2', btc);
+  Meta.setFactory('4', eth);
+
+  Meta.setFactory('mkm', mkm);
+  Meta.setFactory('btc', btc);
+  Meta.setFactory('eth', eth);
+
+  Meta.setFactory('MKM', mkm);
+  Meta.setFactory('BTC', btc);
+  Meta.setFactory('ETH', eth);
 }

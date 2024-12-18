@@ -46,9 +46,10 @@ import 'package:dimp/dimp.dart';
 class BlockCommand extends BaseCommand {
   BlockCommand(super.dict);
 
-  static const String kBlock  = 'block';
+  // ignore: constant_identifier_names
+  static const String BLOCK  = 'block';
 
-  BlockCommand.fromList(List<ID> contacts) : super.fromName(kBlock) {
+  BlockCommand.fromList(List<ID> contacts) : super.fromName(BLOCK) {
     list = contacts;
   }
 

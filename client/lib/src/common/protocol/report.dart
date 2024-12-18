@@ -42,9 +42,10 @@ import 'package:dimp/dimp.dart';
 ///  }
 abstract interface class ReportCommand implements Command {
 
-  static const String kReport  = 'report';
-  static const String kOnline  = 'online';
-  static const String kOffline = 'offline';
+  // ignore_for_file: constant_identifier_names
+  static const String REPORT  = 'report';
+  static const String ONLINE  = 'online';
+  static const String OFFLINE = 'offline';
 
   String? get title;
   set title(String? text);
@@ -60,7 +61,7 @@ abstract interface class ReportCommand implements Command {
 class BaseReportCommand extends BaseCommand implements ReportCommand {
   BaseReportCommand(super.dict);
 
-  BaseReportCommand.fromTitle(String text) : super.fromName(ReportCommand.kReport) {
+  BaseReportCommand.fromTitle(String text) : super.fromName(ReportCommand.REPORT) {
     title = text;
   }
 

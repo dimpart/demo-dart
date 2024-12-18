@@ -32,7 +32,6 @@ import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
-import 'archivist.dart';
 import 'facebook.dart';
 
 abstract class CommonProcessor extends MessageProcessor with Logging {
@@ -41,10 +40,18 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
   @override
   CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
+  @override
+  ContentProcessorFactory createFactory(Facebook facebook, Messenger messenger) {
+    var creator = createCreator(facebook, messenger);
+    return GeneralContentProcessorFactory(creator);
+  }
+  // protected
+  ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger);
+
   // private
   Future<bool> checkVisaTime(Content content, ReliableMessage rMsg) async {
-    CommonArchivist? archivist = facebook?.archivist;
-    if (archivist == null) {
+    var checker = facebook?.checker;
+    if (checker == null) {
       assert(false, 'should not happen');
       return false;
     }
@@ -58,7 +65,7 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
         lastDocumentTime = now;
       }
       ID sender = rMsg.sender;
-      docUpdated = archivist.setLastDocumentTime(sender, lastDocumentTime);
+      docUpdated = checker.setLastDocumentTime(lastDocumentTime, sender);
       // check whether needs update
       if (docUpdated) {
         logInfo('checking for new visa: $sender');

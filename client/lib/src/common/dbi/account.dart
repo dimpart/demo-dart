@@ -72,7 +72,7 @@ abstract interface class PrivateKeyDBI {
   //  Conveniences
   //
 
-  static List<DecryptKey> convertDecryptKeys(List<PrivateKey> privateKeys) {
+  static List<DecryptKey> convertDecryptKeys(Iterable<PrivateKey> privateKeys) {
     List<DecryptKey> decryptKeys = [];
     for (PrivateKey key in privateKeys) {
       if (key is DecryptKey) {
@@ -81,7 +81,7 @@ abstract interface class PrivateKeyDBI {
     }
     return decryptKeys;
   }
-  static List<PrivateKey> convertPrivateKeys(List<DecryptKey> decryptKeys) {
+  static List<PrivateKey> convertPrivateKeys(Iterable<DecryptKey> decryptKeys) {
     List<PrivateKey> privateKeys = [];
     for (DecryptKey key in decryptKeys) {
       if (key is PrivateKey) {
@@ -91,7 +91,7 @@ abstract interface class PrivateKeyDBI {
     return privateKeys;
   }
 
-  static List<Map> revertPrivateKeys(List<PrivateKey> privateKeys) {
+  static List<Map> revertPrivateKeys(Iterable<PrivateKey> privateKeys) {
     List<Map> array = [];
     for (PrivateKey key in privateKeys) {
       array.add(key.toMap());

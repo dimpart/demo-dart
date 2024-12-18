@@ -43,24 +43,21 @@ import 'session.dart';
 
 abstract class CommonMessenger extends Messenger with Logging
     implements Transmitter {
-  CommonMessenger(this._session, this._facebook, this._database)
+  CommonMessenger(this.session, this.facebook, this.database)
       : _packer = null, _processor = null;
 
-  final Session _session;
-  final CommonFacebook _facebook;
-  final CipherKeyDelegate _database;
+  final Session session;
+  final CommonFacebook facebook;
+  final CipherKeyDelegate database;
+
   Packer? _packer;
   Processor? _processor;
 
-  Session get session => _session;
+  @override
+  EntityDelegate get entityDelegate => facebook;
 
   @override
-  EntityDelegate get entityDelegate => _facebook;
-
-  CommonFacebook get facebook => _facebook;
-
-  @override
-  CipherKeyDelegate? get cipherKeyDelegate => _database;
+  CipherKeyDelegate? get cipherKeyDelegate => database;
 
   @override
   Packer? get packer => _packer;
@@ -159,6 +156,7 @@ abstract class CommonMessenger extends Messenger with Logging
     DateTime? lastDocumentTime = doc.time;
     if (lastDocumentTime == null) {
       assert(false, 'document error: $doc');
+      return false;
     } else {
       iMsg.setDateTime('SDT', lastDocumentTime);
     }

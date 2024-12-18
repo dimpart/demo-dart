@@ -41,14 +41,20 @@ class ProviderInfo {
   final ID identifier;
   int chosen;
 
+  @override
+  String toString() {
+    return '<$runtimeType ID="$identifier" chosen=$chosen />';
+  }
+
   /// default service provider
-  static final ID kGSP = Identifier('gsp@everywhere', name: 'gsp', address: Address.kEverywhere);
+  // ignore: non_constant_identifier_names
+  static final ID GSP = Identifier.create(name: 'gsp', address: Address.EVERYWHERE);
 
   //
   //  Conveniences
   //
 
-  static List<ProviderInfo> convert(List<Map> array) {
+  static List<ProviderInfo> convert(Iterable<Map> array) {
     List<ProviderInfo> providers = [];
     ID? identifier;
     int chosen;
@@ -64,7 +70,7 @@ class ProviderInfo {
     return providers;
   }
 
-  static List<Map> revert(List<ProviderInfo> providers) {
+  static List<Map> revert(Iterable<ProviderInfo> providers) {
     List<Map> array = [];
     for (var info in providers) {
       array.add({
@@ -92,11 +98,17 @@ class StationInfo {
 
   ID? provider;
 
+  @override
+  String toString() {
+    return '<$runtimeType host="$host" port=$port ID="$identifier"'
+        ' SP="$provider" chosen=$chosen />';
+  }
+
   //
   //  Conveniences
   //
 
-  static List<StationInfo> convert(List<Map> array) {
+  static List<StationInfo> convert(Iterable<Map> array) {
     List<StationInfo> stations = [];
     ID? sid;
     int chosen;
@@ -118,7 +130,7 @@ class StationInfo {
     return stations;
   }
 
-  static List<Map> revert(List<StationInfo> stations) {
+  static List<Map> revert(Iterable<StationInfo> stations) {
     List<Map> array = [];
     for (var info in stations) {
       array.add({

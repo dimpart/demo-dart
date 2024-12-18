@@ -30,49 +30,42 @@
  */
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/log.dart';
+
+import 'dbi/account.dart';
 
 import 'archivist.dart';
 import 'anonymous.dart';
+import 'entity_checker.dart';
 
 
 ///  Common Facebook with Database
-abstract class CommonFacebook extends Facebook {
-  CommonFacebook() : _current = null;
+abstract class CommonFacebook extends Facebook with Logging {
+  CommonFacebook(this.database);
+
+  final AccountDBI database;
+
+  CommonArchivist? _archivist;
+  EntityChecker? _checker;
 
   User? _current;
 
   @override
-  CommonArchivist get archivist;
+  CommonArchivist get archivist => _archivist!;
+  set archivist(CommonArchivist delegate) => _archivist = delegate;
 
-  @override
-  Future<List<User>> get localUsers async {
-    List<User> users = [];
-    User? usr;
-    List<ID> array = await archivist.getLocalUsers();
-    if (array.isEmpty) {
-      usr = _current;
-      if (usr != null) {
-        users.add(usr);
-      }
-    } else {
-      for (ID item in array) {
-        assert(await getPrivateKeyForSignature(item) != null, 'error: $item');
-        usr = await getUser(item);
-        if (usr != null) {
-          users.add(usr);
-        } else {
-          assert(false, 'failed to create user: $item');
-        }
-      }
-    }
-    return users;
-  }
+  EntityChecker get checker => _checker!;
+  set checker(EntityChecker delegate) => _checker = delegate;
+
+  //
+  //  Current User
+  //
 
   Future<User?> get currentUser async {
     // Get current user (for signing and sending message)
     User? usr = _current;
     if (usr == null) {
-      List<User> users = await localUsers;
+      List<User> users = await archivist.localUsers;
       if (users.isNotEmpty) {
         usr = users.first;
         _current = usr;
@@ -85,22 +78,36 @@ abstract class CommonFacebook extends Facebook {
     _current = user;
   }
 
+  //
+  //  Documents
+  //
+
   Future<Document?> getDocument(ID identifier, [String? type]) async {
     List<Document> documents = await getDocuments(identifier);
     Document? doc = DocumentHelper.lastDocument(documents, type);
     // compatible for document type
-    if (doc == null && type == Document.kVisa) {
-      doc = DocumentHelper.lastDocument(documents, 'profile');
+    if (doc == null && type == Document.VISA) {
+      doc = DocumentHelper.lastDocument(documents, Document.PROFILE);
     }
     return doc;
+  }
+
+  Future<Visa?> getVisa(ID user) async {
+    List<Document> documents = await getDocuments(user);
+    return DocumentHelper.lastVisa(documents);
+  }
+
+  Future<Bulletin?> getBulletin(ID user) async {
+    List<Document> documents = await getDocuments(user);
+    return DocumentHelper.lastBulletin(documents);
   }
 
   Future<String> getName(ID identifier) async {
     String type;
     if (identifier.isUser) {
-      type = Document.kVisa;
+      type = Document.VISA;
     } else if (identifier.isGroup) {
-      type = Document.kBulletin;
+      type = Document.BULLETIN;
     } else {
       type = '*';
     }
@@ -116,24 +123,75 @@ abstract class CommonFacebook extends Facebook {
     return Anonymous.getName(identifier);
   }
 
+  // -------- Storage
+
+  @override
+  Future<bool> saveMeta(Meta meta, ID identifier) async =>
+      await database.saveMeta(meta, identifier);
+
+  @override
+  Future<bool> saveDocument(Document doc) async {
+    DateTime? docTime = doc.time;
+    if (docTime == null) {
+      // assert(false, 'document error: $doc');
+      logWarning('document without time: ${doc.identifier}');
+    } else {
+      // calibrate the clock
+      // make sure the document time is not in the far future
+      int current = DateTime.now().millisecondsSinceEpoch + 65536;
+      if (docTime.millisecondsSinceEpoch > current) {
+        assert(false, 'document time error: $docTime, $doc');
+        return false;
+      }
+    }
+    return await database.saveDocument(doc);
+  }
+
   //
-  //  UserDataSource
+  //  Entity DataSource
+  //
+
+  @override
+  Future<Meta?> getMeta(ID identifier) async {
+    var meta = await database.getMeta(identifier);
+    /*await */checker.checkMeta(identifier, meta);
+    return meta;
+  }
+
+  @override
+  Future<List<Document>> getDocuments(ID identifier) async {
+    var docs = await database.getDocuments(identifier);
+    /*await */checker.checkDocuments(identifier, docs);
+    return docs;
+  }
+
+  //
+  //  User DataSource
   //
 
   @override
   Future<List<ID>> getContacts(ID user) async =>
-      await archivist.getContacts(user);
+      await database.getContacts(user: user);
 
   @override
   Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user) async =>
-      await archivist.getPrivateKeysForDecryption(user);
+      await database.getPrivateKeysForDecryption(user);
 
   @override
   Future<SignKey?> getPrivateKeyForSignature(ID user) async =>
-      await archivist.getPrivateKeyForSignature(user);
+      await database.getPrivateKeyForSignature(user);
 
   @override
   Future<SignKey?> getPrivateKeyForVisaSignature(ID user) async =>
-      await archivist.getPrivateKeyForVisaSignature(user);
+      await database.getPrivateKeyForVisaSignature(user);
+
+  //
+  //  Organizational Structure
+  //
+
+  Future<List<ID>> getAdministrators(ID group);
+  Future<bool> saveAdministrators(List<ID> admins, ID group);
+
+  Future<bool> saveMembers(List<ID> newMembers, ID group);
 
 }

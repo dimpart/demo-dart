@@ -35,6 +35,7 @@ import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:dim_plugins/dim_plugins.dart';
 
+import 'compat/address.dart';
 import 'compat/entity.dart';
 import 'compat/meta.dart';
 import 'dbi/account.dart';
@@ -46,11 +47,9 @@ import 'protocol/block.dart';
 import 'protocol/ans.dart';
 
 class Register {
-  Register(AccountDBI adb) : _database = adb;
+  Register(this.database);
 
-  final AccountDBI _database;
-
-  AccountDBI get database => _database;
+  final AccountDBI database;
 
   ///  Generate user account
   ///
@@ -61,19 +60,19 @@ class Register {
     //
     //  Step 1: generate private key (with asymmetric algorithm)
     //
-    PrivateKey idKey = PrivateKey.generate(AsymmetricKey.kECC)!;
+    PrivateKey idKey = PrivateKey.generate(AsymmetricKey.ECC)!;
     //
     //  Step 2: generate meta with private key (and meta seed)
     //
-    Meta meta = Meta.generate(MetaType.kETH, idKey);
+    Meta meta = Meta.generate(Meta.ETH, idKey);
     //
     //  Step 3: generate ID with meta
     //
-    ID identifier = ID.generate(meta, EntityType.kUser);
+    ID identifier = ID.generate(meta, EntityType.USER);
     //
     //  Step 4: generate visa with ID and sign with private key
     //
-    PrivateKey? msgKey = PrivateKey.generate(AsymmetricKey.kRSA);
+    PrivateKey? msgKey = PrivateKey.generate(AsymmetricKey.RSA);
     EncryptKey visaKey = msgKey!.publicKey as EncryptKey;
     Visa visa = createVisa(identifier, visaKey, idKey, name: name, avatar: avatar);
     //
@@ -106,11 +105,11 @@ class Register {
     //
     //  Step 2: generate meta with private key (and meta seed)
     //
-    Meta meta = Meta.generate(MetaType.kMKM, privateKey, seed: seed);
+    Meta meta = Meta.generate(Meta.MKM, privateKey, seed: seed);
     //
     //  Step 3: generate ID with meta
     //
-    ID identifier = ID.generate(meta, EntityType.kGroup);
+    ID identifier = ID.generate(meta, EntityType.GROUP);
     //
     //  Step 4: generate bulletin with ID and sign with founder's private key
     //
@@ -192,15 +191,16 @@ void _registerFactories() {
   registerAllFactories();
 
   // Handshake
-  Command.setFactory(HandshakeCommand.kHandshake, CommandParser((dict) => BaseHandshakeCommand(dict)));
+  Command.setFactory(HandshakeCommand.HANDSHAKE, CommandParser((dict) => BaseHandshakeCommand(dict)));
   // Login
-  Command.setFactory(LoginCommand.kLogin, CommandParser((dict) => BaseLoginCommand(dict)));
+  Command.setFactory(LoginCommand.LOGIN, CommandParser((dict) => BaseLoginCommand(dict)));
   // Report
-  Command.setFactory(ReportCommand.kReport, CommandParser((dict) => BaseReportCommand(dict)));
+  Command.setFactory(ReportCommand.REPORT, CommandParser((dict) => BaseReportCommand(dict)));
   // Mute
-  Command.setFactory(MuteCommand.kMute, CommandParser((dict) => MuteCommand(dict)));
+  Command.setFactory(MuteCommand.MUTE, CommandParser((dict) => MuteCommand(dict)));
   // Block
-  Command.setFactory(BlockCommand.kBlock, CommandParser((dict) => BlockCommand(dict)));
+  Command.setFactory(BlockCommand.BLOCK, CommandParser((dict) => BlockCommand(dict)));
   // ANS
-  Command.setFactory(AnsCommand.kANS, CommandParser((dict) => BaseAnsCommand(dict)));
+  Command.setFactory(AnsCommand.ANS, CommandParser((dict) => BaseAnsCommand(dict)));
+
 }

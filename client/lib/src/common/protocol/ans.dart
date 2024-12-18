@@ -43,7 +43,8 @@ import 'package:dimp/dimp.dart';
 ///  }
 abstract interface class AnsCommand implements Command {
 
-  static const String kANS = 'ans';
+  // ignore: constant_identifier_names
+  static const String ANS = 'ans';
 
   List<String> get names;
 
@@ -65,7 +66,7 @@ class BaseAnsCommand extends BaseCommand implements AnsCommand {
   BaseAnsCommand(super.dict);
 
   BaseAnsCommand.from(String names, Map<String, String>? records) :
-        super.fromName(AnsCommand.kANS) {
+        super.fromName(AnsCommand.ANS) {
     assert(names.isNotEmpty, 'query names should not empty');
     this['names'] = names;
     if (records != null) {

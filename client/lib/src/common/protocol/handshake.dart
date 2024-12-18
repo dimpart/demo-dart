@@ -34,21 +34,22 @@ import 'package:dimp/dimp.dart';
 ///  Handshake State
 ///  ~~~~~~~~~~~~~~~
 class HandshakeState {
+  // ignore_for_file: constant_identifier_names
 
-  static const int kStart = 0;    // C -> S, without session key(or session expired)
-  static const int kAgain = 1;    // S -> C, with new session key
-  static const int kRestart = 2;  // C -> S, with new session key
-  static const int kSuccess = 3;  // S -> C, handshake accepted
+  static const int START   = 0;  // C -> S, without session key(or session expired)
+  static const int AGAIN   = 1;  // S -> C, with new session key
+  static const int RESTART = 2;  // C -> S, with new session key
+  static const int SUCCESS = 3;  // S -> C, handshake accepted
 
   static int checkState(String title, String? session) {
     if (title == 'DIM!'/* || title == 'OK!'*/) {
-      return kSuccess;
+      return SUCCESS;
     } else if (title == 'DIM?') {
-      return kAgain;
+      return AGAIN;
     } else if (session == null) {
-      return kStart;
+      return START;
     } else {
-      return kRestart;
+      return RESTART;
     }
   }
 }
@@ -64,7 +65,7 @@ class HandshakeState {
 ///  }
 abstract interface class HandshakeCommand implements Command {
 
-  static const String kHandshake = 'handshake';
+  static const String HANDSHAKE = 'handshake';
 
   String get title;
   String? get sessionKey;
@@ -93,7 +94,7 @@ class BaseHandshakeCommand extends BaseCommand implements HandshakeCommand {
   BaseHandshakeCommand(super.dict);
 
   BaseHandshakeCommand.from(String title, {String? sessionKey})
-      : super.fromName(HandshakeCommand.kHandshake) {
+      : super.fromName(HandshakeCommand.HANDSHAKE) {
     // text message
     this['title'] = title;
     // session key

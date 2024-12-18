@@ -54,7 +54,8 @@ import 'package:dimsdk/dimsdk.dart';
 ///  }
 abstract interface class LoginCommand implements Command {
 
-  static const String kLogin = 'login';
+  // ignore: constant_identifier_names
+  static const String LOGIN = 'login';
 
   //
   //  Client Info
@@ -93,7 +94,7 @@ abstract interface class LoginCommand implements Command {
 class BaseLoginCommand extends BaseCommand implements LoginCommand{
   BaseLoginCommand(super.dict);
 
-  BaseLoginCommand.fromID(ID identifier) : super.fromName(LoginCommand.kLogin) {
+  BaseLoginCommand.fromID(ID identifier) : super.fromName(LoginCommand.LOGIN) {
     setString('ID', identifier);
   }
 

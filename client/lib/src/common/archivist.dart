@@ -34,132 +34,95 @@ import 'package:lnc/log.dart';
 
 import 'dbi/account.dart';
 
-abstract class CommonArchivist extends Archivist with Logging
-    implements UserDataSource, GroupDataSource {
+abstract class CommonArchivist with Logging implements Archivist {
+  CommonArchivist(Facebook facebook, AccountDBI db)
+      : _barrack = WeakReference(facebook), database = db;
 
+  final WeakReference<Facebook> _barrack;
   final AccountDBI database;
 
-  CommonArchivist(this.database) : super(Archivist.kQueryExpires);
+  // protected
+  Facebook? get facebook => _barrack.target;
 
   @override
-  Future<DateTime?> getLastGroupHistoryTime(ID group) async {
-    var array = await database.getGroupHistories(group: group);
-    if (array.isEmpty) {
-      return null;
+  Future<User?> createUser(ID identifier) async {
+    assert(identifier.isUser, 'user ID error: $identifier');
+    // check visa key
+    if (!identifier.isBroadcast) {
+      if (await facebook?.getPublicKeyForEncryption(identifier) == null) {
+        assert(false, 'visa.key not found: $identifier');
+        return null;
+      }
+      // NOTICE: if visa.key exists, then visa & meta must exist too.
     }
-    DateTime? lastTime;
-    DateTime? hisTime;
-    for (var pair in array) {
-      hisTime = pair.first.time;
-      if (hisTime == null) {
-        assert(false, 'group command error: ${pair.first}');
-      } else if (lastTime == null || lastTime.isBefore(hisTime)) {
-        lastTime = hisTime;
+    int network = identifier.type;
+    // check user type
+    if (network == EntityType.STATION) {
+      return Station.fromID(identifier);
+    } else if (network == EntityType.BOT) {
+      return Bot(identifier);
+    }
+    // general user, or 'anyone@anywhere'
+    return BaseUser(identifier);
+  }
+
+  @override
+  Future<Group?> createGroup(ID identifier) async {
+    assert(identifier.isGroup, 'group ID error: $identifier');
+    // check members
+    if (!identifier.isBroadcast) {
+      List<ID>? members = await facebook?.getMembers(identifier);
+      if (members == null || members.isEmpty) {
+        assert(false, 'group members not found: $identifier');
+        return null;
+      }
+      // NOTICE: if members exist, then owner (founder) must exist,
+      //         and bulletin & meta must exist too.
+    }
+    int network = identifier.type;
+    // check group type
+    if (network == EntityType.ISP) {
+      return ServiceProvider(identifier);
+    }
+    // general group, or 'everyone@everywhere'
+    return BaseGroup(identifier);
+  }
+
+  @override
+  Future<VerifyKey?> getMetaKey(ID user) async {
+    Meta? meta = await facebook?.getMeta(user);
+    // assert(meta != null, 'failed to get meta for: $entity');
+    return meta?.publicKey;
+  }
+
+  @override
+  Future<EncryptKey?> getVisaKey(ID user) async {
+    var docs = await facebook?.getDocuments(user);
+    var visa = docs == null ? null : DocumentHelper.lastVisa(docs);
+    // assert(doc != null, 'failed to get visa for: $user');
+    return visa?.publicKey;
+  }
+
+  @override
+  Future<List<User>> get localUsers async {
+    var barrack = facebook;
+    List<ID> array = await database.getLocalUsers();
+    if (barrack == null || array.isEmpty) {
+      assert(false, 'failed to get local users: $array');
+      return [];
+    }
+    List<User> allUsers = [];
+    User? user;
+    for (ID item in array) {
+      assert(await barrack.getPrivateKeyForSignature(item) != null, 'error: $item');
+      user = await barrack.getUser(item);
+      if (user != null) {
+        allUsers.add(user);
+      } else {
+        assert(false, 'failed to create user: $item');
       }
     }
-    return lastTime;
+    return allUsers;
   }
-
-  Future<List<ID>> getLocalUsers() async =>
-      await database.getLocalUsers();
-
-  @override
-  Future<bool> saveMeta(Meta meta, ID identifier) async =>
-      await database.saveMeta(meta, identifier);
-
-  @override
-  Future<bool> saveDocument(Document doc) async {
-    DateTime? docTime = doc.time;
-    if (docTime == null) {
-      // assert(false, 'document error: $doc');
-      logWarning('document without time: ${doc.identifier}');
-    } else {
-      // calibrate the clock
-      // make sure the document time is not in the far future
-      int current = DateTime.now().millisecondsSinceEpoch + 65536;
-      if (docTime.millisecondsSinceEpoch > current) {
-        assert(false, 'document time error: $docTime, $doc');
-        return false;
-      }
-    }
-    return await database.saveDocument(doc);
-  }
-
-  //
-  //  EntityDataSource
-  //
-
-  @override
-  Future<Meta?> getMeta(ID identifier) async =>
-      await database.getMeta(identifier);
-
-  @override
-  Future<List<Document>> getDocuments(ID identifier) async =>
-      await database.getDocuments(identifier);
-
-  //
-  //  UserDataSource
-  //
-
-  @override
-  Future<List<ID>> getContacts(ID user) async =>
-      await database.getContacts(user: user);
-
-  @override
-  Future<EncryptKey?> getPublicKeyForEncryption(ID user) async {
-    assert(false, 'DON\'t call me!');
-    return null;
-  }
-
-  @override
-  Future<List<VerifyKey>> getPublicKeysForVerification(ID user) async {
-    assert(false, 'DON\'t call me!');
-    return [];
-  }
-
-  @override
-  Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user) async =>
-      await database.getPrivateKeysForDecryption(user);
-
-  @override
-  Future<SignKey?> getPrivateKeyForSignature(ID user) async =>
-      await database.getPrivateKeyForSignature(user);
-
-  @override
-  Future<SignKey?> getPrivateKeyForVisaSignature(ID user) async =>
-      await database.getPrivateKeyForVisaSignature(user);
-
-  //
-  //  GroupDataSource
-  //
-
-  @override
-  Future<ID?> getFounder(ID group) async =>
-      await database.getFounder(group: group);
-
-  @override
-  Future<ID?> getOwner(ID group) async =>
-      await database.getOwner(group: group);
-
-  @override
-  Future<List<ID>> getMembers(ID group) async =>
-      await database.getMembers(group: group);
-
-  @override
-  Future<List<ID>> getAssistants(ID group) async =>
-      await database.getAssistants(group: group);
-
-  //
-  //  Organization Structure
-  //
-
-  Future<List<ID>> getAdministrators({required ID group}) async =>
-      await database.getAdministrators(group: group);
-
-  Future<bool> saveAdministrators(List<ID> members, {required ID group}) async =>
-      await database.saveAdministrators(members, group: group);
-
-  Future<bool> saveMembers(List<ID> members, {required ID group}) async =>
-      await database.saveMembers(members, group: group);
 
 }

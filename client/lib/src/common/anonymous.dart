@@ -53,29 +53,27 @@ class Anonymous {
   }
 
   static int getNumber(Address address) {
-    if (address.isBroadcast) {
-      return 0;
-    }
     if (address is BTCAddress) {
       return _btcNumber(address.toString());
     }
     if (address is ETHAddress) {
       return _ethNumber(address.toString());
     }
-    throw Exception('address error: $address');
+    // TODO: other chain?
+    return 0;
   }
 }
 
 // get name for entity type
 String _name(int type) {
   switch (type) {
-    case EntityType.kBot:
+    case EntityType.BOT:
       return 'Bot';
-    case EntityType.kStation:
+    case EntityType.STATION:
       return 'Station';
-    case EntityType.kISP:
+    case EntityType.ISP:
       return 'ISP';
-    case EntityType.kICP:
+    case EntityType.ICP:
       return 'ICP';
   }
   if (EntityType.isUser(type)) {
