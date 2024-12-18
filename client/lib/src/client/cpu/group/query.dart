@@ -42,7 +42,7 @@ class QueryCommandProcessor extends GroupCommandProcessor {
   QueryCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is QueryCommand, 'query command error: $content');
     QueryCommand command = content as QueryCommand;
 
@@ -84,7 +84,8 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     DateTime? queryTime = command.lastTime;
     if (queryTime != null) {
       // check last group history time
-      DateTime? lastTime = await facebook?.archivist.getLastGroupHistoryTime(group);
+      var checker = facebook?.checker;
+      DateTime? lastTime = await checker?.getLastGroupHistoryTime(group);
       if (lastTime == null) {
         assert(false, 'group history error: $group');
       } else if (!lastTime.isAfter(queryTime)) {

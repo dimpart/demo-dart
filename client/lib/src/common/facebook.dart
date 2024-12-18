@@ -126,25 +126,84 @@ abstract class CommonFacebook extends Facebook with Logging {
   // -------- Storage
 
   @override
-  Future<bool> saveMeta(Meta meta, ID identifier) async =>
-      await database.saveMeta(meta, identifier);
+  Future<bool> saveMeta(Meta meta, ID identifier) async {
+    //
+    //  1. check valid
+    //
+    if (meta.isValid && meta.matchIdentifier(identifier)) {
+      // meta valid
+    } else {
+      assert(false, 'meta not valid: $identifier');
+      return false;
+    }
+    //
+    //  2. check duplicated
+    //
+    Meta? old = await getMeta(identifier);
+    if (old != null) {
+      logDebug('meta duplicated: $identifier');
+      return true;
+    }
+    //
+    //  3. save into database
+    //
+    return await database.saveMeta(meta, identifier);
+  }
 
   @override
   Future<bool> saveDocument(Document doc) async {
+    //
+    //  1. check valid
+    //
+    if (checkDocumentValid(doc)) {
+      // document valid
+    } else {
+      assert(false, 'meta not valid: ${doc.identifier}');
+      return false;
+    }
+    //
+    //  2. check expired
+    //
+    if (await checkDocumentExpired(doc)) {
+      logInfo('drop expired document: $doc');
+      return false;
+    }
+    //
+    //  3. save into database
+    //
+    return await database.saveDocument(doc);
+  }
+
+  // protected
+  bool checkDocumentValid(Document doc) {
+    ID identifier = doc.identifier;
     DateTime? docTime = doc.time;
+    // check document time
     if (docTime == null) {
       // assert(false, 'document error: $doc');
-      logWarning('document without time: ${doc.identifier}');
+      logWarning('document without time: $identifier');
     } else {
       // calibrate the clock
       // make sure the document time is not in the far future
-      int current = DateTime.now().millisecondsSinceEpoch + 65536;
-      if (docTime.millisecondsSinceEpoch > current) {
+      DateTime nearFuture = DateTime.now().add(Duration(minutes: 30));
+      if (docTime.isAfter(nearFuture)) {
         assert(false, 'document time error: $docTime, $doc');
+        logError('document time error: $docTime, $identifier');
         return false;
       }
     }
-    return await database.saveDocument(doc);
+    // OK
+    return doc.isValid;
+  }
+
+  // protected
+  Future<bool> checkDocumentExpired(Document doc) async {
+    ID identifier = doc.identifier;
+    String type = doc.type ?? '*';
+    // check old documents with type
+    List<Document> documents = await getDocuments(identifier);
+    Document? old = DocumentHelper.lastDocument(documents, type);
+    return old != null && DocumentHelper.isExpired(doc, old);
   }
 
   //

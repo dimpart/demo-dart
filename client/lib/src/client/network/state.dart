@@ -29,9 +29,9 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:stargate/fsm.dart';
 import 'package:stargate/stargate.dart';
-import 'package:startrek/fsm.dart';
-import 'package:startrek/startrek.dart';
+import 'package:stargate/startrek.dart';
 
 import 'session.dart';
 import 'transition.dart';
@@ -74,7 +74,7 @@ class SessionStateMachine
 
   ClientSession? get session => _sessionRef.target;
 
-  String? get sessionKey => session?.key;
+  String? get sessionKey => session?.sessionKey;
 
   ID? get sessionID => session?.identifier;
   

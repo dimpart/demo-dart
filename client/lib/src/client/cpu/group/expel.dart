@@ -39,7 +39,7 @@ class ExpelCommandProcessor extends GroupCommandProcessor {
   ExpelCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ExpelCommand, 'expel command error: $content');
 
     assert(false, '"expel" group command is deprecated, use "reset" instead.');

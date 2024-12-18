@@ -49,7 +49,7 @@ class HistoryCommandProcessor extends BaseCommandProcessor with Logging {
   CommonMessenger? get messenger => super.messenger as CommonMessenger?;
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is HistoryCommand, 'history command error: $content');
     HistoryCommand command = content as HistoryCommand;
     String text = 'Command not support.';
@@ -100,21 +100,21 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       await delegate.getAdministrators(group);
   // protected
   Future<bool> saveAdministrators(ID group, List<ID> admins) async =>
-      await delegate.saveAdministrators(group, admins);
+      await delegate.saveAdministrators(admins, group);
 
   // protected
   Future<List<ID>> getMembers(ID group) async =>
       await delegate.getMembers(group);
   // protected
   Future<bool> saveMembers(ID group, List<ID> members) async =>
-      await delegate.saveMembers(group, members);
+      await delegate.saveMembers(members, group);
 
   // protected
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async =>
       await helper.saveGroupHistory(group, content, rMsg);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is GroupCommand, 'group command error: $content');
     GroupCommand command = content as GroupCommand;
     String text = 'Command not support.';

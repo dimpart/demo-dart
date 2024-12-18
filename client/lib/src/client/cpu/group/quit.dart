@@ -42,7 +42,7 @@ class QuitCommandProcessor extends GroupCommandProcessor {
   QuitCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is QuitCommand, 'quit command error: $content');
     GroupCommand command = content as GroupCommand;
 

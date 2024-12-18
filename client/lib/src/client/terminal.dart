@@ -31,9 +31,8 @@
 import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
-import 'package:startrek/skywalker.dart' show Runner;
-import 'package:startrek/nio.dart';
-import 'package:startrek/startrek.dart';
+import 'package:stargate/skywalker.dart' show Runner;
+import 'package:stargate/startrek.dart';
 
 import '../common/dbi/session.dart';
 import '../common/facebook.dart';
@@ -89,9 +88,13 @@ mixin DeviceMixin {
 
 abstract class Terminal extends Runner with DeviceMixin, Logging
     implements SessionStateDelegate {
-  Terminal(this.facebook, this.sdb) : _messenger = null, super(60 * Duration.millisecondsPerSecond);
+  Terminal(this.facebook, this.database)
+      : super(ACTIVE_INTERVAL);
 
-  final SessionDBI sdb;
+  // ignore: non_constant_identifier_names
+  static Duration ACTIVE_INTERVAL = Duration(seconds: 60);
+
+  final SessionDBI database;
   final CommonFacebook facebook;
 
   ClientMessenger? _messenger;
@@ -111,8 +114,8 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
     ClientMessenger? old = _messenger;
     if (old != null) {
       ClientSession session = old.session;
-      if (session.isRunning) {
-        // current session is running
+      if (session.isActive) {
+        // current session is active
         Station station = session.station;
         logDebug('current station: $station');
         if (station.port == port && station.host == host) {
@@ -120,7 +123,7 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
           logWarning('active session connected to $host:$port .');
           return old;
         }
-        session.stop();
+        await session.stop();
       }
       _messenger = null;
     }
@@ -156,7 +159,7 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
 
   // protected
   ClientSession createSession(Station station) {
-    ClientSession session = ClientSession(sdb, station);
+    ClientSession session = ClientSession(database, station);
     session.start(this);
     return session;
   }
@@ -170,6 +173,15 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   // protected
   ClientMessenger createMessenger(ClientSession session, CommonFacebook facebook);
 
+  bool login(ID user) {
+    ClientSession? cs = session;
+    if (cs == null) {
+      return false;
+    }
+    cs.setIdentifier(user);
+    return true;
+  }
+
   //
   //  App Lifecycle
   //
@@ -181,20 +193,20 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
       return;
     }
     // check signed in user
-    ClientSession session = transceiver.session;
-    ID? uid = session.identifier;
+    ClientSession cs = transceiver.session;
+    ID? uid = cs.identifier;
     if (uid != null) {
       // already signed in, check session state
-      SessionState? state = session.state;
+      SessionState? state = cs.state;
       if (state?.index == SessionStateOrder.running.index) {
         // report client state
         await transceiver.reportOffline(uid);
         // sleep a while for waiting 'report' command sent
-        await Runner.sleep(milliseconds: 512);
+        await Runner.sleep(Duration(milliseconds: 512));
       }
     }
     // pause the session
-    await session.pause();
+    await cs.pause();
   }
   Future<void> enterForeground() async {
     ClientMessenger? transceiver = messenger;
@@ -202,15 +214,15 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
       // not connect
       return;
     }
-    ClientSession session = transceiver.session;
+    ClientSession cs = transceiver.session;
     // resume the session
-    await session.resume();
+    await cs.resume();
     // check signed in user
-    ID? uid = session.identifier;
+    ID? uid = cs.identifier;
     if (uid != null) {
       // already signed in, wait a while to check session state
-      await Runner.sleep(milliseconds: 512);
-      SessionState? state = session.state;
+      await Runner.sleep(Duration(milliseconds: 512));
+      SessionState? state = cs.state;
       if (state?.index == SessionStateOrder.running.index) {
         // report client state
         await transceiver.reportOnline(uid);
@@ -233,21 +245,24 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   @override
   Future<void> finish() async {
     // stop session in messenger
-    Messenger? transceiver = messenger;
+    ClientMessenger? transceiver = messenger;
     if (transceiver != null) {
-      await session?.stop();
       _messenger = null;
+      ClientSession cs = transceiver.session;
+      await cs.stop();
     }
     await super.finish();
   }
 
   @override
   Future<void> idle() async =>
-      await Runner.sleep(milliseconds: 16 * Duration.millisecondsPerSecond);
+      await Runner.sleep(Duration(seconds: 16));
 
   @override
   Future<bool> process() async {
-    // 1. check connection
+    //
+    //  1. check connection
+    //
     if (session?.state?.index != SessionStateOrder.running.index) {
       // handshake not accepted
       return false;
@@ -255,7 +270,9 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
       // session not ready
       return false;
     }
-    // 2. check timeout
+    //
+    //  2. check timeout
+    //
     DateTime now = DateTime.now();
     if (needsKeepOnline(_lastOnlineTime, now)) {
       // update last online time
@@ -264,7 +281,9 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
       // not expired yet
       return false;
     }
-    // 3. try to report every 5 minutes to keep user online
+    //
+    //  3. try to report every 5 minutes to keep user online
+    //
     try {
       await keepOnline();
     } catch (e) {
@@ -288,7 +307,7 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
     User? user = await facebook.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
-    } else if (user.type == EntityType.kStation) {
+    } else if (user.type == EntityType.STATION) {
       // a station won't login to another station, if here is a station,
       // it must be a station bridge for roaming messages, we just send
       // report command to the target station to keep session online.

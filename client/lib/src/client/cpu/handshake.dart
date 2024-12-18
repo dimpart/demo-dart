@@ -44,7 +44,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
   ClientMessenger? get messenger => super.messenger as ClientMessenger?;
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is HandshakeCommand, 'handshake command error: $content');
     HandshakeCommand command = content as HandshakeCommand;
     ClientSession session = messenger!.session;
@@ -61,7 +61,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
     // handle handshake command with title & session key
     String title = command.title;
     String? newKey = command.sessionKey;
-    String? oldKey = session.key;
+    String? oldKey = session.sessionKey;
     assert(newKey != null, "new session key should not be empty: $command");
     if (title == "DIM?") {
       // S -> C: station ask client to handshake again
@@ -78,7 +78,7 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
         // connection changed?
         // erase session key to handshake again
         logWarning('[DIM] handshake again: $oldKey => $newKey');
-        session.key = null;
+        session.sessionKey = null;
       }
     } else if (title == "DIM!") {
       // S -> C: handshake accepted by station
@@ -86,17 +86,17 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
         // normal handshake response,
         // update session key to change state to 'running'
         logInfo('[DIM] handshake success with session key: $newKey');
-        session.key = newKey;
+        session.sessionKey = newKey;
       } else if (oldKey == newKey) {
         // duplicated handshake response?
         logWarning('[DIM] handshake success duplicated: $newKey');
         // set it again here to invoke the flutter channel
-        session.key = newKey;
+        session.sessionKey = newKey;
       } else {
         // FIXME: handshake error
         // erase session key to handshake again
         logError('[DIM] handshake again: $oldKey, $newKey');
-        session.key = null;
+        session.sessionKey = null;
       }
     } else {
       // C -> S: Hello world!

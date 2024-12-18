@@ -28,8 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:startrek/fsm.dart';
-import 'package:startrek/startrek.dart';
+import 'package:stargate/fsm.dart';
+import 'package:stargate/startrek.dart';
 
 import 'session.dart';
 import 'state.dart';

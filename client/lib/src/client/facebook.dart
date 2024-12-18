@@ -32,11 +32,33 @@ import 'package:dimp/dimp.dart';
 
 import '../common/ans.dart';
 import '../common/facebook.dart';
+import '../common/protocol/helper.dart';
 import '../common/register.dart';
 
 ///  Client Facebook with Address Name Service
 abstract class ClientFacebook extends CommonFacebook {
-  ClientFacebook();
+  ClientFacebook(super.database);
+
+  @override
+  Future<User?> selectLocalUser(ID receiver) async {
+    if (receiver.isUser) {
+      return await super.selectLocalUser(receiver);
+    }
+    // group message (recipient not designated)
+    assert(receiver.isGroup, 'receiver error: $receiver');
+    // the messenger will check group info before decrypting message,
+    // so we can trust that the group's meta & members MUST exist here.
+    List<User> users = await archivist.localUsers;
+    List<ID> members = await getMembers(receiver);
+    assert(members.isNotEmpty, "members not found: $receiver");
+    for (User item in users) {
+      if (members.contains(item.identifier)) {
+        // DISCUSS: set this item to be current user?
+        return item;
+      }
+    }
+    return null;
+  }
 
   @override
   Future<bool> saveDocument(Document doc) async {
@@ -55,7 +77,7 @@ abstract class ClientFacebook extends CommonFacebook {
   }
 
   //
-  //  GroupDataSource
+  //  Group Data Source
   //
 
   @override
@@ -73,7 +95,7 @@ abstract class ClientFacebook extends CommonFacebook {
       return null;
     }
     // check local storage
-    ID? user = await archivist.getFounder(group);
+    ID? user = await database.getFounder(group: group);
     if (user != null) {
       // got from local storage
       return user;
@@ -99,15 +121,15 @@ abstract class ClientFacebook extends CommonFacebook {
       return null;
     }
     // check local storage
-    ID? user = await archivist.getOwner(group);
+    ID? user = await database.getOwner(group: group);
     if (user != null) {
       // got from local storage
       return user;
     }
     // check group type
-    if (group.type == EntityType.kGroup) {
+    if (group.type == EntityType.GROUP) {
       // Polylogue owner is its founder
-      user = await archivist.getFounder(group);
+      user = await database.getFounder(group: group);
       user ??= doc.founder;
     }
     assert(user != null, 'owner not found for group: $group');
@@ -117,20 +139,21 @@ abstract class ClientFacebook extends CommonFacebook {
   @override
   Future<List<ID>> getMembers(ID group) async {
     assert(group.isGroup, 'group ID error: $group');
+    // check broadcast group
+    if (group.isBroadcast) {
+      // members of broadcast group
+      return BroadcastHelper.getBroadcastMembers(group);
+    }
+    // check group owner
     ID? owner = await getOwner(group);
     if (owner == null) {
-      // assert(false, 'group owner not found: $group');
+      // assert false : "group owner not found: " + group;
       return [];
     }
     // check local storage
-    List<ID> members = await archivist.getMembers(group);
-    archivist.checkMembers(group, members);
-    if (members.isEmpty) {
-      members = [owner];
-    } else {
-      assert(members.first == owner, 'group owner must be the first member: $group');
-    }
-    return members;
+    var members = await database.getMembers(group: group);
+    /*await */checker.checkMembers(group, members);
+    return members.isEmpty ? [owner] : members;
   }
 
   @override
@@ -139,11 +162,11 @@ abstract class ClientFacebook extends CommonFacebook {
     // check bulletin document
     Bulletin? doc = await getBulletin(group);
     if (doc == null) {
-      // the assistants should be set in the bulletin document of group
+      // the owner(founder) should be set in the bulletin document of group
       return [];
     }
     // check local storage
-    List<ID> bots = await archivist.getAssistants(group);
+    var bots = await database.getAssistants(group: group);
     if (bots.isNotEmpty) {
       // got from local storage
       return bots;
@@ -156,6 +179,7 @@ abstract class ClientFacebook extends CommonFacebook {
   //  Organizational Structure
   //
 
+  @override
   Future<List<ID>> getAdministrators(ID group) async {
     assert(group.isGroup, 'group ID error: $group');
     // check bulletin document
@@ -168,14 +192,16 @@ abstract class ClientFacebook extends CommonFacebook {
     // when the newest bulletin document received,
     // so we must get them from the local storage only,
     // not from the bulletin document.
-    return await archivist.getAdministrators(group: group);
+    return await database.getAdministrators(group: group);
   }
 
+  @override
   Future<bool> saveAdministrators(List<ID> admins, ID group) async =>
-      await archivist.saveAdministrators(admins, group: group);
+      await database.saveAdministrators(admins, group: group);
 
+  @override
   Future<bool> saveMembers(List<ID> newMembers, ID group) async =>
-      await archivist.saveMembers(newMembers, group: group);
+      await database.saveMembers(newMembers, group: group);
 
   //
   //  Address Name Service

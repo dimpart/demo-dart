@@ -42,7 +42,7 @@ class JoinCommandProcessor extends GroupCommandProcessor {
   JoinCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is JoinCommand, 'join command error: $content');
     GroupCommand command = content as GroupCommand;
 
@@ -52,6 +52,13 @@ class JoinCommandProcessor extends GroupCommandProcessor {
     if (group == null) {
       // ignore expired command
       return pair.second ?? [];
+    }
+
+    User? user = await facebook?.currentUser;
+    ID? me = user?.identifier;
+    if (me == null) {
+      assert(false, 'failed to get current user');
+      return [];
     }
 
     // 1. check group
@@ -74,8 +81,7 @@ class JoinCommandProcessor extends GroupCommandProcessor {
       // maybe the command sender is already become a member,
       // but if it can still receive a 'join' command here,
       // we should notify the sender that the member list was updated.
-      User? user = await facebook?.currentUser;
-      if (!canReset && owner == user?.identifier) {
+      if (!canReset && owner == me) {
         // the sender cannot reset the group, means it's an ordinary member now,
         // and if I am the owner, then send the group history commands
         // to update the sender's memory.

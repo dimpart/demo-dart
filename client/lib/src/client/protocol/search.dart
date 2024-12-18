@@ -46,8 +46,9 @@ import 'package:dimp/dimp.dart';
 ///  }
 abstract interface class SearchCommand implements Command {
 
-  static const String kSearch = 'search';
-  static const String kOnlineUsers = 'users';
+  // ignore_for_file: constant_identifier_names
+  static const String SEARCH = 'search';
+  static const String ONLINE_USERS = 'users';
 
   String? get keywords;
   set keywords(String? words);
@@ -74,11 +75,11 @@ abstract interface class SearchCommand implements Command {
   static SearchCommand fromKeywords(String keywords) {
     assert(keywords.isNotEmpty, 'keywords should not be empty');
     String cmd;
-    if (keywords == SearchCommand.kOnlineUsers) {
-      cmd = SearchCommand.kOnlineUsers;
+    if (keywords == SearchCommand.ONLINE_USERS) {
+      cmd = SearchCommand.ONLINE_USERS;
       keywords = '';
     } else {
-      cmd = SearchCommand.kSearch;
+      cmd = SearchCommand.SEARCH;
     }
     return BaseSearchCommand.from(cmd, keywords);
   }
@@ -97,8 +98,8 @@ class BaseSearchCommand extends BaseCommand implements SearchCommand {
   @override
   String? get keywords {
     String? words = getString('keywords', null);
-    if (words == null && cmd == SearchCommand.kOnlineUsers) {
-      words = SearchCommand.kOnlineUsers;
+    if (words == null && cmd == SearchCommand.ONLINE_USERS) {
+      words = SearchCommand.ONLINE_USERS;
     }
     return words;
   }

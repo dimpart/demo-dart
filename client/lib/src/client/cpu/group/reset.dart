@@ -42,7 +42,7 @@ class ResetCommandProcessor extends GroupCommandProcessor {
   ResetCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ResetCommand, 'reset command error: $content');
     ResetCommand command = content as ResetCommand;
 

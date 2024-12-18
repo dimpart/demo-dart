@@ -36,7 +36,6 @@ import '../common/protocol/handshake.dart';
 
 import 'cpu/creator.dart';
 
-import 'archivist.dart';
 import 'messenger.dart';
 
 class ClientMessageProcessor extends CommonProcessor {
@@ -45,14 +44,20 @@ class ClientMessageProcessor extends CommonProcessor {
   @override
   ClientMessenger? get messenger => super.messenger as ClientMessenger?;
 
+  @override
+  ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger) {
+    return ClientContentProcessorCreator(facebook, messenger);
+  }
+
   // private
   Future<bool> checkGroupTimes(Content content, ReliableMessage rMsg) async {
     ID? group = content.group;
     if (group == null) {
       return false;
     }
-    ClientArchivist? archivist = facebook?.archivist as ClientArchivist?;
-    if (archivist == null) {
+    var barrack = facebook;
+    var checker = barrack?.checker;
+    if (barrack == null || checker == null) {
       assert(false, 'should not happen');
       return false;
     }
@@ -66,12 +71,7 @@ class ClientMessageProcessor extends CommonProcessor {
         // calibrate the clock
         lastDocumentTime = now;
       }
-      docUpdated = archivist.setLastDocumentTime(group, lastDocumentTime);
-      // check whether needs update
-      if (docUpdated) {
-        logInfo('checking for new bulletin: $group');
-        await facebook?.getDocuments(group);
-      }
+      docUpdated = checker.setLastDocumentTime(lastDocumentTime, group);
     }
     // check group history time
     DateTime? lastHistoryTime = rMsg.getDateTime('GHT', null);
@@ -80,12 +80,17 @@ class ClientMessageProcessor extends CommonProcessor {
         // calibrate the clock
         lastHistoryTime = now;
       }
-      memUpdated = archivist.setLastGroupHistoryTime(group, lastHistoryTime);
-      if (memUpdated) {
-        archivist.setLastActiveMember(group: group, member: rMsg.sender);
-        logInfo('checking for group members: $group');
-        await facebook?.getMembers(group);
-      }
+      memUpdated = checker.setLastGroupHistoryTime(lastHistoryTime, group);
+    }
+    // check whether needs update
+    if (docUpdated) {
+      logInfo('checking for new bulletin: $group');
+      await barrack.getDocuments(group);
+    }
+    if (memUpdated) {
+      checker.setLastActiveMember(rMsg.sender, group: group);
+      logInfo('checking for group members: $group');
+      await barrack.getMembers(group);
     }
     return docUpdated || memUpdated;
   }
@@ -114,21 +119,16 @@ class ClientMessageProcessor extends CommonProcessor {
     }
     receiver = user.identifier;
     // check responses
+    bool fromBots = sender.type == EntityType.STATION || sender.type == EntityType.BOT;
     for (Content res in responses) {
       if (res is ReceiptCommand) {
-        if (sender.type == EntityType.kStation) {
-          // no need to respond receipt to station
-          continue;
-        } else if (sender.type == EntityType.kBot) {
-          // no need to respond receipt to a bot
+        if (fromBots) {
+          // no need to respond receipt to station/bot
           continue;
         }
       } else if (res is TextContent) {
-        if (sender.type == EntityType.kStation) {
-          // no need to respond text message to station
-          continue;
-        } else if (sender.type == EntityType.kBot) {
-          // no need to respond text message to a bot
+        if (fromBots) {
+          // no need to respond text message to station/bot
           continue;
         }
       }
@@ -137,11 +137,6 @@ class ClientMessageProcessor extends CommonProcessor {
     }
     // DON'T respond to station directly
     return [];
-  }
-
-  @override
-  ContentProcessorCreator createCreator() {
-    return ClientContentProcessorCreator(facebook!, messenger!);
   }
 
 }

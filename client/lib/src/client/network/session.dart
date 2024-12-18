@@ -33,8 +33,7 @@ import 'dart:typed_data';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/stargate.dart';
-import 'package:startrek/nio.dart';
-import 'package:startrek/startrek.dart';
+import 'package:stargate/startrek.dart';
 
 import '../../common/dbi/session.dart';
 import '../../network/session.dart';
@@ -87,15 +86,31 @@ class ClientSession extends BaseSession with Logging {
   }
 
   @override
-  String? get key => _key;
+  String? get sessionKey => _key;
 
-  set key(String? sessionKey) => _key = sessionKey;
+  set sessionKey(String? key) => _key = key;
 
   bool get isAccepted => _accepted;
   set accepted(bool flag) => _accepted = flag;
 
-  bool get isReady => isActive && isAccepted
-      && identifier != null && key != null;
+  // bool get isReady => isActive && isAccepted
+  //     && identifier != null && sessionKey != null;
+  bool get isReady {
+    if (isActive && isAccepted && identifier != null) {
+      // handshake successful
+    } else {
+      // not active,
+      // handshaking, or
+      // not login
+      return false;
+    }
+    bool ok = sessionKey != null;
+    if (!ok) {
+      // session key lost?
+      /*await */_fsm.resume();
+    }
+    return ok;
+  }
 
   Connection? get connection {
     Porter? docker = gate.getPorter(remote: remoteAddress);
@@ -150,8 +165,8 @@ class ClientSession extends BaseSession with Logging {
 
   @override
   Future<void> setup() async {
-    setActive(true, null);
     await super.setup();
+    setActive(true, null);
   }
 
   @override

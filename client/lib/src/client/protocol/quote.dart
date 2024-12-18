@@ -61,7 +61,7 @@ class BaseQuoteContent extends BaseContent implements QuoteContent {
   BaseQuoteContent(super.dict) : _content = null;
 
   BaseQuoteContent.from(ID sender, Content content)
-      : super.fromType(ContentType.kQuote) {
+      : super.fromType(ContentType.QUOTE) {
     this['quote'] = {
       'sender' : sender.toString(),
       'content': content.toMap(),

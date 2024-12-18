@@ -43,7 +43,7 @@ class InviteCommandProcessor extends GroupCommandProcessor {
   InviteCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is InviteCommand, 'invite command error: $content');
     GroupCommand command = content as GroupCommand;
 
@@ -59,6 +59,13 @@ class InviteCommandProcessor extends GroupCommandProcessor {
     if (inviteList.isEmpty) {
       // command error
       return pair1.second ?? [];
+    }
+
+    User? user = await facebook?.currentUser;
+    ID? me = user?.identifier;
+    if (me == null) {
+      assert(false, 'failed to get current user');
+      return [];
     }
 
     // 1. check group
@@ -96,8 +103,7 @@ class InviteCommandProcessor extends GroupCommandProcessor {
       // maybe those users are already become members,
       // but if it can still receive an 'invite' command here,
       // we should respond the sender with the newest membership again.
-      User? user = await facebook?.currentUser;
-      if (!canReset && owner == user?.identifier) {
+      if (!canReset && owner == me) {
         // the sender cannot reset the group, means it's an ordinary member now,
         // and if I am the owner, then send the group history commands
         // to update the sender's memory.

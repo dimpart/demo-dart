@@ -36,7 +36,6 @@ import '../common/protocol/handshake.dart';
 import '../common/protocol/login.dart';
 import '../common/protocol/report.dart';
 
-import 'archivist.dart';
 import 'network/session.dart';
 
 
@@ -47,8 +46,8 @@ abstract class ClientMessenger extends CommonMessenger {
   @override
   ClientSession get session => super.session as ClientSession;
 
-  // protected
-  ClientArchivist get archivist => facebook.archivist as ClientArchivist;
+  // // protected
+  // ClientArchivist get archivist => facebook.archivist as ClientArchivist;
 
   @override
   Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async {
@@ -69,9 +68,11 @@ abstract class ClientMessenger extends CommonMessenger {
       assert(false, 'failed to get current user');
       return null;
     }
+    ID me = currentUser.identifier;
+    ID to = originalEnvelope.sender;
     String text = 'Message received.';
     var res = ReceiptCommand.create(text, originalEnvelope, null);
-    var env = Envelope.create(sender: currentUser.identifier, receiver: originalEnvelope.sender);
+    var env = Envelope.create(sender: me, receiver: to);
     var iMsg = InstantMessage.create(env, res);
     var sMsg = await encryptMessage(iMsg);
     if (sMsg == null) {
@@ -87,7 +88,7 @@ abstract class ClientMessenger extends CommonMessenger {
 
   // protected
   Future<bool> needsReceipt(ReliableMessage rMsg) async {
-    if (rMsg.type == ContentType.kCommand) {
+    if (rMsg.type == ContentType.COMMAND) {
       // filter for looping message (receipt for receipt)
       return false;
     }
@@ -99,7 +100,7 @@ abstract class ClientMessenger extends CommonMessenger {
     //     return false;
     //   }
     // }
-    if (sender.type != EntityType.kUser/* && receiver.type != EntityType.kUser*/) {
+    if (sender.type != EntityType.USER/* && receiver.type != EntityType.kUser*/) {
       // message between bots
       return false;
     }
@@ -123,7 +124,7 @@ abstract class ClientMessenger extends CommonMessenger {
         logWarning('not handshake yet, suspend message: $content => ${iMsg.receiver}');
         // TODO: suspend instant message
         return null;
-      } else if (content.cmd == HandshakeCommand.kHandshake) {
+      } else if (content.cmd == HandshakeCommand.HANDSHAKE) {
         // NOTICE: only handshake message can go out
         iMsg['pass'] = 'handshaking';
       } else {
@@ -157,27 +158,34 @@ abstract class ClientMessenger extends CommonMessenger {
   Future<void> handshake(String? sessionKey) async {
     Station station = session.station;
     ID sid = station.identifier;
-    if (sessionKey == null) {
+    if (sessionKey == null || sessionKey.isEmpty) {
       // first handshake
       User? user = await facebook.currentUser;
       assert(user != null, 'current user not found');
       ID me = user!.identifier;
       Envelope env = Envelope.create(sender: me, receiver: sid);
       Content content = HandshakeCommand.start();
-      // send first handshake command as broadcast message
+      // send first handshake command as broadcast message?
       content.group = Station.kEvery;
+      // update visa before first handshake
+      await updateVisa();
+      Meta meta = await user.meta;
+      Visa? visa = await user.visa;
       // create instant message with meta & visa
       InstantMessage iMsg = InstantMessage.create(env, content);
-      // MessageHelper.setMeta(await user.meta, iMsg);
-      // MessageHelper.setVisa(await user.visa, iMsg);
-      iMsg.setMap('meta', await user.meta);
-      iMsg.setMap('visa', await user.visa);
+      MessageHelper.setMeta(meta, iMsg);
+      MessageHelper.setVisa(visa, iMsg);
       await sendInstantMessage(iMsg, priority: -1);
     } else {
       // handshake again
       Content content = HandshakeCommand.restart(sessionKey);
       await sendContent(content, sender: null, receiver: sid, priority: -1);
     }
+  }
+
+  Future<bool> updateVisa() async {
+    logInfo('TODO: update visa for first handshake');
+    return true;
   }
 
   ///  Callback for handshake success
@@ -200,37 +208,18 @@ abstract class ClientMessenger extends CommonMessenger {
       return;
     }
     ID me = visa.identifier;
+    var checker = facebook.checker;
     //
     //  send to all contacts
     //
     List<ID> contacts = await facebook.getContacts(me);
     for (ID item in contacts) {
-      await sendVisa(visa, item, updated: updated);
+      await checker.sendVisa(visa, item, updated: updated);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await sendVisa(visa, ID.kEveryone, updated: updated);
-  }
-
-  ///  Send my visa document to contact
-  ///  if document is updated, force to send it again.
-  ///  else only send once every 10 minutes.
-  Future<bool> sendVisa(Visa visa, ID contact, {bool updated = false}) async {
-    ID me = visa.identifier;
-    if (me == contact) {
-      logWarning('skip cycled message: $contact, $visa');
-      return false;
-    }
-    if (!archivist.isDocumentResponseExpired(contact, updated)) {
-      // response not expired yet
-      logDebug('visa response not expired yet: $contact');
-      return false;
-    }
-    logInfo('push visa document: $me => $contact');
-    DocumentCommand command = DocumentCommand.response(me, null, visa);
-    var res = await sendContent(command, sender: me, receiver: contact, priority: 1);
-    return res.second != null;
+    await checker.sendVisa(visa, ID.EVERYONE, updated: updated);
   }
 
   ///  Send login command to keep roaming
@@ -241,18 +230,18 @@ abstract class ClientMessenger extends CommonMessenger {
     content.agent = userAgent;
     content.station = station;
     // broadcast to 'everyone@everywhere'
-    await sendContent(content, sender: sender, receiver: ID.kEveryone, priority: 1);
+    await sendContent(content, sender: sender, receiver: ID.EVERYONE, priority: 1);
   }
 
   ///  Send report command to keep user online
   Future<void> reportOnline(ID sender) async {
-    Content content = ReportCommand.fromTitle(ReportCommand.kOnline);
+    Content content = ReportCommand.fromTitle(ReportCommand.ONLINE);
     await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
   }
 
   ///  Send report command to let user offline
   Future<void> reportOffline(ID sender) async {
-    Content content = ReportCommand.fromTitle(ReportCommand.kOffline);
+    Content content = ReportCommand.fromTitle(ReportCommand.OFFLINE);
     await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
   }
 

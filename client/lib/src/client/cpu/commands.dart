@@ -44,7 +44,7 @@ class AnsCommandProcessor extends BaseCommandProcessor with Logging {
   AnsCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is AnsCommand, 'ans command error: $content');
     AnsCommand command = content as AnsCommand;
     Map<String, String>? records = command.records;
@@ -70,7 +70,7 @@ class LoginCommandProcessor extends BaseCommandProcessor with Logging {
   SessionDBI? get database => messenger?.session.database;
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is LoginCommand, 'login command error: $content');
     LoginCommand command = content as LoginCommand;
     ID sender = command.identifier;
@@ -92,12 +92,12 @@ class ReceiptCommandProcessor extends BaseCommandProcessor {
   ReceiptCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ReceiptCommand, 'receipt command error: $content');
-    // no need to response receipt command
     if (content is ReceiptCommand) {
       SharedGroupManager().delegate.updateRespondTime(content, rMsg.envelope);
     }
+    // no need to response receipt command
     return [];
   }
 }

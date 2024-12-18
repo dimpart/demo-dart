@@ -28,18 +28,25 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:typed_data';
+
 import 'package:dimp/dimp.dart';
 
 import '../common/packer.dart';
 
+import 'checkpoint.dart';
 import 'facebook.dart';
-import 'messenger.dart';
 
 abstract class ClientMessagePacker extends CommonPacker {
   ClientMessagePacker(super.facebook, super.messenger);
 
   @override
   ClientFacebook? get facebook => super.facebook as ClientFacebook?;
+
+  /// for checking whether group's ready
+  // protected
+  Future<List<ID>> getMembers(ID group) async =>
+      await facebook!.getMembers(group);
 
   @override
   Future<bool> checkReceiver(InstantMessage iMsg) async {
@@ -143,6 +150,26 @@ abstract class ClientMessagePacker extends CommonPacker {
   }
 
   @override
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
+    var msg = await super.deserializeMessage(data);
+    if (msg != null && checkDuplicated(msg)) {
+      msg = null;
+    }
+    return msg;
+  }
+
+  // protected
+  bool checkDuplicated(ReliableMessage msg) {
+    var cp = Checkpoint();
+    bool duplicated = cp.duplicated(msg);
+    if (duplicated) {
+      String? sig = cp.getSig(msg);
+      logWarning('drop duplicated message ($sig): ${msg.sender} -> ${msg.receiver}');
+    }
+    return duplicated;
+  }
+
+  @override
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
     InstantMessage? iMsg;
     try {
@@ -201,12 +228,12 @@ abstract class ClientMessagePacker extends CommonPacker {
       // FIXME: user visa not found?
       throw Exception('user visa error: $user');
     }
-    var transceiver = messenger;
-    if (transceiver is! ClientMessenger) {
-      assert(false, 'messenger error: $transceiver');
+    var checker = facebook?.checker;
+    if (checker == null) {
+      assert(false, 'failed to get entity checker');
       return false;
     }
-    return await transceiver.sendVisa(visa, contact);
+    return await checker.sendVisa(visa, contact);
   }
 
   // protected
@@ -214,7 +241,7 @@ abstract class ClientMessagePacker extends CommonPacker {
     ID sender = sMsg.sender;
     ID? group = sMsg.group;
     int? type = sMsg.type;
-    if (type == ContentType.kCommand || type == ContentType.kHistory) {
+    if (type == ContentType.COMMAND || type == ContentType.HISTORY) {
       logWarning('ignore message unable to decrypt (type=$type) from "$sender"');
       return null;
     }

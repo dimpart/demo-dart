@@ -52,7 +52,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   @override
   ContentProcessor? createContentProcessor(int msgType) {
     // history command
-    if (msgType == ContentType.kHistory) {
+    if (msgType == ContentType.HISTORY) {
       return HistoryCommandProcessor(facebook!, messenger!);
     }
     // default
@@ -65,35 +65,35 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
   @override
   ContentProcessor? createCommandProcessor(int msgType, String cmd) {
-    if (cmd == Command.kReceipt) {
+    if (cmd == Command.RECEIPT) {
       return ReceiptCommandProcessor(facebook!, messenger!);
     }
-    if (cmd == HandshakeCommand.kHandshake) {
+    if (cmd == HandshakeCommand.HANDSHAKE) {
       return HandshakeCommandProcessor(facebook!, messenger!);
     }
-    if (cmd == LoginCommand.kLogin) {
+    if (cmd == LoginCommand.LOGIN) {
       return LoginCommandProcessor(facebook!, messenger!);
     }
-    if (cmd == AnsCommand.kANS) {
+    if (cmd == AnsCommand.ANS) {
       return AnsCommandProcessor(facebook!, messenger!);
     }
     // group commands
     if (cmd == 'group') {
       return GroupCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.kInvite) {
+    } else if (cmd == GroupCommand.INVITE) {
       return InviteCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.kExpel) {
+    } else if (cmd == GroupCommand.EXPEL) {
       /// Deprecated (use 'reset' instead)
       return ExpelCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.kJoin) {
+    } else if (cmd == GroupCommand.JOIN) {
       return JoinCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.kQuit) {
+    } else if (cmd == GroupCommand.QUIT) {
       return QuitCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.kQuery) {
+    } else if (cmd == GroupCommand.QUERY) {
       return QueryCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.kReset) {
+    } else if (cmd == GroupCommand.RESET) {
       return ResetCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.kResign) {
+    } else if (cmd == GroupCommand.RESIGN) {
       return ResignCommandProcessor(facebook!, messenger!);
     }
     // others

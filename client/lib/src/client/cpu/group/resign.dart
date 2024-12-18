@@ -42,7 +42,7 @@ class ResignCommandProcessor extends GroupCommandProcessor {
   ResignCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ResignCommand, 'resign command error: $content');
     GroupCommand command = content as GroupCommand;
 

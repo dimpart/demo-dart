@@ -28,6 +28,8 @@ export 'src/client/cpu/commands.dart';
 export 'src/client/cpu/creator.dart';
 
 export 'src/client/archivist.dart';
+export 'src/client/checkpoint.dart';
+export 'src/client/client_checker.dart';
 export 'src/client/facebook.dart';
 export 'src/client/messenger.dart';
 export 'src/client/packer.dart';

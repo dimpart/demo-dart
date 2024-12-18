@@ -1,3 +1,7 @@
+## 0.6.1
+
+- Entity Checker.
+
 ## 0.6.0
 
 - PNF for images.

@@ -63,10 +63,11 @@ abstract class EntityChecker {
   EntityChecker(this.database);
 
   // protected
-  bool isMetaQueryExpired(ID identifier)        => _metaQueries.isExpired(identifier);
-  bool isDocumentQueryExpired(ID identifier)    => _docsQueries.isExpired(identifier);
-  bool isMembersQueryExpired(ID identifier)     => _membersQueries.isExpired(identifier);
-  bool isDocumentResponseExpired(ID identifier) => _visaResponses.isExpired(identifier);
+  bool isMetaQueryExpired(ID identifier)     => _metaQueries.isExpired(identifier);
+  bool isDocumentQueryExpired(ID identifier) => _docsQueries.isExpired(identifier);
+  bool isMembersQueryExpired(ID identifier)  => _membersQueries.isExpired(identifier);
+  bool isDocumentResponseExpired(ID identifier, bool force) =>
+      _visaResponses.isExpired(identifier, force: force);
 
   /// Set last active member for group
   void setLastActiveMember(ID member, {required ID group}) =>
@@ -105,6 +106,7 @@ abstract class EntityChecker {
   }
 
   ///  check whether need to query meta
+  // protected
   bool needsQueryMeta(ID identifier, Meta? meta) {
     if (identifier.isBroadcast) {
       // broadcast entity has no meta to query
