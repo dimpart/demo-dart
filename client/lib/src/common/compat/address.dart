@@ -29,21 +29,21 @@
  * ==============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:dim_plugins/dim_plugins.dart';
+import 'package:dimsdk/core.dart';
+import 'package:dim_plugins/mkm.dart';
 
 
-/// Unsupported Address
-/// ~~~~~~~~~~~~~~~~~~~
-class _UnknownAddress extends ConstantString implements Address {
-  _UnknownAddress(super.string);
+class CompatibleAddressFactory extends BaseAddressFactory {
 
-  @override
-  int get type => 0;
-
-}
-
-
-class _CompatibleAddressFactory extends BaseAddressFactory {
+  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
+  /// this will remove 50% of cached objects
+  ///
+  /// @return number of survivors
+  int reduceMemory() {
+    int finger = 0;
+    finger = Barrack.thanos(addresses, finger);
+    return finger >> 1;
+  }
 
   @override
   Address? createAddress(String address) {
@@ -84,6 +84,12 @@ class _CompatibleAddressFactory extends BaseAddressFactory {
 }
 
 
-void registerCompatibleAddressFactory() {
-  Address.setFactory(_CompatibleAddressFactory());
+/// Unsupported Address
+/// ~~~~~~~~~~~~~~~~~~~
+class _UnknownAddress extends ConstantString implements Address {
+  _UnknownAddress(super.string);
+
+  @override
+  int get type => 0;
+
 }

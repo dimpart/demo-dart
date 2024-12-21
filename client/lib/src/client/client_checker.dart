@@ -63,7 +63,7 @@ class ClientChecker extends EntityChecker with Logging {
     logInfo('querying meta for: $identifier');
     var content = MetaCommand.query(identifier);
     var pair = await messenger?.sendContent(content,
-      sender: null, receiver: Station.kAny, priority: 1,);
+      sender: null, receiver: Station.ANY, priority: 1,);
     return pair?.second != null;
   }
 
@@ -78,7 +78,7 @@ class ClientChecker extends EntityChecker with Logging {
     logInfo('querying documents for: $identifier, last time: $lastTime');
     var content = DocumentCommand.query(identifier, lastTime);
     var pair = await messenger?.sendContent(content,
-        sender: null, receiver: Station.kAny, priority: 1);
+        sender: null, receiver: Station.ANY, priority: 1);
     return pair?.second != null;
   }
 

@@ -1,9 +1,5 @@
 library dim_client;
 
-export 'package:dimp/dimp.dart';
-export 'package:dimsdk/dimsdk.dart';
-export 'package:dim_plugins/dim_plugins.dart';
-
 
 export 'src/common/utils/checkers.dart';
 
@@ -19,12 +15,6 @@ export 'src/common/protocol/version.dart';
 export 'src/common/dbi/account.dart';
 export 'src/common/dbi/message.dart';
 export 'src/common/dbi/session.dart';
-
-export 'src/common/compat/address.dart';
-export 'src/common/compat/compatible.dart';
-export 'src/common/compat/network.dart';
-export 'src/common/compat/entity.dart';
-export 'src/common/compat/meta.dart';
 
 export 'src/common/anonymous.dart';
 export 'src/common/ans.dart';

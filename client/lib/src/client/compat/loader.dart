@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                               Written in 2023 by Moky <albert.moky@gmail.com>
+ *                               Written in 2024 by Moky <albert.moky@gmail.com>
  *
  * =============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Albert Moky
+ * Copyright (c) 2024 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,27 +28,47 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
-import 'package:dimsdk/mkm.dart';
+import 'package:dimp/mkm.dart';
 
-import '../common/archivist.dart';
-import '../group/shared.dart';
+import '../../common/compat/entity.dart';
+import '../../common/compat/loader.dart';
+import '../facebook.dart';
 
 
-abstract class ClientArchivist extends CommonArchivist {
-  ClientArchivist(super.facebook, super.db);
+/// Extensions Loader
+/// ~~~~~~~~~~~~~~~~~
+class ClientPluginLoader extends CommonPluginLoader {
 
   @override
-  Future<Group?> createGroup(ID identifier) async {
-    var group = await super.createGroup(identifier);
-    if (group != null) {
-      var delegate = group.dataSource;
-      if (delegate == null || delegate == facebook) {
-        // replace group's data source
-        group.dataSource = SharedGroupManager();
-      }
+  void registerIDFactory() {
+    ID.setFactory(_IdentifierFactory());
+  }
+
+}
+
+IDFactory _identifierFactory = EntityIDFactory();
+
+class _IdentifierFactory implements IDFactory {
+
+  @override
+  ID generateIdentifier(Meta meta, int? network, {String? terminal}) {
+    return _identifierFactory.generateIdentifier(meta, network, terminal: terminal);
+  }
+
+  @override
+  ID createIdentifier({String? name, required Address address, String? terminal}) {
+    return _identifierFactory.createIdentifier(name: name, address: address, terminal: terminal);
+  }
+
+  @override
+  ID? parseIdentifier(String identifier) {
+    // try ANS record
+    ID? id = ClientFacebook.ans?.identifier(identifier);
+    if (id != null) {
+      return id;
     }
-    return group;
+    // parse by original factory
+    return _identifierFactory.parseIdentifier(identifier);
   }
 
 }

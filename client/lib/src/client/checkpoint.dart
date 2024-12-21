@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dim_client/dim_client.dart';
+import 'package:dimp/dkd.dart';
 
 
 /// Signature pool for messages

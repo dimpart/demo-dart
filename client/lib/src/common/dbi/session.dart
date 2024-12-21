@@ -87,7 +87,7 @@ class ProviderInfo {
 class StationInfo {
   StationInfo(ID? sid, this.chosen,
       {required this.host, required this.port, required this.provider}) {
-    identifier = sid ?? Station.kAny;  // 'station@anywhere'
+    identifier = sid ?? Station.ANY;  // 'station@anywhere'
   }
 
   late ID identifier;

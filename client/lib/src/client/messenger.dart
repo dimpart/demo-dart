@@ -166,7 +166,7 @@ abstract class ClientMessenger extends CommonMessenger {
       Envelope env = Envelope.create(sender: me, receiver: sid);
       Content content = HandshakeCommand.start();
       // send first handshake command as broadcast message?
-      content.group = Station.kEvery;
+      content.group = Station.EVERY;
       // update visa before first handshake
       await updateVisa();
       Meta meta = await user.meta;
@@ -236,13 +236,13 @@ abstract class ClientMessenger extends CommonMessenger {
   ///  Send report command to keep user online
   Future<void> reportOnline(ID sender) async {
     Content content = ReportCommand.fromTitle(ReportCommand.ONLINE);
-    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
+    await sendContent(content, sender: sender, receiver: Station.ANY, priority: 1);
   }
 
   ///  Send report command to let user offline
   Future<void> reportOffline(ID sender) async {
     Content content = ReportCommand.fromTitle(ReportCommand.OFFLINE);
-    await sendContent(content, sender: sender, receiver: Station.kAny, priority: 1);
+    await sendContent(content, sender: sender, receiver: Station.ANY, priority: 1);
   }
 
 }

@@ -28,30 +28,24 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dim_plugins/dim_plugins.dart';
 import 'package:dimp/dimp.dart';
+import 'package:dimsdk/core.dart';
+import 'package:dim_plugins/mkm.dart';
 
 import 'network.dart';
 
 
-class _EntityID extends Identifier {
-  _EntityID(super.string, {super.name, required super.address, super.terminal});
+class EntityIDFactory extends IdentifierFactory {
 
-  @override
-  int get type {
-    String? text = name;
-    if (text == null || text.isEmpty) {
-      // all ID without 'name' field must be a user
-      // e.g.: BTC address
-      return EntityType.USER;
-    }
-    // compatible with MKM 0.9.*
-    return NetworkID.getType(address.type);
+  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
+  /// this will remove 50% of cached objects
+  ///
+  /// @return number of survivors
+  int reduceMemory() {
+    int finger = 0;
+    finger = Barrack.thanos(identifiers, finger);
+    return finger >> 1;
   }
-
-}
-
-class _EntityIDFactory extends IdentifierFactory {
 
   @override // protected
   ID newID(String identifier, {String? name, required Address address, String? terminal}) {
@@ -92,6 +86,19 @@ class _EntityIDFactory extends IdentifierFactory {
 }
 
 
-void registerEntityIDFactory() {
-  ID.setFactory(_EntityIDFactory());
+class _EntityID extends Identifier {
+  _EntityID(super.string, {super.name, required super.address, super.terminal});
+
+  @override
+  int get type {
+    String? text = name;
+    if (text == null || text.isEmpty) {
+      // all ID without 'name' field must be a user
+      // e.g.: BTC address
+      return EntityType.USER;
+    }
+    // compatible with MKM 0.9.*
+    return NetworkID.getType(address.type);
+  }
+
 }

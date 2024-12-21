@@ -29,11 +29,12 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:dimsdk/mkm.dart';
 
 import '../common/ans.dart';
 import '../common/facebook.dart';
 import '../common/protocol/helper.dart';
-import '../common/register.dart';
+
 
 ///  Client Facebook with Address Name Service
 abstract class ClientFacebook extends CommonFacebook {
@@ -207,47 +208,5 @@ abstract class ClientFacebook extends CommonFacebook {
   //  Address Name Service
   //
   static AddressNameServer? ans;
-
-  static void prepare() {
-    if (_loaded) {
-      return;
-    }
-
-    // load plugins
-    Register.prepare();
-
-    _identifierFactory = ID.getFactory();
-    ID.setFactory(_IdentifierFactory());
-
-    _loaded = true;
-  }
-  static bool _loaded = false;
-
-}
-
-IDFactory? _identifierFactory;
-
-class _IdentifierFactory implements IDFactory {
-
-  @override
-  ID generateIdentifier(Meta meta, int? network, {String? terminal}) {
-    return _identifierFactory!.generateIdentifier(meta, network, terminal: terminal);
-  }
-
-  @override
-  ID createIdentifier({String? name, required Address address, String? terminal}) {
-    return _identifierFactory!.createIdentifier(name: name, address: address, terminal: terminal);
-  }
-
-  @override
-  ID? parseIdentifier(String identifier) {
-    // try ANS record
-    ID? id = ClientFacebook.ans?.identifier(identifier);
-    if (id != null) {
-      return id;
-    }
-    // parse by original factory
-    return _identifierFactory?.parseIdentifier(identifier);
-  }
 
 }

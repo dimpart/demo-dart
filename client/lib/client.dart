@@ -1,12 +1,5 @@
 library dim_client;
 
-export 'package:object_key/object_key.dart';
-
-export 'dim_common.dart';
-export 'dim_network.dart';
-export 'dim_sqlite.dart';
-export 'dim_group.dart';
-
 
 export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';

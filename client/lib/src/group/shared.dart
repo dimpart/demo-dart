@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimp/dimp.dart';
+import 'package:dimsdk/mkm.dart';
 
 import '../common/facebook.dart';
 import '../common/messenger.dart';

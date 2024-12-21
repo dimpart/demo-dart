@@ -130,7 +130,7 @@ class AdminManager extends TripletsHelper {
     ID group = doc.identifier;
     Meta? meta = await barrack?.getMeta(group);
     Command content = DocumentCommand.response(group, meta, doc);
-    transceiver?.sendContent(content, sender: me, receiver: Station.kAny, priority: 1);
+    transceiver?.sendContent(content, sender: me, receiver: Station.ANY, priority: 1);
 
     //
     //  2. check group bots

@@ -32,19 +32,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
-import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/dim_plugins.dart';
 
-import 'compat/address.dart';
-import 'compat/entity.dart';
-import 'compat/meta.dart';
 import 'dbi/account.dart';
-import 'protocol/handshake.dart';
-import 'protocol/login.dart';
-import 'protocol/report.dart';
-import 'protocol/mute.dart';
-import 'protocol/block.dart';
-import 'protocol/ans.dart';
 
 class Register {
   Register(this.database);
@@ -164,43 +153,5 @@ class Register {
     assert(sig != null, 'failed to sign bulletin: $identifier');
     return doc;
   }
-
-  static void prepare() {
-    if (_loaded) {
-      return;
-    }
-
-    // load plugins
-    registerPlugins();
-    registerEntityIDFactory();
-    registerCompatibleAddressFactory();
-    registerCompatibleMetaFactories();
-
-    // load message/content factories
-    _registerFactories();
-
-    _loaded = true;
-  }
-  static bool _loaded = false;
-}
-
-void _registerFactories() {
-  //
-  //  Register core factories
-  //
-  registerAllFactories();
-
-  // Handshake
-  Command.setFactory(HandshakeCommand.HANDSHAKE, CommandParser((dict) => BaseHandshakeCommand(dict)));
-  // Login
-  Command.setFactory(LoginCommand.LOGIN, CommandParser((dict) => BaseLoginCommand(dict)));
-  // Report
-  Command.setFactory(ReportCommand.REPORT, CommandParser((dict) => BaseReportCommand(dict)));
-  // Mute
-  Command.setFactory(MuteCommand.MUTE, CommandParser((dict) => MuteCommand(dict)));
-  // Block
-  Command.setFactory(BlockCommand.BLOCK, CommandParser((dict) => BlockCommand(dict)));
-  // ANS
-  Command.setFactory(AnsCommand.ANS, CommandParser((dict) => BaseAnsCommand(dict)));
 
 }

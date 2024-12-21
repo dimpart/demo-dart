@@ -112,7 +112,7 @@ class GroupManager extends TripletsHelper {
       assert(false, 'failed to get group info: $group');
       return null;
     }
-    bool ok = await _sendCommand(content, receiver: Station.kAny);  // to neighbor(s)
+    bool ok = await _sendCommand(content, receiver: Station.ANY);  // to neighbor(s)
     assert(ok, 'failed to upload meta/document to neighbor station');
 
     //
