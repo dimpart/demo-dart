@@ -155,7 +155,7 @@ abstract class CommonFacebook extends Facebook with Logging {
     //
     //  1. check valid
     //
-    if (checkDocumentValid(doc)) {
+    if (await checkDocumentValid(doc)) {
       // document valid
     } else {
       assert(false, 'meta not valid: ${doc.identifier}');
@@ -175,7 +175,7 @@ abstract class CommonFacebook extends Facebook with Logging {
   }
 
   // protected
-  bool checkDocumentValid(Document doc) {
+  Future<bool> checkDocumentValid(Document doc) async {
     ID identifier = doc.identifier;
     DateTime? docTime = doc.time;
     // check document time
@@ -192,8 +192,18 @@ abstract class CommonFacebook extends Facebook with Logging {
         return false;
       }
     }
-    // OK
-    return doc.isValid;
+    // check valid
+    return doc.isValid || await verifyDocument(doc);
+  }
+
+  // protected
+  Future<bool> verifyDocument(Document doc) async {
+    Meta? meta = await getMeta(doc.identifier);
+    if (meta == null) {
+      logWarning('failed to get meta: ${doc.identifier}');
+      return false;
+    }
+    return doc.verify(meta.publicKey);
   }
 
   // protected

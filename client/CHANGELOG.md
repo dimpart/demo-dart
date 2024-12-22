@@ -1,3 +1,7 @@
+## 0.6.2
+
+- Verify document.
+
 ## 0.6.1
 
 - Entity Checker.

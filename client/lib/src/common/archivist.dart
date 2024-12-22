@@ -34,7 +34,7 @@ import 'package:lnc/log.dart';
 
 import 'dbi/account.dart';
 
-abstract class CommonArchivist with Logging implements Archivist {
+class CommonArchivist with Logging implements Archivist {
   CommonArchivist(Facebook facebook, AccountDBI db)
       : _barrack = WeakReference(facebook), database = db;
 

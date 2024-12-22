@@ -94,11 +94,15 @@ class MetaType {
     } else if (type is String) {
       // fixed values
       if (type == 'MKM' || type == 'mkm') {
-        return 1;
+        return MKM;
       } else if (type == 'BTC' || type == 'btc') {
-        return 2;
+        return BTC;
+      } else if (type == 'ExBTC') {
+        return ExBTC;
       } else if (type == 'ETH' || type == 'eth') {
-        return 4;
+        return ETH;
+      } else if (type == 'ExETH') {
+        return ExETH;
       }
       // TODO: other algorithms
     // } else if (type is MetaType) {
