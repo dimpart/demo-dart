@@ -75,6 +75,10 @@ class GroupPacker extends TripletsHelper {
       }
       logInfo('split group message for member: $receiver');
       info = iMsg.copyMap(false);
+      // Copy the content to avoid conflicts caused by modifications
+      // by different processes.
+      // Notice: there is no need to use deep copying here.
+      info['content'] = iMsg.content.copyMap(false);
       // replace 'receiver' with member ID
       info['receiver'] = receiver.toString();
       item = InstantMessage.parse(info);

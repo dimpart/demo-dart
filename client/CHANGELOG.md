@@ -1,3 +1,7 @@
+## 0.7.0
+
+- Export plugins.
+
 ## 0.6.3
 
 - Wait for sending command.
