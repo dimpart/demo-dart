@@ -56,24 +56,24 @@ class EntityIDFactory extends IdentifierFactory {
   @override
   ID? parse(String identifier) {
     // check broadcast IDs
-    int len = identifier.length;
-    if (len == 0) {
+    int size = identifier.length;
+    if (size < 4 || size > 64) {
       assert(false, 'ID empty');
       return null;
-    } else if (len == 15) {
+    } else if (size == 15) {
       // "anyone@anywhere"
       String lower = identifier.toLowerCase();
       if (ID.ANYONE.toString() == lower) {
         return ID.ANYONE;
       }
-    } else if (len == 19) {
+    } else if (size == 19) {
       // "everyone@everywhere"
       // "stations@everywhere"
       String lower = identifier.toLowerCase();
       if (ID.EVERYONE.toString() == lower) {
         return ID.EVERYONE;
       }
-    } else if (len == 13) {
+    } else if (size == 13) {
       // "moky@anywhere"
       String lower = identifier.toLowerCase();
       if (ID.FOUNDER.toString() == lower) {
@@ -98,7 +98,7 @@ class _EntityID extends Identifier {
       return EntityType.USER;
     }
     // compatible with MKM 0.9.*
-    return NetworkID.getType(address.type);
+    return NetworkID.getType(address.network);
   }
 
 }

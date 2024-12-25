@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
@@ -45,17 +44,15 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   final AccountDBI database;
 
+  EntityChecker? checker;
+
   CommonArchivist? _archivist;
-  EntityChecker? _checker;
 
   User? _current;
 
   @override
   CommonArchivist get archivist => _archivist!;
   set archivist(CommonArchivist delegate) => _archivist = delegate;
-
-  EntityChecker get checker => _checker!;
-  set checker(EntityChecker delegate) => _checker = delegate;
 
   //
   //  Current User
@@ -84,22 +81,22 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   Future<Document?> getDocument(ID identifier, [String? type]) async {
     List<Document> documents = await getDocuments(identifier);
-    Document? doc = DocumentHelper.lastDocument(documents, type);
+    Document? doc = DocumentUtils.lastDocument(documents, type);
     // compatible for document type
     if (doc == null && type == Document.VISA) {
-      doc = DocumentHelper.lastDocument(documents, Document.PROFILE);
+      doc = DocumentUtils.lastDocument(documents, Document.PROFILE);
     }
     return doc;
   }
 
   Future<Visa?> getVisa(ID user) async {
     List<Document> documents = await getDocuments(user);
-    return DocumentHelper.lastVisa(documents);
+    return DocumentUtils.lastVisa(documents);
   }
 
   Future<Bulletin?> getBulletin(ID user) async {
     List<Document> documents = await getDocuments(user);
-    return DocumentHelper.lastBulletin(documents);
+    return DocumentUtils.lastBulletin(documents);
   }
 
   Future<String> getName(ID identifier) async {
@@ -130,9 +127,7 @@ abstract class CommonFacebook extends Facebook with Logging {
     //
     //  1. check valid
     //
-    if (meta.isValid && meta.matchIdentifier(identifier)) {
-      // meta valid
-    } else {
+    if (!checkMeta(meta, identifier)) {
       assert(false, 'meta not valid: $identifier');
       return false;
     }
@@ -148,6 +143,11 @@ abstract class CommonFacebook extends Facebook with Logging {
     //  3. save into database
     //
     return await database.saveMeta(meta, identifier);
+  }
+
+  // protected
+  bool checkMeta(Meta meta, ID identifier) {
+    return meta.isValid && MetaUtils.matchIdentifier(identifier, meta);
   }
 
   @override
@@ -212,8 +212,8 @@ abstract class CommonFacebook extends Facebook with Logging {
     String type = doc.type ?? '*';
     // check old documents with type
     List<Document> documents = await getDocuments(identifier);
-    Document? old = DocumentHelper.lastDocument(documents, type);
-    return old != null && DocumentHelper.isExpired(doc, old);
+    Document? old = DocumentUtils.lastDocument(documents, type);
+    return old != null && DocumentUtils.isExpired(doc, old);
   }
 
   //
@@ -223,14 +223,14 @@ abstract class CommonFacebook extends Facebook with Logging {
   @override
   Future<Meta?> getMeta(ID identifier) async {
     var meta = await database.getMeta(identifier);
-    /*await */checker.checkMeta(identifier, meta);
+    /*await */checker?.checkMeta(identifier, meta);
     return meta;
   }
 
   @override
   Future<List<Document>> getDocuments(ID identifier) async {
     var docs = await database.getDocuments(identifier);
-    /*await */checker.checkDocuments(identifier, docs);
+    /*await */checker?.checkDocuments(identifier, docs);
     return docs;
   }
 

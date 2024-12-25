@@ -69,7 +69,7 @@ abstract class ClientMessagePacker extends CommonPacker {
         'message': 'group members not found',
         'group': receiver.toString(),
       };
-      suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
+      /*await */suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
       return false;
     }
     //
@@ -92,7 +92,7 @@ abstract class ClientMessagePacker extends CommonPacker {
       'group': receiver.toString(),
       'members': ID.revert(waiting),
     };
-    suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
+    /*await */suspendInstantMessage(iMsg, error);  // iMsg.put("error", error);
     // perhaps some members have already disappeared,
     // although the packer will query document when the member's visa key is not found,
     // but the station will never respond with the right document,
@@ -133,7 +133,7 @@ abstract class ClientMessagePacker extends CommonPacker {
       'message': 'group not ready',
       'group': group.toString(),
     };
-    suspendReliableMessage(sMsg, error);  // rMsg.put("error", error);
+    /*await */suspendReliableMessage(sMsg, error);  // rMsg.put("error", error);
     return false;
   }
 

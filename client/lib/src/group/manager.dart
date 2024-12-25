@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/register.dart';
@@ -221,12 +220,12 @@ class GroupManager extends TripletsHelper {
     if (bots.isNotEmpty) {
       // let the group bots know the newest member ID list,
       // so they can split group message correctly for us.
-      return _sendCommand(forward, members: bots);      // to all assistants
+      return await _sendCommand(forward, members: bots);      // to all assistants
     } else {
       // group bots not exist,
       // send the command to all members
-      _sendCommand(forward, members: newMembers);       // to new members
-      _sendCommand(forward, members: expelList);        // to removed members
+      await _sendCommand(forward, members: newMembers);       // to new members
+      await _sendCommand(forward, members: expelList);        // to removed members
     }
 
     return true;
@@ -297,18 +296,18 @@ class GroupManager extends TripletsHelper {
     if (bots.isNotEmpty) {
       // let the group bots know the newest member ID list,
       // so they can split group message correctly for us.
-      return _sendCommand(forward, members: bots);      // to all assistants
+      return await _sendCommand(forward, members: bots);      // to all assistants
     }
 
     // forward 'invite' to old members
-    _sendCommand(forward, members: oldMembers);         // to old members
+    await _sendCommand(forward, members: oldMembers);         // to old members
 
     // forward all group history to new members
     List<ReliableMessage> messages = await builder.buildGroupHistories(group);
     forward = ForwardContent.create(secrets: messages);
 
     // TODO: remove that members already exist before sending?
-    _sendCommand(forward, members: newMembers);         // to new members
+    await _sendCommand(forward, members: newMembers);         // to new members
     return true;
   }
 
@@ -381,11 +380,11 @@ class GroupManager extends TripletsHelper {
     if (bots.isNotEmpty) {
       // let the group bots know the newest member ID list,
       // so they can split group message correctly for us.
-      return _sendCommand(forward, members: bots);      // to group bots
+      return await _sendCommand(forward, members: bots);      // to group bots
     } else {
       // group bots not exist,
       // send the command to all members directly
-      return _sendCommand(forward, members: members);   // to all members
+      return await _sendCommand(forward, members: members);   // to all members
     }
   }
 
@@ -411,7 +410,7 @@ class GroupManager extends TripletsHelper {
         logInfo('skip cycled message: $me => $receiver');
         continue;
       }
-      transceiver?.sendContent(content, sender: me, receiver: receiver, priority: 1);
+      await transceiver?.sendContent(content, sender: me, receiver: receiver, priority: 1);
     }
     return true;
   }

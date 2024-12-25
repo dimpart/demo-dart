@@ -30,7 +30,6 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
@@ -67,7 +66,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
     ID sender = rMsg.sender;
     assert(sender.isUser, 'sender error: $sender');
     // check sender's meta & document
-    Visa? visa = MessageHelper.getVisa(rMsg);
+    Visa? visa = MessageUtils.getVisa(rMsg);
     if (visa != null) {
       // first handshake?
       bool matched = visa.identifier == sender;

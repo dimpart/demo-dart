@@ -90,14 +90,14 @@ class GroupHistoryBuilder extends TripletsHelper {
         continue;
       } else if (item.first is ResignCommand) {
         // 'resign' command, comparing it with document time
-        if (DocumentHelper.isBefore(doc.time, item.first.time)) {
-          logWarning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
+        if (DocumentUtils.isBefore(doc.time, item.first.time)) {
+          logWarning('expired "${item.first.commandName}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
       } else {
         // other commands('invite', 'join', 'quit'), comparing with 'reset' time
-        if (DocumentHelper.isBefore(reset.time, item.first.time)) {
-          logWarning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
+        if (DocumentUtils.isBefore(reset.time, item.first.time)) {
+          logWarning('expired "${item.first.commandName}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
       }
@@ -142,7 +142,11 @@ class GroupHistoryBuilder extends TripletsHelper {
     }
     // check members
     members ??= await delegate.getMembers(group);
-    assert(members.isNotEmpty, 'group members not found: $group');
+    if (members.isEmpty) {
+      logError('failed to get members for group: $group');
+      assert(false, 'group members not found: $group');
+      return Pair(null, null);
+    }
 
     ResetCommand command = GroupCommand.reset(group, members: members);
     ReliableMessage? rMsg = await _packBroadcastMessage(me, command);

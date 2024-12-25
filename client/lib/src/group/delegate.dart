@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/skywalker.dart';
@@ -151,7 +150,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
       assert(false, 'failed to get meta for group: $group, user: $user');
       return false;
     }
-    return gMeta.matchPublicKey(mMeta.publicKey);
+    return MetaUtils.matchPublicKey(mMeta.publicKey, gMeta);
   }
 
   Future<bool> isOwner(ID user, {required ID group}) async {
@@ -205,7 +204,7 @@ abstract class TripletsHelper with Logging {
   CommonArchivist? get archivist => facebook?.archivist;
 
   // protected
-  AccountDBI? get database => facebook?.archivist.database;
+  AccountDBI? get database => facebook?.database;
 
 }
 
@@ -267,7 +266,7 @@ class _GroupBotsManager extends Runner with Logging {
     //  3. check duration
     //
     Duration? cached = _respondTimes[sender];
-    if (cached != null && cached.inMicroseconds <= duration.inMicroseconds) {
+    if (cached != null && cached <= duration) {
       return false;
     }
     _respondTimes[sender] = duration;
@@ -353,7 +352,7 @@ class _GroupBotsManager extends Runner with Logging {
       logError('failed to get current user: $e, $st');
       return false;
     }
-    var checker = facebook!.checker;
+    var checker = facebook?.checker;
     //
     //  3. check candidates
     //
@@ -367,7 +366,7 @@ class _GroupBotsManager extends Runner with Logging {
       }
       // no respond yet, try to push visa to the bot
       try {
-        await checker.sendVisa(visa, item);
+        await checker?.sendVisa(visa, item);
       } catch (e, st) {
         logError('failed to query assistant: $item, $e, $st');
       }

@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
@@ -56,7 +55,7 @@ class HistoryCommandProcessor extends BaseCommandProcessor with Logging {
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'History command (name: \${command}) not support yet!',
       'replacements': {
-        'command': command.cmd,
+        'command': command.commandName,
       },
     });
   }
@@ -121,7 +120,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'Group command (name: \${command}) not support yet!',
       'replacements': {
-        'command': command.cmd,
+        'command': command.commandName,
       },
     });
   }
@@ -140,7 +139,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group command expired: \${cmd}, group: \${ID}',
         'replacements': {
-          'cmd': content.cmd,
+          'cmd': content.commandName,
           'ID': group.toString(),
         }
       });

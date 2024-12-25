@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import 'dbi/account.dart';
 import 'utils/checkers.dart';
@@ -115,7 +115,7 @@ abstract class EntityChecker {
       // meta not found, sure to query
       return true;
     }
-    assert(meta.matchIdentifier(identifier), 'meta not match: $identifier, $meta');
+    assert(MetaUtils.matchIdentifier(identifier, meta), 'meta not match: $identifier, $meta');
     return false;
   }
 

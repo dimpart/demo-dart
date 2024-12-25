@@ -30,10 +30,11 @@
  */
 import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
+import 'package:dimp/plugins.dart';
 import 'package:dim_plugins/mkm.dart';
 
 
-class CompatibleMetaFactory extends GeneralMetaFactory {
+class CompatibleMetaFactory extends BaseMetaFactory {
   CompatibleMetaFactory(super.type);
 
   @override
@@ -54,6 +55,7 @@ class CompatibleMetaFactory extends GeneralMetaFactory {
         break;
 
       default:
+        // TODO: other types of meta
         throw Exception('unknown meta type: $type');
     }
     assert(out.isValid, 'meta error: $out');
@@ -63,8 +65,8 @@ class CompatibleMetaFactory extends GeneralMetaFactory {
   @override
   Meta? parseMeta(Map meta) {
     Meta out;
-    AccountFactoryManager man = AccountFactoryManager();
-    String? version = man.generalFactory.getMetaType(meta, '');
+    var holder = SharedAccountHolder();
+    String? version = holder.helper!.getMetaType(meta, '');
     switch (version) {
 
       case 'MKM':
@@ -86,8 +88,10 @@ class CompatibleMetaFactory extends GeneralMetaFactory {
         break;
 
       default:
+        // TODO: other types of meta
         throw Exception('unknown meta type: $type');
     }
     return out.isValid ? out : null;
   }
+
 }

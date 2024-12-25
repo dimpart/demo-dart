@@ -28,8 +28,11 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:typed_data';
+
 import 'package:dimp/dimp.dart';
-import 'package:dimsdk/core.dart';
+import 'package:dimsdk/plugins.dart';
+import 'package:dim_plugins/format.dart';
 import 'package:dim_plugins/plugins.dart';
 
 import '../protocol/ans.dart';
@@ -46,7 +49,7 @@ import 'meta.dart';
 
 /// Extensions Loader
 /// ~~~~~~~~~~~~~~~~~
-class CommonLoader extends CoreLoader {
+class CommonLoader extends ExtensionLoader {
   CommonLoader(this.pluginLoader);
 
   // private
@@ -80,6 +83,8 @@ class CommonLoader extends CoreLoader {
 }
 
 
+/// Plugin Loader
+/// ~~~~~~~~~~~~~
 class CommonPluginLoader extends PluginLoader {
 
   @override
@@ -109,6 +114,33 @@ class CommonPluginLoader extends PluginLoader {
     Meta.setFactory('MKM', mkm);
     Meta.setFactory('BTC', btc);
     Meta.setFactory('ETH', eth);
+  }
+
+  @override
+  void registerBase64Coder() {
+    /// Base64 coding
+    Base64.coder = _Base64Coder();
+  }
+
+}
+
+/// Base-64
+class _Base64Coder extends Base64Coder {
+
+  @override
+  Uint8List? decode(String string) {
+    string = trimBase64String(string);
+    return super.decode(string);
+  }
+
+  static String trimBase64String(String b64) {
+    if (b64.contains('\n')) {
+      b64 = b64.replaceAll('\n', '');
+      b64 = b64.replaceAll('\r', '');
+      b64 = b64.replaceAll('\t', '');
+      b64 = b64.replaceAll(' ', '');
+    }
+    return b64.trim();
   }
 
 }

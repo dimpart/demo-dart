@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-abstract interface class BroadcastHelper {
+abstract interface class BroadcastUtils {
 
   // private
   static String? getGroupSeed(ID group) {

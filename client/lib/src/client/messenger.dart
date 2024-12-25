@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/messenger.dart';
@@ -124,7 +123,7 @@ abstract class ClientMessenger extends CommonMessenger {
         logWarning('not handshake yet, suspend message: $content => ${iMsg.receiver}');
         // TODO: suspend instant message
         return null;
-      } else if (content.cmd == HandshakeCommand.HANDSHAKE) {
+      } else if (content.commandName == HandshakeCommand.HANDSHAKE) {
         // NOTICE: only handshake message can go out
         iMsg['pass'] = 'handshaking';
       } else {
@@ -173,8 +172,8 @@ abstract class ClientMessenger extends CommonMessenger {
       Visa? visa = await user.visa;
       // create instant message with meta & visa
       InstantMessage iMsg = InstantMessage.create(env, content);
-      MessageHelper.setMeta(meta, iMsg);
-      MessageHelper.setVisa(visa, iMsg);
+      MessageUtils.setMeta(meta, iMsg);
+      MessageUtils.setVisa(visa, iMsg);
       await sendInstantMessage(iMsg, priority: -1);
     } else {
       // handshake again
@@ -214,12 +213,12 @@ abstract class ClientMessenger extends CommonMessenger {
     //
     List<ID> contacts = await facebook.getContacts(me);
     for (ID item in contacts) {
-      await checker.sendVisa(visa, item, updated: updated);
+      await checker?.sendVisa(visa, item, updated: updated);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await checker.sendVisa(visa, ID.EVERYONE, updated: updated);
+    await checker?.sendVisa(visa, ID.EVERYONE, updated: updated);
   }
 
   ///  Send login command to keep roaming

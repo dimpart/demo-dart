@@ -46,7 +46,7 @@ class GroupCommandHelper extends TripletsHelper {
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async {
     assert(group == content.group, 'group ID error: $group, $content');
     if (await isCommandExpired(content)) {
-      logWarning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
+      logWarning('drop expired command: ${content.commandName}, ${rMsg.sender} => $group');
       return false;
     }
     // check command time
@@ -56,8 +56,8 @@ class GroupCommandHelper extends TripletsHelper {
     } else {
       // calibrate the clock
       // make sure the command time is not in the far future
-      int current = DateTime.now().millisecondsSinceEpoch + 65536;
-      if (cmdTime.millisecondsSinceEpoch > current) {
+      DateTime nearFuture = DateTime.now().add(Duration(minutes: 30));
+      if (cmdTime.isAfter(nearFuture)) {
         assert(false, 'group command time error: $cmdTime, $content');
         return false;
       }
@@ -102,7 +102,7 @@ class GroupCommandHelper extends TripletsHelper {
         assert(false, 'group document not exists: $group');
         return true;
       }
-      return DocumentHelper.isBefore(doc.time, content.time);
+      return DocumentUtils.isBefore(doc.time, content.time);
     }
     // membership command, check with reset command
     Pair<ResetCommand?, ReliableMessage?> pair = await getResetCommandMessage(group);
@@ -111,7 +111,7 @@ class GroupCommandHelper extends TripletsHelper {
     if (cmd == null/* || msg == null*/) {
       return false;
     }
-    return DocumentHelper.isBefore(cmd.time, content.time);
+    return DocumentUtils.isBefore(cmd.time, content.time);
   }
 
   /// members

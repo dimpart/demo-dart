@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/skywalker.dart' show Runner;
@@ -123,8 +122,8 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
           logWarning('active session connected to $host:$port .');
           return old;
         }
-        await session.stop();
       }
+      await session.stop();
       _messenger = null;
     }
     logInfo('connecting to $host:$port ...');

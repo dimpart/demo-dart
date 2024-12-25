@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
@@ -98,7 +97,7 @@ class CommonArchivist with Logging implements Archivist {
   @override
   Future<EncryptKey?> getVisaKey(ID user) async {
     var docs = await facebook?.getDocuments(user);
-    var visa = docs == null ? null : DocumentHelper.lastVisa(docs);
+    var visa = docs == null ? null : DocumentUtils.lastVisa(docs);
     // assert(doc != null, 'failed to get visa for: $user');
     return visa?.publicKey;
   }

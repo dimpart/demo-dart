@@ -6,11 +6,11 @@ export 'src/common/utils/checkers.dart';
 export 'src/common/protocol/ans.dart';
 export 'src/common/protocol/block.dart';
 export 'src/common/protocol/handshake.dart';
-export 'src/common/protocol/helper.dart';
 export 'src/common/protocol/login.dart';
 export 'src/common/protocol/mute.dart';
 export 'src/common/protocol/report.dart';
 export 'src/common/protocol/version.dart';
+export 'src/common/protocol/utils.dart';
 
 export 'src/common/dbi/account.dart';
 export 'src/common/dbi/message.dart';

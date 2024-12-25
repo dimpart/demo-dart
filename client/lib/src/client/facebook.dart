@@ -33,7 +33,7 @@ import 'package:dimsdk/mkm.dart';
 
 import '../common/ans.dart';
 import '../common/facebook.dart';
-import '../common/protocol/helper.dart';
+import '../common/protocol/utils.dart';
 
 
 ///  Client Facebook with Address Name Service
@@ -50,6 +50,13 @@ abstract class ClientFacebook extends CommonFacebook {
     // the messenger will check group info before decrypting message,
     // so we can trust that the group's meta & members MUST exist here.
     List<User> users = await archivist.localUsers;
+    if (users.isEmpty) {
+      assert(false, 'local users should not be empty');
+      return null;
+    } else if (receiver.isBroadcast) {
+      // broadcast message can decrypt by anyone, so just return current user
+      return users.first;
+    }
     List<ID> members = await getMembers(receiver);
     assert(members.isNotEmpty, "members not found: $receiver");
     for (User item in users) {
@@ -87,7 +94,7 @@ abstract class ClientFacebook extends CommonFacebook {
     // check broadcast group
     if (group.isBroadcast) {
       // founder of broadcast group
-      return BroadcastHelper.getBroadcastFounder(group);
+      return BroadcastUtils.getBroadcastFounder(group);
     }
     // check bulletin document
     Bulletin? doc = await getBulletin(group);
@@ -113,7 +120,7 @@ abstract class ClientFacebook extends CommonFacebook {
     // check broadcast group
     if (group.isBroadcast) {
       // owner of broadcast group
-      return BroadcastHelper.getBroadcastOwner(group);
+      return BroadcastUtils.getBroadcastOwner(group);
     }
     // check bulletin document
     Bulletin? doc = await getBulletin(group);
@@ -143,7 +150,7 @@ abstract class ClientFacebook extends CommonFacebook {
     // check broadcast group
     if (group.isBroadcast) {
       // members of broadcast group
-      return BroadcastHelper.getBroadcastMembers(group);
+      return BroadcastUtils.getBroadcastMembers(group);
     }
     // check group owner
     ID? owner = await getOwner(group);
@@ -153,7 +160,7 @@ abstract class ClientFacebook extends CommonFacebook {
     }
     // check local storage
     var members = await database.getMembers(group: group);
-    /*await */checker.checkMembers(group, members);
+    /*await */checker?.checkMembers(group, members);
     return members.isEmpty ? [owner] : members;
   }
 

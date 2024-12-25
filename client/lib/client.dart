@@ -5,7 +5,6 @@ export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';
 export 'src/client/network/transition.dart';
 
-export 'src/client/protocol/quote.dart';
 export 'src/client/protocol/search.dart';
 
 export 'src/client/cpu/group/invite.dart';

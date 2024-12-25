@@ -98,7 +98,7 @@ class BaseSearchCommand extends BaseCommand implements SearchCommand {
   @override
   String? get keywords {
     String? words = getString('keywords', null);
-    if (words == null && cmd == SearchCommand.ONLINE_USERS) {
+    if (words == null && commandName == SearchCommand.ONLINE_USERS) {
       words = SearchCommand.ONLINE_USERS;
     }
     return words;
