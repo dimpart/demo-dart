@@ -60,6 +60,23 @@ abstract interface class Compatible {
     }
   }
 
+  static FileContent fixFileContent(FileContent content) {
+    var pwd = content['key'];
+    if (pwd != null) {
+      // Tarsier version > 1.3.7
+      // DIM SDK version > 1.1.0
+      content['password'] = pwd;
+    } else {
+      // Tarsier version <= 1.3.7
+      // DIM SDK version <= 1.1.0
+      pwd = content['password'];
+      if (pwd != null) {
+        content['key'] = pwd;
+      }
+    }
+    return content;
+  }
+
   static Command fixCommand(Command content) {
     // 1. fix 'cmd'
     content = fixCmd(content);

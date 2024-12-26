@@ -109,6 +109,8 @@ abstract class CommonMessenger extends Messenger with Logging
   Future<Uint8List> serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) async {
     if (content is Command) {
       content = Compatible.fixCommand(content);
+    } else if (content is FileContent) {
+      content = Compatible.fixFileContent(content);
     }
     return await super.serializeContent(content, password, iMsg);
   }
@@ -118,6 +120,8 @@ abstract class CommonMessenger extends Messenger with Logging
     Content? content = await super.deserializeContent(data, password, sMsg);
     if (content is Command) {
       content = Compatible.fixCommand(content);
+    } else if (content is FileContent) {
+      content = Compatible.fixFileContent(content);
     }
     return content;
   }
