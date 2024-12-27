@@ -61,6 +61,22 @@ class CommonLoader extends ExtensionLoader {
     pluginLoader.run();
   }
 
+  /// Customized content factories
+  // protected
+  void registerCustomizedFactories() {
+
+    // Application Customized
+    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
+    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
+
+  }
+
+  @override
+  void registerContentFactories() {
+    super.registerContentFactories();
+    registerCustomizedFactories();
+  }
+
   @override
   void registerCommandFactories() {
     super.registerCommandFactories();

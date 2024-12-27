@@ -50,13 +50,17 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
   @override
   ContentProcessor? createContentProcessor(int msgType) {
-    // history command
-    if (msgType == ContentType.HISTORY) {
-      return HistoryCommandProcessor(facebook!, messenger!);
-    }
-    // default
-    if (msgType == 0) {
-      return BaseContentProcessor(facebook!, messenger!);
+    switch (msgType) {
+
+      // application customized
+      case ContentType.APPLICATION:
+      case ContentType.CUSTOMIZED:
+        return CustomizedContentProcessor(facebook!, messenger!);
+
+      // history command
+      case ContentType.HISTORY:
+        return HistoryCommandProcessor(facebook!, messenger!);
+
     }
     // others
     return super.createContentProcessor(msgType);
@@ -64,36 +68,35 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
   @override
   ContentProcessor? createCommandProcessor(int msgType, String cmd) {
-    if (cmd == Command.RECEIPT) {
-      return ReceiptCommandProcessor(facebook!, messenger!);
-    }
-    if (cmd == HandshakeCommand.HANDSHAKE) {
-      return HandshakeCommandProcessor(facebook!, messenger!);
-    }
-    if (cmd == LoginCommand.LOGIN) {
-      return LoginCommandProcessor(facebook!, messenger!);
-    }
-    if (cmd == AnsCommand.ANS) {
-      return AnsCommandProcessor(facebook!, messenger!);
-    }
-    // group commands
-    if (cmd == 'group') {
-      return GroupCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.INVITE) {
-      return InviteCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.EXPEL) {
-      /// Deprecated (use 'reset' instead)
-      return ExpelCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.JOIN) {
-      return JoinCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.QUIT) {
-      return QuitCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.QUERY) {
-      return QueryCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.RESET) {
-      return ResetCommandProcessor(facebook!, messenger!);
-    } else if (cmd == GroupCommand.RESIGN) {
-      return ResignCommandProcessor(facebook!, messenger!);
+    switch (cmd) {
+      case Command.RECEIPT:
+        return ReceiptCommandProcessor(facebook!, messenger!);
+      case HandshakeCommand.HANDSHAKE:
+        return HandshakeCommandProcessor(facebook!, messenger!);
+      case LoginCommand.LOGIN:
+        return LoginCommandProcessor(facebook!, messenger!);
+      case AnsCommand.ANS:
+        return AnsCommandProcessor(facebook!, messenger!);
+
+      // group commands
+      case 'group':
+        return GroupCommandProcessor(facebook!, messenger!);
+      case GroupCommand.INVITE:
+        return InviteCommandProcessor(facebook!, messenger!);
+      case GroupCommand.EXPEL:
+        /// Deprecated (use 'reset' instead)
+        return ExpelCommandProcessor(facebook!, messenger!);
+      case GroupCommand.JOIN:
+        return JoinCommandProcessor(facebook!, messenger!);
+      case GroupCommand.QUIT:
+        return QuitCommandProcessor(facebook!, messenger!);
+      case GroupCommand.QUERY:
+        return QueryCommandProcessor(facebook!, messenger!);
+      case GroupCommand.RESET:
+        return ResetCommandProcessor(facebook!, messenger!);
+      case GroupCommand.RESIGN:
+        return ResignCommandProcessor(facebook!, messenger!);
+
     }
     // others
     return super.createCommandProcessor(msgType, cmd);
