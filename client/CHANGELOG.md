@@ -1,6 +1,6 @@
 ## 0.7.2
 
-- Generate Password.
+- Emitter.
 
 ## 0.7.1
 

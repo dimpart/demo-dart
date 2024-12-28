@@ -1,17 +1,17 @@
 # Decentralized Instant Messaging (Dart Demo)
 
+[![Watchers](https://img.shields.io/github/watchers/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/watchers)
+[![Forks](https://img.shields.io/github/forks/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/forks)
+[![Stars](https://img.shields.io/github/stars/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/stargazers)
+[![Followers](https://img.shields.io/github/followers/dimchat)](https://github.com/orgs/dimchat/followers)
+
 [![License](https://img.shields.io/github/license/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/blob/master/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/demo-dart/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Dart%203-brightgreen.svg)](https://github.com/dimchat/demo-dart/wiki)
 [![Issues](https://img.shields.io/github/issues/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/issues)
 [![Repo Size](https://img.shields.io/github/repo-size/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/archive/refs/heads/main.zip)
-[![GitHub Tag](https://img.shields.io/github/tag/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/tags)
-[![Pub Version](https://img.shields.io/pub/v/dim_client)](https://github.com/dimchat/demo-dart/tags)
-
-[![Watchers](https://img.shields.io/github/watchers/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/watchers)
-[![Forks](https://img.shields.io/github/forks/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/forks)
-[![Stars](https://img.shields.io/github/stars/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/stargazers)
-[![Followers](https://img.shields.io/github/followers/dimchat)](https://github.com/orgs/dimchat/followers)
+[![Tags](https://img.shields.io/github/tag/dimchat/demo-dart)](https://github.com/dimchat/demo-dart/tags)
+[![Version](https://img.shields.io/pub/v/dim_client)](https://pub.dev/packages/dim_client)
 
 ## Dependencies
 

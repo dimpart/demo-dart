@@ -182,54 +182,6 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   }
 
   //
-  //  App Lifecycle
-  //
-
-  Future<void> enterBackground() async {
-    ClientMessenger? transceiver = messenger;
-    if (transceiver == null) {
-      // not connect
-      return;
-    }
-    // check signed in user
-    ClientSession cs = transceiver.session;
-    ID? uid = cs.identifier;
-    if (uid != null) {
-      // already signed in, check session state
-      SessionState? state = cs.state;
-      if (state?.index == SessionStateOrder.running.index) {
-        // report client state
-        await transceiver.reportOffline(uid);
-        // sleep a while for waiting 'report' command sent
-        await Runner.sleep(Duration(milliseconds: 512));
-      }
-    }
-    // pause the session
-    await cs.pause();
-  }
-  Future<void> enterForeground() async {
-    ClientMessenger? transceiver = messenger;
-    if (transceiver == null) {
-      // not connect
-      return;
-    }
-    ClientSession cs = transceiver.session;
-    // resume the session
-    await cs.resume();
-    // check signed in user
-    ID? uid = cs.identifier;
-    if (uid != null) {
-      // already signed in, wait a while to check session state
-      await Runner.sleep(Duration(milliseconds: 512));
-      SessionState? state = cs.state;
-      if (state?.index == SessionStateOrder.running.index) {
-        // report client state
-        await transceiver.reportOnline(uid);
-      }
-    }
-  }
-
-  //
   //  Threading
   //
 
