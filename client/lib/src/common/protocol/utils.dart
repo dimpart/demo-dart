@@ -28,7 +28,8 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
+
 
 abstract interface class BroadcastUtils {
 

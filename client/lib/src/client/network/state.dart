@@ -28,10 +28,10 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:stargate/fsm.dart';
 import 'package:stargate/stargate.dart';
 import 'package:stargate/startrek.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import 'session.dart';
 import 'transition.dart';

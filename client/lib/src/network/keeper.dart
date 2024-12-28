@@ -28,11 +28,11 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/skywalker.dart';
 import 'package:stargate/startrek.dart';
 import 'package:stargate/websocket.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import 'gate.dart';
 import 'queue.dart';

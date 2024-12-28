@@ -28,8 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
-import 'package:dimsdk/mkm.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import '../common/ans.dart';
 import '../common/facebook.dart';

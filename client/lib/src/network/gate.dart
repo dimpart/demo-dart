@@ -31,10 +31,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/startrek.dart';
 import 'package:stargate/stargate.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 
 /// Client Gate

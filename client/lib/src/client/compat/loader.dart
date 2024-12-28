@@ -28,10 +28,11 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/mkm.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import '../../common/compat/entity.dart';
 import '../../common/compat/loader.dart';
+
 import '../facebook.dart';
 
 

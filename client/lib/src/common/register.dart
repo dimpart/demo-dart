@@ -31,7 +31,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import 'dbi/account.dart';
 

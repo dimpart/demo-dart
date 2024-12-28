@@ -30,9 +30,9 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
 import 'package:stargate/startrek.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import 'dbi/session.dart';
 

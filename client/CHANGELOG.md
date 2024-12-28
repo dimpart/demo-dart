@@ -1,3 +1,7 @@
+## 0.7.2
+
+- Generate Password.
+
 ## 0.7.1
 
 - CustomizedContent.

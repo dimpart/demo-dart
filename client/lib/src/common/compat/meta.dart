@@ -28,9 +28,8 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/crypto.dart';
-import 'package:dimp/mkm.dart';
-import 'package:dimp/plugins.dart';
+import 'package:dimsdk/dimsdk.dart';
+import 'package:dimsdk/plugins.dart';
 import 'package:dim_plugins/mkm.dart';
 
 

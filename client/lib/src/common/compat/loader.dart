@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:dimsdk/plugins.dart';
 import 'package:dim_plugins/format.dart';
 import 'package:dim_plugins/plugins.dart';

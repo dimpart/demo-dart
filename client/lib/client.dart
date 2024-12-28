@@ -1,10 +1,13 @@
 library dim_client;
 
 
+// export 'src/client/compat/loader.dart';  // -> 'compat.dart'
+
 export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';
 export 'src/client/network/transition.dart';
 
+export 'src/client/protocol/password.dart';
 export 'src/client/protocol/search.dart';
 
 export 'src/client/cpu/group/invite.dart';

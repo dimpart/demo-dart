@@ -28,8 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 
 ///  Account DBI

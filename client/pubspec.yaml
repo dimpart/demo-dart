@@ -1,6 +1,6 @@
 name: dim_client
 description: DIM demo.
-version: 0.7.1
+version: 0.7.2
 homepage: https://github.com/dimchat/demo-dart
 repository: https://github.com/dimchat/demo-dart
 issue_tracker: https://github.com/dimchat/demo-dart/issues
@@ -14,7 +14,7 @@ dependencies:
   lnc: ^0.1.2
 #  startrek: ^0.5.2
   stargate: ^0.5.2
-  dimp: ^1.2.1
+#  dimp: ^1.2.1
   dimsdk: ^1.2.1
   dim_plugins: ^1.2.1
 

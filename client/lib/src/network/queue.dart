@@ -30,9 +30,9 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/startrek.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 
 class MessageQueue with Logging {
