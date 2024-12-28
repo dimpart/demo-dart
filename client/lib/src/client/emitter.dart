@@ -70,7 +70,7 @@ abstract class Emitter with Logging {
     if (extra != null) {
       content.addAll(extra);
     }
-    return await sendContent(content, receiver);
+    return await sendContent(content, receiver: receiver);
   }
   // protected
   bool checkMarkdown(String text) {
@@ -103,8 +103,7 @@ abstract class Emitter with Logging {
   /// @param duration - length
   /// @param extra
   /// @param receiver - receiver ID
-  /// @return packed messages
-  Future<Pair<InstantMessage?, ReliableMessage?>> sendVoice(Uint8List mp4, {
+  Future<bool> sendVoice(Uint8List mp4, {
     required String filename, required double duration,
     Map<String, Object>? extra,
     required ID receiver
@@ -123,7 +122,7 @@ abstract class Emitter with Logging {
     if (extra != null) {
       content.addAll(extra);
     }
-    return await sendContent(content, receiver);
+    return await sendFileContent(content, receiver: receiver);
   }
 
   ///  Send picture to receiver
@@ -133,8 +132,7 @@ abstract class Emitter with Logging {
   /// @param thumbnail - image thumbnail
   /// @param extra
   /// @param receiver  - receiver ID
-  /// @return packed messages
-  Future<Pair<InstantMessage?, ReliableMessage?>> sendPicture(Uint8List jpeg, {
+  Future<bool> sendPicture(Uint8List jpeg, {
     required String filename, required PortableNetworkFile? thumbnail,
     Map<String, Object>? extra,
     required ID receiver
@@ -155,7 +153,7 @@ abstract class Emitter with Logging {
     if (extra != null) {
       content.addAll(extra);
     }
-    return await sendContent(content, receiver);
+    return await sendFileContent(content, receiver: receiver);
   }
 
   ///  Send movie to receiver
@@ -166,8 +164,7 @@ abstract class Emitter with Logging {
   /// @param filename
   /// @param extra
   /// @param receiver - receiver ID
-  /// @return packed messages
-  Future<Pair<InstantMessage?, ReliableMessage?>> sendMovie(Uri url, {
+  Future<bool> sendMovie(Uri url, {
     required PortableNetworkFile? snapshot, required String? title,
     String? filename, Map<String, Object>? extra,
     required ID receiver
@@ -188,60 +185,40 @@ abstract class Emitter with Logging {
     if (extra != null) {
       content.addAll(extra);
     }
-    return await sendContent(content, receiver);
+    return await sendFileContent(content, receiver: receiver);
   }
 
-  ///  Upload file data encrypted with password
-  ///
-  /// @param content  - file content
-  /// @param password - encrypt/decrypt key
-  /// @param sender   - from where
-  /// @return false on error
-  Future<bool> uploadFileData(FileContent content, {required SymmetricKey password, required ID sender});
-
   /// Send content
-  Future<Pair<InstantMessage?, ReliableMessage?>> sendContent(Content content, ID receiver) async {
-    User? user = await currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return const Pair(null, null);
-    } else if (receiver.isGroup) {
-      assert(!content.containsKey('group') || content.group == receiver, 'group ID error: $receiver, $content');
-      content.group = receiver;
-    }
-    ID sender = user.identifier;
-    //
-    //  1. pack instant message
-    //
-    Envelope envelope = Envelope.create(sender: sender, receiver: receiver);
-    InstantMessage iMsg = InstantMessage.create(envelope, content);
-    //
-    //  2. check file content
-    //
-    if (content is FileContent) {
-      // encrypt & upload file data before send out
-      if (content.data != null/* && content.url == null*/) {
-        // NOTICE: to avoid communication key leaks,
-        //         here we should generate a new key to encrypt file data,
-        //         because this key will be attached into file content,
-        //         if this content is forwarded, there is a security risk.
-        SymmetricKey? password = SymmetricKey.generate(SymmetricKey.AES);
-        logInfo('generated new password to upload file: $sender, $password');
-        // SymmetricKey? password = await shared.messenger?.getEncryptKey(iMsg);
-        if (password == null) {
-          assert(false, 'failed to generate AES key: $sender');
-          return Pair(iMsg, null);
-        } else if (await uploadFileData(content, password: password, sender: sender)) {
-          logInfo('uploaded file data for sender: $sender, ${content.filename}');
-        } else {
-          logError('failed to upload file data for sender: $sender, ${content.filename}');
-          return Pair(iMsg, null);
-        }
+  Future<Pair<InstantMessage?, ReliableMessage?>> sendContent(Content content, {
+    ID? sender, required ID receiver, int priority = 0
+  }) async {
+    // check sender
+    if (sender == null) {
+      User? user = await currentUser;
+      sender = user?.identifier;
+      if (sender == null) {
+        assert(false, 'failed to get current user');
+        return Pair(null, null);
       }
     }
-    //
-    //  3. send message (without file data)
-    //
+    // check receiver
+    if (receiver.isGroup) {
+      assert(content.group == null || content.group == receiver, 'group ID error: $receiver, $content');
+      content.group = receiver;
+    }
+    // check file content
+    if (content is FileContent && content.data != null) {
+      // To avoid traffic congestion, sending a message with file data inside is not allowed,
+      // you should upload the encrypted data to a CDN server first, and then
+      // send the message with a download URL to the receiver.
+      bool ok = await sendFileContent(content, sender: sender, receiver: receiver, priority: priority);
+      assert(ok, 'failed to send file content: $sender -> $receiver');
+      return Pair(null, null);
+    }
+    // pack message
+    Envelope envelope = Envelope.create(sender: sender, receiver: receiver);
+    InstantMessage iMsg = InstantMessage.create(envelope, content);
+    // send message
     ReliableMessage? rMsg = await sendInstantMessage(iMsg, priority: 0);
     if (rMsg == null && !receiver.isGroup) {
       logWarning('not send yet (type=${content.type}): $receiver');
@@ -252,14 +229,141 @@ abstract class Emitter with Logging {
   /// Send message
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     ID receiver = iMsg.receiver;
+    assert(iMsg.content['data'] == null, 'cannot send this message: $iMsg');
     logInfo('sending message (type=${iMsg.content.type}): ${iMsg.sender} -> $receiver');
     if (receiver.isUser) {
-      // send by shared messenger
+      // send out directly
       return await messenger?.sendInstantMessage(iMsg, priority: priority);
     }
     // send by group manager
     SharedGroupManager manager = SharedGroupManager();
     return await manager.sendInstantMessage(iMsg, priority: priority);
   }
+
+  /****************************************************************************/
+
+  /// Send file content asynchronously
+  /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ///   Step 1: save origin data into a cache directory;
+  ///   Step 2: save instant message without 'content.data';
+  ///   Step 3: encrypt the data with password;
+  ///   Step 4: upload the encrypted data and get a download URL;
+  ///   Step 5: resend the instant message with the download URL.
+
+  /// Send file content
+  Future<bool> sendFileContent(FileContent content, {
+    ID? sender, required ID receiver, int priority = 0
+  }) async {
+    // check sender
+    if (sender == null) {
+      User? user = await currentUser;
+      sender = user?.identifier;
+      if (sender == null) {
+        assert(false, 'failed to get current user');
+        return false;
+      }
+    }
+    // check receiver
+    if (receiver.isGroup) {
+      assert(content.group == null || content.group == receiver, 'group ID error: $receiver, $content');
+      content.group = receiver;
+    }
+    // check file data
+    Uint8List? data = content.data;
+    String? filename = content.filename;
+    if (data == null && filename != null) {
+      data = await getFileData(filename);
+    }
+    if (data == null) {
+      // file data not found, send it directly
+      assert(content.url != null, 'file content error: $content');
+      var pair = await sendContent(content, sender: sender, receiver: receiver, priority: priority);
+      return pair.second != null;
+    } else if (filename == null) {
+      logError('file content error: $sender, $content');
+      return false;
+    } else {
+      assert(content.url == null, 'file content error: ${content.url}');
+      assert(content.password == null, 'file content error: ${content.password}');
+    }
+    bool ok;
+    /// Send file content asynchronously
+    /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ///   Step 1: save origin data into a cache directory;
+    ok = await cacheFileData(data, filename);
+    if (!ok) {
+      logError('failed to cache file: $filename, ${data.length} byte(s)');
+      return false;
+    } else {
+      // file data saved into a cache file, so
+      // here we can remove it from the content.
+      content.data = null;
+    }
+    ///   Step 2: save instant message without 'content.data';
+    Envelope envelope = Envelope.create(sender: sender, receiver: receiver);
+    InstantMessage iMsg = InstantMessage.create(envelope, content);
+    ok = await cacheInstantMessage(iMsg);
+    if (!ok) {
+      logError('failed to save message: $iMsg');
+      return false;
+    }
+    ///   Step 3: encrypt the data with password;
+    // SymmetricKey? password = await messenger?.getEncryptKey(iMsg);
+    SymmetricKey? password = SymmetricKey.generate(SymmetricKey.AES);
+    // NOTICE: to avoid communication key leaks,
+    //         here we should generate a new key to encrypt file data,
+    //         because this key will be attached into file content,
+    //         if this content is forwarded, there is a security risk.
+    logInfo('generated new password to upload file: $sender, $filename, $password');
+    if (password == null) {
+      assert(false, 'failed to generate AES key: $sender');
+      return false;
+    }
+    Uint8List encrypted = password.encrypt(data, content.toMap());
+    ///   Step 4: upload the encrypted data and get a download URL;
+    ///   Step 5: resend the instant message with the download URL.
+    return await sendFileMessage(encrypted, filename, password, iMsg,
+      content: content, sender: sender, receiver: receiver,
+    );
+  }
+
+  // protected
+  Future<bool> sendFileMessage(Uint8List encrypted, String filename, SymmetricKey password, InstantMessage iMsg, {
+    required FileContent content,
+    required ID sender, required ID receiver, int priority = 0,
+  }) async {
+    ///   Step 4: upload the encrypted data and get a download URL;
+    Uri? url = await uploadFileData(encrypted, filename, sender);
+    if (url == null) {
+      logError('failed to upload file data: $sender, ${encrypted.length} byte(s)');
+      return false;
+    } else {
+      content.url = url;
+      content.password = password;
+    }
+    ///   Step 5: resend the instant message with the download URL.
+    ReliableMessage? rMsg = await sendInstantMessage(iMsg, priority: priority);
+    if (rMsg == null && !receiver.isGroup) {
+      logWarning('not send yet (type=${content.type}): $receiver');
+    }
+    return false;
+  }
+
+  /// Save origin file data into the cache
+  Future<bool> cacheFileData(Uint8List data, String filename);
+
+  /// Load origin file data from the cache
+  Future<Uint8List?> getFileData(String filename);
+
+  /// Save instant message without 'content.data'
+  Future<bool> cacheInstantMessage(InstantMessage iMsg);
+
+  ///  Upload file data to CDN server
+  ///
+  /// @param encrypted - encrypted data
+  /// @param filename  - original filename
+  /// @param sender    - sender ID
+  /// @return null on error
+  Future<Uri?> uploadFileData(Uint8List encrypted, String filename, ID sender);
 
 }

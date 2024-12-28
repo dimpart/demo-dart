@@ -1,3 +1,7 @@
+## 0.7.3
+
+- Send file content.
+
 ## 0.7.2
 
 - Emitter.
