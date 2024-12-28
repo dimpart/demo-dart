@@ -1,3 +1,7 @@
+## 0.7.1
+
+- CustomizedContent.
+
 ## 0.7.0
 
 - Export plugins.

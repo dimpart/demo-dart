@@ -107,7 +107,7 @@ class CommonArchivist with Logging implements Archivist {
     var barrack = facebook;
     List<ID> array = await database.getLocalUsers();
     if (barrack == null || array.isEmpty) {
-      assert(false, 'failed to get local users: $array');
+      // assert(false, 'failed to get local users: $array');
       return [];
     }
     List<User> allUsers = [];

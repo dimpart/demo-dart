@@ -37,6 +37,7 @@ import 'package:dim_plugins/plugins.dart';
 
 import '../protocol/ans.dart';
 import '../protocol/block.dart';
+import '../protocol/customized.dart';
 import '../protocol/handshake.dart';
 import '../protocol/login.dart';
 import '../protocol/mute.dart';

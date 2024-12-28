@@ -30,6 +30,8 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../common/protocol/customized.dart';
+
 
 ///  Handler for Customized Content
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

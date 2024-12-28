@@ -55,7 +55,7 @@ class HistoryCommandProcessor extends BaseCommandProcessor with Logging {
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'History command (name: \${command}) not support yet!',
       'replacements': {
-        'command': command.commandName,
+        'command': command.cmd,
       },
     });
   }
@@ -120,7 +120,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'Group command (name: \${command}) not support yet!',
       'replacements': {
-        'command': command.commandName,
+        'command': command.cmd,
       },
     });
   }
@@ -139,7 +139,7 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
         'template': 'Group command expired: \${cmd}, group: \${ID}',
         'replacements': {
-          'cmd': content.commandName,
+          'cmd': content.cmd,
           'ID': group.toString(),
         }
       });

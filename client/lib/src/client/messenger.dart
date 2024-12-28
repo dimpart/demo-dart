@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/messenger.dart';
+import '../common/packer.dart';
 import '../common/protocol/handshake.dart';
 import '../common/protocol/login.dart';
 import '../common/protocol/report.dart';
@@ -121,9 +122,17 @@ abstract class ClientMessenger extends CommonMessenger {
       Content content = iMsg.content;
       if (content is! Command) {
         logWarning('not handshake yet, suspend message: $content => ${iMsg.receiver}');
-        // TODO: suspend instant message
+        // suspend instant message
+        var clerk = packer;
+        if (clerk is CommonPacker) {
+          Map<String, Object> error = {
+            'message': 'waiting to login',
+            'user': iMsg.sender.toString(),
+          };
+          await clerk.suspendInstantMessage(iMsg, error);
+        }
         return null;
-      } else if (content.commandName == HandshakeCommand.HANDSHAKE) {
+      } else if (content.cmd == HandshakeCommand.HANDSHAKE) {
         // NOTICE: only handshake message can go out
         iMsg['pass'] = 'handshaking';
       } else {

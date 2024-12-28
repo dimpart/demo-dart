@@ -46,7 +46,7 @@ class GroupCommandHelper extends TripletsHelper {
   Future<bool> saveGroupHistory(ID group, GroupCommand content, ReliableMessage rMsg) async {
     assert(group == content.group, 'group ID error: $group, $content');
     if (await isCommandExpired(content)) {
-      logWarning('drop expired command: ${content.commandName}, ${rMsg.sender} => $group');
+      logWarning('drop expired command: ${content.cmd}, ${rMsg.sender} => $group');
       return false;
     }
     // check command time

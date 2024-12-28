@@ -44,6 +44,7 @@ import 'group/quit.dart';
 import 'group/reset.dart';
 import 'group/resign.dart';
 import 'handshake.dart';
+import 'customized.dart';
 
 class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   ClientContentProcessorCreator(super.facebook, super.messenger);
