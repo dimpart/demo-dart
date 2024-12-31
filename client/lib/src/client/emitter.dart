@@ -268,18 +268,46 @@ abstract class Emitter with Logging {
       assert(content.group == null || content.group == receiver, 'group ID error: $receiver, $content');
       content.group = receiver;
     }
+    // check download URL
+    if (content.url == null) {
+      // file data not uploaded yet,
+      // try to upload file data to get download URL,
+      // and then pack a message with the URL and decrypt key to send
+      return await handleFileMessage(content, sender: sender, receiver: receiver, priority: priority);
+    } else if (content.data != null) {
+      // FIXME:
+      // download URL found, so file data should not exist here
+      return await handleFileMessage(content, sender: sender, receiver: receiver, priority: priority);
+    }
+    // this file content's data had already been uploaded (download URL exists),
+    // so pack and send it out directly.
+    Envelope envelope = Envelope.create(sender: sender, receiver: receiver);
+    InstantMessage iMsg = InstantMessage.create(envelope, content);
+    ReliableMessage? rMsg = await sendInstantMessage(iMsg, priority: priority);
+    if (rMsg == null && !receiver.isGroup) {
+      logWarning('not send yet (type=${content.type}): $receiver');
+      return false;
+    }
+    return true;
+  }
+
+  // protected
+  Future<bool> handleFileMessage(FileContent content, {
+    required ID sender, required ID receiver, int priority = 0
+  }) async {
+    // check filename
+    String? filename = content.filename;
+    if (filename == null) {
+      assert(false, 'file content error: $sender, $content');
+      logError('file content error: $sender, $content');
+      return false;
+    }
     // check file data
     Uint8List? data = content.data;
-    String? filename = content.filename;
-    if (data == null && filename != null) {
-      data = await getFileData(filename);
-    }
+    data ??= await getFileData(filename);
     if (data == null) {
       // file data not found, send it directly
-      assert(content.url != null, 'file content error: $content');
-      var pair = await sendContent(content, sender: sender, receiver: receiver, priority: priority);
-      return pair.second != null;
-    } else if (filename == null) {
+      assert(false, 'file content error: $sender, $content');
       logError('file content error: $sender, $content');
       return false;
     } else {
@@ -309,15 +337,23 @@ abstract class Emitter with Logging {
     }
     ///   Step 3: encrypt the data with password;
     // SymmetricKey? password = await messenger?.getEncryptKey(iMsg);
-    SymmetricKey? password = SymmetricKey.generate(SymmetricKey.AES);
-    // NOTICE: to avoid communication key leaks,
-    //         here we should generate a new key to encrypt file data,
-    //         because this key will be attached into file content,
-    //         if this content is forwarded, there is a security risk.
-    logInfo('generated new password to upload file: $sender, $filename, $password');
-    if (password == null) {
-      assert(false, 'failed to generate AES key: $sender');
-      return false;
+    SymmetricKey? password;
+    var old = content.password;
+    if (old is SymmetricKey) {
+      // if password exists, reuse it
+      password = old;
+    } else {
+      // generate a new password for each file content
+      password = SymmetricKey.generate(SymmetricKey.AES);
+      // NOTICE: to avoid communication key leaks,
+      //         here we should generate a new key to encrypt file data,
+      //         because this key will be attached into file content,
+      //         if this content is forwarded, there is a security risk.
+      logInfo('generated new password to upload file: $sender, $filename, $password');
+      if (password == null) {
+        assert(false, 'failed to generate AES key: $sender');
+        return false;
+      }
     }
     Uint8List encrypted = password.encrypt(data, content.toMap());
     ///   Step 4: upload the encrypted data and get a download URL;
@@ -335,9 +371,12 @@ abstract class Emitter with Logging {
     ///   Step 4: upload the encrypted data and get a download URL;
     Uri? url = await uploadFileData(encrypted, filename, sender);
     if (url == null) {
-      logError('failed to upload file data: $sender, ${encrypted.length} byte(s)');
+      logError('failed to upload: ${content.filename} -> $filename, ${encrypted.length} byte(s)');
+      // TODO: mark message failed
       return false;
     } else {
+      // upload success
+      logInfo('uploaded filename: ${content.filename} -> $filename => $url');
       content.url = url;
       content.password = password;
     }
@@ -345,8 +384,9 @@ abstract class Emitter with Logging {
     ReliableMessage? rMsg = await sendInstantMessage(iMsg, priority: priority);
     if (rMsg == null && !receiver.isGroup) {
       logWarning('not send yet (type=${content.type}): $receiver');
+      return false;
     }
-    return false;
+    return true;
   }
 
   /// Save origin file data into the cache

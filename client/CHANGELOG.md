@@ -1,3 +1,7 @@
+## 0.7.4
+
+- Handle for file message.
+
 ## 0.7.3
 
 - Send file content.
