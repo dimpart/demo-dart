@@ -110,8 +110,8 @@ class GroupEmitter extends TripletsHelper {
       assert(false, 'not a group message: $iMsg');
       return null;
     } else {
-      logDebug('send instant message (type=${iMsg.content.type}): '
-          '${iMsg.sender} => ${iMsg.receiver}, ${iMsg.group}');
+      assert(iMsg.receiver == group, 'group message error: $iMsg');
+      logInfo('sending message (type=${content.type}): ${iMsg.sender} => $group');
       // attach group's document & history times
       // for the receiver to check whether group info synchronized
       bool ok = await attachGroupTimes(group, iMsg);
@@ -119,9 +119,10 @@ class GroupEmitter extends TripletsHelper {
     }
     assert(iMsg.receiver == group, 'group message error: $iMsg');
 
-    /// NOTICE: even if the message content is a FileContent,
-    ///         there is no need to process the file data here too, because
-    ///         the message packer will handle it before encryption.
+    /// TODO: if it's a file message
+    ///       please upload the file data first
+    ///       before calling this
+    assert(content is! FileContent || content.data == null, 'content error: $content');
 
     //
     //  1. check group bots

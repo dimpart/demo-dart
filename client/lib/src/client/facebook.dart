@@ -33,11 +33,18 @@ import 'package:dimsdk/dimsdk.dart';
 import '../common/ans.dart';
 import '../common/facebook.dart';
 import '../common/protocol/utils.dart';
+import '../group/shared.dart';
 
 
 ///  Client Facebook with Address Name Service
 abstract class ClientFacebook extends CommonFacebook {
   ClientFacebook(super.database);
+
+  @override
+  void cacheGroup(Group group) {
+    group.dataSource = SharedGroupManager();
+    super.cacheGroup(group);
+  }
 
   @override
   Future<User?> selectLocalUser(ID receiver) async {

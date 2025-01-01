@@ -87,14 +87,14 @@ class GroupManager extends TripletsHelper {
       members.removeAt(pos);
       members.insert(0, founder);
     }
-    String groupName = await delegate.buildGroupName(members);
+    String title = await delegate.buildGroupName(members);
 
     //
     //  2. create group with name
     //
     Register register = Register(database!);
-    ID group = await register.createGroup(founder, name: groupName);
-    logInfo('new group: $group ($groupName), founder: $founder');
+    ID group = await register.createGroup(founder, name: title);
+    logInfo('new group: $group ($title), founder: $founder');
 
     //
     //  3. upload meta+document to neighbor station(s)
@@ -127,11 +127,13 @@ class GroupManager extends TripletsHelper {
   }
 
   // DISCUSS: should we let the neighbor stations know the group info?
+  //
   //      (A) if we do this, it can provide a convenience that,
   //          when someone receive a message from an unknown group,
   //          it can query the group info from the neighbor immediately;
   //          and its potential risk is that anyone not in the group can also
   //          know the group info (only the group ID, name, and admins, ...)
+  //
   //      (B) but, if we don't let the station knows it,
   //          then we must shared the group info with our members themselves;
   //          and if none of them is online, you cannot get the newest info

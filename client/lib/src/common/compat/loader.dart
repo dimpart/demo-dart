@@ -51,10 +51,15 @@ import 'meta.dart';
 /// Extensions Loader
 /// ~~~~~~~~~~~~~~~~~
 class CommonLoader extends ExtensionLoader {
-  CommonLoader(this.pluginLoader);
+  CommonLoader() {
+    pluginLoader = createPluginLoader();
+  }
 
   // private
-  final PluginLoader pluginLoader;
+  late final PluginLoader pluginLoader;
+
+  // protected
+  PluginLoader createPluginLoader() => CommonPluginLoader();
 
   @override
   void run() {

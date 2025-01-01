@@ -109,7 +109,9 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
   //
 
   Future<ClientMessenger> connect(String host, int port) async {
-    // check old session
+    //
+    //  0. check old session
+    //
     ClientMessenger? old = _messenger;
     if (old != null) {
       ClientSession session = old.session;
@@ -127,19 +129,27 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
       _messenger = null;
     }
     logInfo('connecting to $host:$port ...');
-    // create new messenger with session
+    //
+    //  1. create new session with station
+    //
     Station station = createStation(host, port);
     ClientSession session = createSession(station);
-    // create new messenger with session
+    //
+    //  2. create new messenger with session
+    //
     ClientMessenger transceiver = createMessenger(session, facebook);
     _messenger = transceiver;
-    // create packer, processor for messenger
-    // they have weak references to facebook & messenger
-    transceiver.packer = createPacker(facebook, transceiver);
-    transceiver.processor = createProcessor(facebook, transceiver);
     // set weak reference to messenger
     session.messenger = transceiver;
-    // login with current user
+    //
+    //  3. create packer, processor for messenger
+    //     they have weak references to facebook & messenger
+    //
+    transceiver.packer = createPacker(facebook, transceiver);
+    transceiver.processor = createProcessor(facebook, transceiver);
+    //
+    //  4. login with current user
+    //
     User? user = await facebook.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');

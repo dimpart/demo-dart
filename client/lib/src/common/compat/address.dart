@@ -76,7 +76,7 @@ class CompatibleAddressFactory extends BaseAddressFactory {
     //  TODO: parse for other types of address
     //
     if (res == null && 4 <= len && len <= 64) {
-      res = _UnknownAddress(address);
+      res = UnknownAddress(address);
     }
     assert(res != null, 'invalid address: $address');
     return res;
@@ -87,8 +87,8 @@ class CompatibleAddressFactory extends BaseAddressFactory {
 
 /// Unsupported Address
 /// ~~~~~~~~~~~~~~~~~~~
-class _UnknownAddress extends ConstantString implements Address {
-  _UnknownAddress(super.string);
+class UnknownAddress extends ConstantString implements Address {
+  UnknownAddress(super.string);
 
   @override
   int get network => 0;

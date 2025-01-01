@@ -43,14 +43,14 @@ abstract class CommonPacker extends MessagePacker with Logging {
   /// @param rMsg - incoming message
   /// @param info - error info
   // protected
-  Future<void> suspendReliableMessage(ReliableMessage rMsg, Map info);
+  void suspendReliableMessage(ReliableMessage rMsg, Map info);
 
   ///  Add outgo message in a queue for waiting receiver's visa
   ///
   /// @param iMsg - outgo message
   /// @param info - error info
   // protected
-  Future<void> suspendInstantMessage(InstantMessage iMsg, Map info);
+  void suspendInstantMessage(InstantMessage iMsg, Map info);
 
   /// for checking whether user's ready
   // protected

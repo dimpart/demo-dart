@@ -304,34 +304,30 @@ abstract class Emitter with Logging {
     }
     // check file data
     Uint8List? data = content.data;
-    data ??= await getFileData(filename);
-    if (data == null) {
-      // file data not found, send it directly
-      assert(false, 'file content error: $sender, $content');
-      logError('file content error: $sender, $content');
-      return false;
-    } else {
-      assert(content.url == null, 'file content error: ${content.url}');
-      assert(content.password == null, 'file content error: ${content.password}');
-    }
-    bool ok;
-    /// Send file content asynchronously
-    /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ///   Step 1: save origin data into a cache directory;
-    ok = await cacheFileData(data, filename);
-    if (!ok) {
-      logError('failed to cache file: $filename, ${data.length} byte(s)');
-      return false;
-    } else {
+    if (data == null) {
+      data = await getFileData(filename);
+      if (data == null) {
+        assert(false, 'file content error: $sender, $content');
+        logError('file content error: $sender, $content');
+        return false;
+      }
+    } else if (await cacheFileData(data, filename)) {
       // file data saved into a cache file, so
       // here we can remove it from the content.
       content.data = null;
+    } else {
+      logError('failed to cache file: $filename, ${data.length} byte(s)');
+      return false;
     }
+    assert(content.url == null, 'file content error: ${content.url}');
+    // assert(content.password == null, 'file content error: ${content.password}');
     ///   Step 2: save instant message without 'content.data';
     Envelope envelope = Envelope.create(sender: sender, receiver: receiver);
     InstantMessage iMsg = InstantMessage.create(envelope, content);
-    ok = await cacheInstantMessage(iMsg);
-    if (!ok) {
+    if (await cacheInstantMessage(iMsg)) {
+      // saved it temporary
+    } else {
       logError('failed to save message: $iMsg');
       return false;
     }
@@ -359,7 +355,7 @@ abstract class Emitter with Logging {
     ///   Step 4: upload the encrypted data and get a download URL;
     ///   Step 5: resend the instant message with the download URL.
     return await sendFileMessage(encrypted, filename, password, iMsg,
-      content: content, sender: sender, receiver: receiver,
+      content: content, sender: sender, receiver: receiver, priority: priority,
     );
   }
 

@@ -28,7 +28,7 @@ export 'src/common/dbi/session.dart';
 export 'src/common/anonymous.dart';
 export 'src/common/ans.dart';
 export 'src/common/archivist.dart';
-export 'src/common/entity_checker.dart';
+export 'src/common/checker.dart';
 export 'src/common/facebook.dart';
 export 'src/common/session.dart';
 export 'src/common/messenger.dart';

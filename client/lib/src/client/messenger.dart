@@ -46,9 +46,6 @@ abstract class ClientMessenger extends CommonMessenger {
   @override
   ClientSession get session => super.session as ClientSession;
 
-  // // protected
-  // ClientArchivist get archivist => facebook.archivist as ClientArchivist;
-
   @override
   Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async {
     List<ReliableMessage> responses = await super.processReliableMessage(rMsg);
@@ -129,7 +126,7 @@ abstract class ClientMessenger extends CommonMessenger {
             'message': 'waiting to login',
             'user': iMsg.sender.toString(),
           };
-          await clerk.suspendInstantMessage(iMsg, error);
+          clerk.suspendInstantMessage(iMsg, error);
         }
         return null;
       } else if (content.cmd == HandshakeCommand.HANDSHAKE) {

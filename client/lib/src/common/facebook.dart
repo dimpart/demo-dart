@@ -35,7 +35,7 @@ import 'dbi/account.dart';
 
 import 'archivist.dart';
 import 'anonymous.dart';
-import 'entity_checker.dart';
+import 'checker.dart';
 
 
 ///  Common Facebook with Database
@@ -94,8 +94,8 @@ abstract class CommonFacebook extends Facebook with Logging {
     return DocumentUtils.lastVisa(documents);
   }
 
-  Future<Bulletin?> getBulletin(ID user) async {
-    List<Document> documents = await getDocuments(user);
+  Future<Bulletin?> getBulletin(ID group) async {
+    List<Document> documents = await getDocuments(group);
     return DocumentUtils.lastBulletin(documents);
   }
 
@@ -193,11 +193,14 @@ abstract class CommonFacebook extends Facebook with Logging {
       }
     }
     // check valid
-    return doc.isValid || await verifyDocument(doc);
+    return await verifyDocument(doc);
   }
 
   // protected
   Future<bool> verifyDocument(Document doc) async {
+    if (doc.isValid) {
+      return true;
+    }
     Meta? meta = await getMeta(doc.identifier);
     if (meta == null) {
       logWarning('failed to get meta: ${doc.identifier}');

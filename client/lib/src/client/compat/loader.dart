@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dim_plugins/plugins.dart';
 
 import '../../common/compat/entity.dart';
 import '../../common/compat/loader.dart';
@@ -38,6 +39,14 @@ import '../facebook.dart';
 
 /// Extensions Loader
 /// ~~~~~~~~~~~~~~~~~
+class ClientLoader extends CommonLoader {
+
+  @override
+  PluginLoader createPluginLoader() => ClientPluginLoader();
+
+}
+
+
 class ClientPluginLoader extends CommonPluginLoader {
 
   @override
