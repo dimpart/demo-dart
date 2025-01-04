@@ -19,7 +19,9 @@ export 'src/common/protocol/handshake.dart';
 export 'src/common/protocol/login.dart';
 export 'src/common/protocol/mute.dart';
 export 'src/common/protocol/report.dart';
+export 'src/common/protocol/search.dart';
 export 'src/common/protocol/customized.dart';
+export 'src/common/protocol/password.dart';
 
 export 'src/common/dbi/account.dart';
 export 'src/common/dbi/message.dart';

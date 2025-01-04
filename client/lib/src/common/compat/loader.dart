@@ -42,6 +42,7 @@ import '../protocol/handshake.dart';
 import '../protocol/login.dart';
 import '../protocol/mute.dart';
 import '../protocol/report.dart';
+import '../protocol/search.dart';
 
 import 'address.dart';
 import 'entity.dart';
@@ -87,18 +88,27 @@ class CommonLoader extends ExtensionLoader {
   void registerCommandFactories() {
     super.registerCommandFactories();
 
+    // ANS
+    Command.setFactory(AnsCommand.ANS, CommandParser((dict) => BaseAnsCommand(dict)));
+
     // Handshake
     Command.setFactory(HandshakeCommand.HANDSHAKE, CommandParser((dict) => BaseHandshakeCommand(dict)));
     // Login
     Command.setFactory(LoginCommand.LOGIN, CommandParser((dict) => BaseLoginCommand(dict)));
-    // Report
-    Command.setFactory(ReportCommand.REPORT, CommandParser((dict) => BaseReportCommand(dict)));
+
     // Mute
     Command.setFactory(MuteCommand.MUTE, CommandParser((dict) => MuteCommand(dict)));
     // Block
     Command.setFactory(BlockCommand.BLOCK, CommandParser((dict) => BlockCommand(dict)));
-    // ANS
-    Command.setFactory(AnsCommand.ANS, CommandParser((dict) => BaseAnsCommand(dict)));
+
+    // Report: online, offline
+    Command.setFactory(ReportCommand.REPORT,  CommandParser((dict) => BaseReportCommand(dict)));
+    Command.setFactory(ReportCommand.ONLINE,  CommandParser((dict) => BaseReportCommand(dict)));
+    Command.setFactory(ReportCommand.OFFLINE, CommandParser((dict) => BaseReportCommand(dict)));
+
+    // Search: users
+    Command.setFactory(SearchCommand.SEARCH,       CommandParser((dict) => BaseSearchCommand(dict)));
+    Command.setFactory(SearchCommand.ONLINE_USERS, CommandParser((dict) => BaseSearchCommand(dict)));
 
   }
 

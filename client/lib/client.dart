@@ -7,9 +7,6 @@ export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';
 export 'src/client/network/transition.dart';
 
-export 'src/client/protocol/password.dart';
-export 'src/client/protocol/search.dart';
-
 export 'src/client/cpu/group/invite.dart';
 export 'src/client/cpu/group/expel.dart';
 export 'src/client/cpu/group/join.dart';

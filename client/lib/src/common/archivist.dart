@@ -40,6 +40,8 @@ class CommonArchivist with Logging implements Archivist {
   final WeakReference<Facebook> _barrack;
   final AccountDBI database;
 
+  User? currentUser;
+
   // protected
   Facebook? get facebook => _barrack.target;
 
@@ -104,21 +106,29 @@ class CommonArchivist with Logging implements Archivist {
 
   @override
   Future<List<User>> get localUsers async {
+    List<User> allUsers = [];
+    User? user;
     var barrack = facebook;
     List<ID> array = await database.getLocalUsers();
     if (barrack == null || array.isEmpty) {
       // assert(false, 'failed to get local users: $array');
-      return [];
+    } else {
+      for (ID item in array) {
+        assert(await barrack.getPrivateKeyForSignature(item) != null, 'user error: $item');
+        user = await barrack.getUser(item);
+        if (user == null) {
+          assert(false, 'failed to create user: $item');
+        } else {
+          allUsers.add(user);
+        }
+      }
     }
-    List<User> allUsers = [];
-    User? user;
-    for (ID item in array) {
-      assert(await barrack.getPrivateKeyForSignature(item) != null, 'error: $item');
-      user = await barrack.getUser(item);
-      if (user != null) {
-        allUsers.add(user);
+    if (allUsers.isEmpty) {
+      user = currentUser;
+      if (user == null) {
+        logError('failed to get local users');
       } else {
-        assert(false, 'failed to create user: $item');
+        allUsers.add(user);
       }
     }
     return allUsers;

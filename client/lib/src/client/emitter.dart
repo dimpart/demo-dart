@@ -37,7 +37,7 @@ import 'package:dimsdk/dimsdk.dart';
 import '../common/session.dart';
 import '../group/shared.dart';
 
-import 'protocol/password.dart';
+import '../common/protocol/password.dart';
 
 
 abstract class Emitter with Logging {

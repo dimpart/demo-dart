@@ -48,8 +48,6 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   CommonArchivist? _archivist;
 
-  User? _current;
-
   @override
   CommonArchivist get archivist => _archivist!;
   set archivist(CommonArchivist delegate) => _archivist = delegate;
@@ -60,19 +58,19 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   Future<User?> get currentUser async {
     // Get current user (for signing and sending message)
-    User? usr = _current;
-    if (usr == null) {
-      List<User> users = await archivist.localUsers;
-      if (users.isNotEmpty) {
-        usr = users.first;
-        _current = usr;
+    User? user = archivist.currentUser;
+    if (user == null) {
+      List<User> localUsers = await archivist.localUsers;
+      if (localUsers.isNotEmpty) {
+        user = localUsers.first;
+        archivist.currentUser = user;
       }
     }
-    return usr;
+    return user;
   }
-  setCurrentUser(User user) {
+  Future<void> setCurrentUser(User user) async {
     user.dataSource ??= this;
-    _current = user;
+    archivist.currentUser = user;
   }
 
   //

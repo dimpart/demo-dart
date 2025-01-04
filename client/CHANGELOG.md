@@ -1,3 +1,7 @@
+## 0.7.5
+
+- Set current user in archivist.
+
 ## 0.7.4
 
 - Handle for file message.
