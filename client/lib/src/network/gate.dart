@@ -70,12 +70,17 @@ class AckEnablePorter extends PlainPorter {
           String? timestamp = UTF8.decode(sec);
           String text = 'ACK:{"time":$timestamp,"signature":"$signature"}';
           Log.info('sending response: $text');
-          await send(DataUtils.bytes(text), DeparturePriority.SLOWER);
+          Uint8List data = DataUtils.bytes(text);
+          await respond(data);
         }
       }
     }
     return await super.checkArrival(income);
   }
+
+  @override
+  Future<bool> send(Uint8List payload, int priority) async =>
+      await sendShip(createDeparture(payload, priority, false));
 
 }
 

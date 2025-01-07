@@ -22,10 +22,10 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  object_key:  ^0.1.1
-  lnc:         ^0.1.2
-#  startrek:    ^0.5.2
-  stargate:    ^0.5.2
+  object_key:  ^1.0.0
+  lnc:         ^1.0.0
+#  startrek:    ^1.0.0
+  stargate:    ^1.0.0
 #  mkm:         ^1.2.2
 #  dkd:         ^1.2.2
 #  dimp:        ^1.2.2

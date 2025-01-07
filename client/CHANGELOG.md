@@ -1,3 +1,7 @@
+## 0.7.6
+
+- Checking ready before querying.
+
 ## 0.7.5
 
 - Set current user in archivist.

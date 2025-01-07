@@ -75,7 +75,7 @@ abstract class BaseSession extends GateKeeper implements Session {
 
   @override
   bool queueMessagePackage(ReliableMessage rMsg, Uint8List data, {int priority = 0}) =>
-      queueAppend(rMsg, PlainDeparture(data, priority));
+      queueAppend(rMsg, PlainDeparture(data, priority, false));
 
   //
   //  Transmitter

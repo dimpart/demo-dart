@@ -35,6 +35,7 @@ import 'package:object_key/object_key.dart';
 import '../common/checker.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
+import '../common/session.dart';
 
 class ClientChecker extends EntityChecker with Logging {
   ClientChecker(CommonFacebook facebook, super.database)
@@ -54,6 +55,11 @@ class ClientChecker extends EntityChecker with Logging {
 
   @override
   Future<bool> queryMeta(ID identifier) async {
+    Transmitter? transmitter = messenger;
+    if (transmitter == null) {
+      logWarning('messenger not ready yet');
+      return false;
+    }
     if (!isMetaQueryExpired(identifier)) {
       // query not expired yet
       logInfo('meta query not expired yet: $identifier');
@@ -61,13 +67,18 @@ class ClientChecker extends EntityChecker with Logging {
     }
     logInfo('querying meta for: $identifier');
     var content = MetaCommand.query(identifier);
-    var pair = await messenger?.sendContent(content,
+    var pair = await transmitter.sendContent(content,
       sender: null, receiver: Station.ANY, priority: 1,);
-    return pair?.second != null;
+    return pair.second != null;
   }
 
   @override
   Future<bool> queryDocuments(ID identifier, List<Document> documents) async {
+    Transmitter? transmitter = messenger;
+    if (transmitter == null) {
+      logWarning('messenger not ready yet');
+      return false;
+    }
     if (!isDocumentQueryExpired(identifier)) {
       // query not expired yet
       logInfo('document query not expired yet: $identifier');
@@ -76,21 +87,26 @@ class ClientChecker extends EntityChecker with Logging {
     DateTime? lastTime = getLastDocumentTime(identifier, documents);
     logInfo('querying documents for: $identifier, last time: $lastTime');
     var content = DocumentCommand.query(identifier, lastTime);
-    var pair = await messenger?.sendContent(content,
+    var pair = await transmitter.sendContent(content,
         sender: null, receiver: Station.ANY, priority: 1);
-    return pair?.second != null;
+    return pair.second != null;
   }
 
   @override
   Future<bool> queryMembers(ID group, List<ID> members) async {
-    if (!isMembersQueryExpired(group)) {
-      // query not expired yet
-      logInfo('members query not expired yet: $group');
-      return false;
-    }
     User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
+      return false;
+    }
+    Transmitter? transmitter = messenger;
+    if (transmitter == null) {
+      logWarning('messenger not ready yet');
+      return false;
+    }
+    if (!isMembersQueryExpired(group)) {
+      // query not expired yet
+      logInfo('members query not expired yet: $group');
       return false;
     }
     ID me = user.identifier;
@@ -119,7 +135,7 @@ class ClientChecker extends EntityChecker with Logging {
     ID? lastMember = getLastActiveMember(group: group);
     if (lastMember != null) {
       logInfo('querying members from: $lastMember, group: $group');
-      pair = await messenger?.sendContent(command, sender: me, receiver: lastMember, priority: 1);
+      pair = await transmitter.sendContent(command, sender: me, receiver: lastMember, priority: 1);
     }
     logError('group not ready: $group');
     return pair?.second != null;
@@ -233,6 +249,11 @@ class ClientChecker extends EntityChecker with Logging {
       logWarning('skip cycled message: $contact, $visa');
       return false;
     }
+    Transmitter? transmitter = messenger;
+    if (transmitter == null) {
+      logWarning('messenger not ready yet');
+      return false;
+    }
     if (!isDocumentResponseExpired(contact, updated)) {
       // response not expired yet
       logDebug('visa response not expired yet: $contact');
@@ -240,8 +261,8 @@ class ClientChecker extends EntityChecker with Logging {
     }
     logInfo('push visa document: $me => $contact');
     DocumentCommand command = DocumentCommand.response(me, null, visa);
-    var res = await messenger?.sendContent(command, sender: me, receiver: contact, priority: 1);
-    return res?.second != null;
+    var res = await transmitter.sendContent(command, sender: me, receiver: contact, priority: 1);
+    return res.second != null;
   }
 
 }
