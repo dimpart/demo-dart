@@ -1,3 +1,7 @@
+## 0.7.7
+
+- Waiting to upload file content.
+
 ## 0.7.6
 
 - Checking ready before querying.

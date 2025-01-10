@@ -32,6 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
 import 'package:dimsdk/plugins.dart';
+import 'package:dim_plugins/crypto.dart';
 import 'package:dim_plugins/format.dart';
 import 'package:dim_plugins/plugins.dart';
 
@@ -154,6 +155,20 @@ class CommonPluginLoader extends PluginLoader {
     Base64.coder = _Base64Coder();
   }
 
+  @override
+  void registerRSAKeyFactories() {
+    /// RSA
+    var rsaPub = RSAPublicKeyFactory();
+    PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
+    PublicKey.setFactory('SHA256withRSA', rsaPub);
+    PublicKey.setFactory('RSA/ECB/PKCS1Padding', rsaPub);
+
+    var rsaPri = _RSAPrivateKeyFactory();
+    PrivateKey.setFactory(AsymmetricKey.RSA, rsaPri);
+    PrivateKey.setFactory('SHA256withRSA', rsaPri);
+    PrivateKey.setFactory('RSA/ECB/PKCS1Padding', rsaPri);
+  }
+
 }
 
 /// Base-64
@@ -173,6 +188,44 @@ class _Base64Coder extends Base64Coder {
       b64 = b64.replaceAll(' ', '');
     }
     return b64.trim();
+  }
+
+}
+
+/// RSA factory
+class _RSAPrivateKeyFactory extends RSAPrivateKeyFactory {
+
+  @override
+  PrivateKey generatePrivateKey() {
+    Map key = {'algorithm': AsymmetricKey.RSA};
+    return _RSAPrivateKey(key);
+  }
+
+  @override
+  PrivateKey? parsePrivateKey(Map key) {
+    return _RSAPrivateKey(key);
+  }
+
+}
+
+/// RSA key with created time
+class _RSAPrivateKey extends RSAPrivateKey {
+  _RSAPrivateKey(super.dict) {
+    DateTime? time = getDateTime('time', null);
+    if (time == null) {
+      time = DateTime.now();
+      setDateTime('time', time);
+    }
+  }
+
+  @override
+  PublicKey get publicKey {
+    PublicKey key = super.publicKey;
+    DateTime? time = getDateTime('time', null);
+    if (time != null) {
+      key.setDateTime('time', time);
+    }
+    return key;
   }
 
 }
