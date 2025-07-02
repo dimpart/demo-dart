@@ -38,6 +38,9 @@ import 'compat/compatible.dart';
 abstract class CommonPacker extends MessagePacker with Logging {
   CommonPacker(super.facebook, super.messenger);
 
+  @override
+  Compressor? get compressor => messenger?.compressor;
+
   ///  Add income message in a queue for waiting sender's visa
   ///
   /// @param rMsg - incoming message
@@ -51,6 +54,10 @@ abstract class CommonPacker extends MessagePacker with Logging {
   /// @param info - error info
   // protected
   void suspendInstantMessage(InstantMessage iMsg, Map info);
+
+  //
+  //  Checking
+  //
 
   /// for checking whether user's ready
   // protected
@@ -116,6 +123,10 @@ abstract class CommonPacker extends MessagePacker with Logging {
     return false;
   }
 
+  //
+  //  Packing
+  //
+
   @override
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
     // 1. check contact info
@@ -163,6 +174,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
     ReliableMessage? rMsg = await super.deserializeMessage(data);
     if (rMsg != null) {
       Compatible.fixMetaAttachment(rMsg);
+      Compatible.fixVisaAttachment(rMsg);
     }
     return rMsg;
   }
@@ -170,6 +182,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
   @override
   Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
     Compatible.fixMetaAttachment(rMsg);
+    Compatible.fixVisaAttachment(rMsg);
     return await super.serializeMessage(rMsg);
   }
 

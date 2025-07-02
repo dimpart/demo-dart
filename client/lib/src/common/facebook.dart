@@ -44,13 +44,14 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   final AccountDBI database;
 
+  CommonArchivist? _archivist;
   EntityChecker? checker;
 
-  CommonArchivist? _archivist;
+  User? _currentUser;
 
   @override
-  CommonArchivist get archivist => _archivist!;
-  set archivist(CommonArchivist delegate) => _archivist = delegate;
+  CommonArchivist get barrack => _archivist!;
+  set barrack(CommonArchivist archivist) => _archivist = archivist;
 
   //
   //  Current User
@@ -58,19 +59,101 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   Future<User?> get currentUser async {
     // Get current user (for signing and sending message)
-    User? user = archivist.currentUser;
-    if (user == null) {
-      List<User> localUsers = await archivist.localUsers;
-      if (localUsers.isNotEmpty) {
-        user = localUsers.first;
-        archivist.currentUser = user;
-      }
+    User? current = _currentUser;
+    if (current != null) {
+      return current;
     }
-    return user;
+    List<ID> array = await database.getLocalUsers();
+    if (array.isEmpty) {
+      return null;
+    }
+    assert(await getPrivateKeyForSignature(array.first) != null, 'user error: ${array.first}');
+    current = await getUser(array.first);
+    _currentUser = current;
+    return current;
   }
   Future<void> setCurrentUser(User user) async {
     user.dataSource ??= this;
-    archivist.currentUser = user;
+    _currentUser = user;
+  }
+
+  @override
+  Future<List<User>> getLocalUsers() async {
+    User? current = _currentUser;
+    //
+    //  1. get local user ID list
+    //
+    List<ID> array = await database.getLocalUsers();
+    if (array.isEmpty) {
+      return current == null ? [] : [current];
+    }
+    List<User> allUsers = [];
+    //
+    //  2. get all users
+    //
+    User? user;
+    for (ID item in array) {
+      assert(await getPrivateKeyForSignature(item) != null, 'user error: $item');
+      user = await getUser(item);
+      if (user != null) {
+        allUsers.add(user);
+      } else {
+        assert(false, 'failed to create user: $item');
+      }
+    }
+    //
+    //  3. check current user
+    //
+    if (current != null && allUsers.isNotEmpty) {
+      if (allUsers.first != current) {
+        allUsers.insert(0, current);
+      }
+    }
+    return allUsers;
+  }
+
+  @override
+  Future<User?> selectLocalUser(ID receiver) async {
+    List<User> allUsers = await getLocalUsers();
+    //
+    //  1.
+    //
+    if (allUsers.isEmpty) {
+      assert(false, 'local users should not be empty');
+      return null;
+    } else if (receiver.isBroadcast) {
+      // broadcast message can decrypt by anyone,
+      // so just return current user
+      return allUsers.first;
+    }
+    //
+    //  2.
+    //
+    if (receiver.isUser) {
+      for (User item in allUsers) {
+        if (item.identifier == receiver) {
+          // DISCUSS: set this item to be current user?
+          return item;
+        }
+      }
+    } else if (receiver.isGroup) {
+      // group message (recipient not designated)
+      //
+      // the messenger will check group info before decrypting message,
+      // so we can trust that the group's meta & members MUST exist here.
+      List<ID> members = await getMembers(receiver);
+      assert(members.isNotEmpty, 'members not found: $receiver');
+      for (User item in allUsers) {
+        if (members.contains(item.identifier)) {
+          // DISCUSS: set this item to be current user?
+          return item;
+        }
+      }
+    } else {
+      assert(false, 'receiver error: $receiver');
+    }
+    // not me?
+    return null;
   }
 
   //
@@ -81,8 +164,8 @@ abstract class CommonFacebook extends Facebook with Logging {
     List<Document> documents = await getDocuments(identifier);
     Document? doc = DocumentUtils.lastDocument(documents, type);
     // compatible for document type
-    if (doc == null && type == Document.VISA) {
-      doc = DocumentUtils.lastDocument(documents, Document.PROFILE);
+    if (doc == null && type == DocumentType.VISA) {
+      doc = DocumentUtils.lastDocument(documents, DocumentType.PROFILE);
     }
     return doc;
   }
@@ -100,9 +183,9 @@ abstract class CommonFacebook extends Facebook with Logging {
   Future<String> getName(ID identifier) async {
     String type;
     if (identifier.isUser) {
-      type = Document.VISA;
+      type = DocumentType.VISA;
     } else if (identifier.isGroup) {
-      type = Document.BULLETIN;
+      type = DocumentType.BULLETIN;
     } else {
       type = '*';
     }
@@ -210,11 +293,26 @@ abstract class CommonFacebook extends Facebook with Logging {
   // protected
   Future<bool> checkDocumentExpired(Document doc) async {
     ID identifier = doc.identifier;
-    String type = doc.type ?? '*';
+    String type = DocumentUtils.getDocumentType(doc) ?? '*';
     // check old documents with type
     List<Document> documents = await getDocuments(identifier);
     Document? old = DocumentUtils.lastDocument(documents, type);
     return old != null && DocumentUtils.isExpired(doc, old);
+  }
+
+  @override
+  Future<VerifyKey?> getMetaKey(ID user) async {
+    Meta? meta = await getMeta(user);
+    // assert(meta != null, 'failed to get meta for: $entity');
+    return meta?.publicKey;
+  }
+
+  @override
+  Future<EncryptKey?> getVisaKey(ID user) async {
+    var docs = await getDocuments(user);
+    var visa = DocumentUtils.lastVisa(docs);
+    // assert(doc != null, 'failed to get visa for: $user');
+    return visa?.publicKey;
   }
 
   //

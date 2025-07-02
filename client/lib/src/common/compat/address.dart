@@ -31,6 +31,8 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:dim_plugins/mkm.dart';
 
+import '../utils/cache.dart';
+
 
 class CompatibleAddressFactory extends BaseAddressFactory {
 
@@ -40,7 +42,7 @@ class CompatibleAddressFactory extends BaseAddressFactory {
   /// @return number of survivors
   int reduceMemory() {
     int finger = 0;
-    finger = Barrack.thanos(addresses, finger);
+    finger = thanos(addresses, finger);
     return finger >> 1;
   }
 

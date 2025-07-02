@@ -35,6 +35,7 @@ import 'package:dimsdk/plugins.dart';
 import 'package:dim_plugins/crypto.dart';
 import 'package:dim_plugins/format.dart';
 import 'package:dim_plugins/plugins.dart';
+import 'package:lnc/log.dart';
 
 import '../protocol/ans.dart';
 import '../protocol/block.dart';
@@ -90,26 +91,26 @@ class CommonLoader extends ExtensionLoader {
     super.registerCommandFactories();
 
     // ANS
-    Command.setFactory(AnsCommand.ANS, CommandParser((dict) => BaseAnsCommand(dict)));
+    setCommandFactory(AnsCommand.ANS, creator: (dict) => BaseAnsCommand(dict));
 
     // Handshake
-    Command.setFactory(HandshakeCommand.HANDSHAKE, CommandParser((dict) => BaseHandshakeCommand(dict)));
+    setCommandFactory(HandshakeCommand.HANDSHAKE, creator: (dict) => BaseHandshakeCommand(dict));
     // Login
-    Command.setFactory(LoginCommand.LOGIN, CommandParser((dict) => BaseLoginCommand(dict)));
+    setCommandFactory(LoginCommand.LOGIN, creator: (dict) => BaseLoginCommand(dict));
 
     // Mute
-    Command.setFactory(MuteCommand.MUTE, CommandParser((dict) => MuteCommand(dict)));
+    setCommandFactory(MuteCommand.MUTE,   creator: (dict) => MuteCommand(dict));
     // Block
-    Command.setFactory(BlockCommand.BLOCK, CommandParser((dict) => BlockCommand(dict)));
+    setCommandFactory(BlockCommand.BLOCK, creator: (dict) => BlockCommand(dict));
 
     // Report: online, offline
-    Command.setFactory(ReportCommand.REPORT,  CommandParser((dict) => BaseReportCommand(dict)));
-    Command.setFactory(ReportCommand.ONLINE,  CommandParser((dict) => BaseReportCommand(dict)));
-    Command.setFactory(ReportCommand.OFFLINE, CommandParser((dict) => BaseReportCommand(dict)));
+    setCommandFactory(ReportCommand.REPORT,  creator: (dict) => BaseReportCommand(dict));
+    setCommandFactory(ReportCommand.ONLINE,  creator: (dict) => BaseReportCommand(dict));
+    setCommandFactory(ReportCommand.OFFLINE, creator: (dict) => BaseReportCommand(dict));
 
     // Search: users
-    Command.setFactory(SearchCommand.SEARCH,       CommandParser((dict) => BaseSearchCommand(dict)));
-    Command.setFactory(SearchCommand.ONLINE_USERS, CommandParser((dict) => BaseSearchCommand(dict)));
+    setCommandFactory(SearchCommand.SEARCH,       creator: (dict) => BaseSearchCommand(dict));
+    setCommandFactory(SearchCommand.ONLINE_USERS, creator: (dict) => BaseSearchCommand(dict));
 
   }
 
@@ -119,6 +120,12 @@ class CommonLoader extends ExtensionLoader {
 /// Plugin Loader
 /// ~~~~~~~~~~~~~
 class CommonPluginLoader extends PluginLoader {
+
+  @override
+  void load() {
+    Converter.converter = _SafeConverter();
+    super.load();
+  }
 
   @override
   void registerIDFactory() {
@@ -132,9 +139,9 @@ class CommonPluginLoader extends PluginLoader {
 
   @override
   void registerMetaFactories() {
-    var mkm = CompatibleMetaFactory(Meta.MKM);
-    var btc = CompatibleMetaFactory(Meta.BTC);
-    var eth = CompatibleMetaFactory(Meta.ETH);
+    var mkm = CompatibleMetaFactory(MetaType.MKM);
+    var btc = CompatibleMetaFactory(MetaType.BTC);
+    var eth = CompatibleMetaFactory(MetaType.ETH);
 
     Meta.setFactory('1', mkm);
     Meta.setFactory('2', btc);
@@ -157,14 +164,14 @@ class CommonPluginLoader extends PluginLoader {
 
   @override
   void registerRSAKeyFactories() {
-    /// RSA
+    /// RSA keys with created time
     var rsaPub = RSAPublicKeyFactory();
-    PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
+    PublicKey.setFactory(AsymmetricAlgorithms.RSA, rsaPub);
     PublicKey.setFactory('SHA256withRSA', rsaPub);
     PublicKey.setFactory('RSA/ECB/PKCS1Padding', rsaPub);
 
     var rsaPri = _RSAPrivateKeyFactory();
-    PrivateKey.setFactory(AsymmetricKey.RSA, rsaPri);
+    PrivateKey.setFactory(AsymmetricAlgorithms.RSA, rsaPri);
     PrivateKey.setFactory('SHA256withRSA', rsaPri);
     PrivateKey.setFactory('RSA/ECB/PKCS1Padding', rsaPri);
   }
@@ -197,7 +204,7 @@ class _RSAPrivateKeyFactory extends RSAPrivateKeyFactory {
 
   @override
   PrivateKey generatePrivateKey() {
-    Map key = {'algorithm': AsymmetricKey.RSA};
+    Map key = {'algorithm': AsymmetricAlgorithms.RSA};
     return _RSAPrivateKey(key);
   }
 
@@ -226,6 +233,51 @@ class _RSAPrivateKey extends RSAPrivateKey {
       key.setDateTime('time', time);
     }
     return key;
+  }
+
+}
+
+/// Safely Converter
+class _SafeConverter extends BaseConverter with Logging {
+
+  @override
+  bool? getBool(Object? value, bool? defaultValue) {
+    try {
+      return super.getBool(value, defaultValue);
+    } catch (e, st) {
+      logError('failed to get bool: $value, error: $e, $st');
+      return null;
+    }
+  }
+
+  @override
+  int? getInt(Object? value, int? defaultValue) {
+    try {
+      return super.getInt(value, defaultValue);
+    } catch (e, st) {
+      logError('failed to get int: $value, error: $e, $st');
+      return null;
+    }
+  }
+
+  @override
+  double? getDouble(Object? value, double? defaultValue) {
+    try {
+      return super.getDouble(value, defaultValue);
+    } catch (e, st) {
+      logError('failed to get double: $value, error: $e, $st');
+      return null;
+    }
+  }
+
+  @override
+  DateTime? getDateTime(Object? value, DateTime? defaultValue) {
+    try {
+      return super.getDateTime(value, defaultValue);
+    } catch (e, st) {
+      logError('failed to get datetime: $value, error: $e, $st');
+      return null;
+    }
   }
 
 }

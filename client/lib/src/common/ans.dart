@@ -30,6 +30,65 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+
+abstract interface class AddressNameService {
+
+  static final List<String> keywords = [
+    "all", "everyone", "anyone", "owner", "founder",
+    // --------------------------------
+    "dkd", "mkm", "dimp", "dim", "dimt",
+    "rsa", "ecc", "aes", "des", "btc", "eth",
+    // --------------------------------
+    "crypto", "key", "symmetric", "asymmetric",
+    "public", "private", "secret", "password",
+    "id", "address", "meta",
+    "tai", "document", "profile", "visa", "bulletin",
+    "entity", "user", "group", "contact",
+    // --------------------------------
+    "member", "admin", "administrator", "assistant",
+    "main", "polylogue", "chatroom",
+    "social", "organization",
+    "company", "school", "government", "department",
+    "provider", "station", "thing", "bot", "robot",
+    // --------------------------------
+    "message", "instant", "secure", "reliable",
+    "envelope", "sender", "receiver", "time",
+    "content", "forward", "command", "history",
+    "keys", "data", "signature",
+    // --------------------------------
+    "type", "serial", "sn",
+    "text", "file", "image", "audio", "video", "page",
+    "handshake", "receipt", "block", "mute",
+    "register", "suicide", "found", "abdicate",
+    "invite", "expel", "join", "quit", "reset", "query",
+    "hire", "fire", "resign",
+    // --------------------------------
+    "server", "client", "terminal", "local", "remote",
+    "barrack", "cache", "transceiver",
+    "ans", "facebook", "store", "messenger",
+    "root", "supervisor",
+  ];
+
+  ///  Check whether the alias is available
+  ///
+  /// @param name - alias
+  /// @return true on reserved
+  bool isReserved(String name);
+
+  ///  Get ID by short name
+  ///
+  /// @param name - sort name
+  /// @return user ID
+  ID? identifier(String name);
+
+  ///  Get all short names with the same ID
+  ///
+  /// @param identifier - user ID
+  /// @return short name list
+  List<String> names(ID identifier);
+}
+
+
 class AddressNameServer implements AddressNameService {
   AddressNameServer() {
     // constant ANS records

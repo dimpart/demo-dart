@@ -66,7 +66,7 @@ abstract interface class CustomizedContent implements Content {
 class AppCustomizedContent extends BaseContent implements CustomizedContent {
   AppCustomizedContent(super.dict);
 
-  AppCustomizedContent.fromType(int msgType, {
+  AppCustomizedContent.fromType(String msgType, {
     required String app, required String mod, required String act
   }) : super.fromType(msgType) {
     this['app'] = app;

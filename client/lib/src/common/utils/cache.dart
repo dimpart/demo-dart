@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  Ming-Ke-Ming : Decentralized User Identity Authentication
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2023 by Moky <albert.moky@gmail.com>
+ *                               Written in 2025 by Moky <albert.moky@gmail.com>
  *
- * ==============================================================================
+ * =============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Albert Moky
+ * Copyright (c) 2025 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,46 +26,49 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * ==============================================================================
+ * =============================================================================
  */
-import 'package:dimsdk/dimsdk.dart';
-import 'package:dimsdk/plugins.dart';
-import 'package:dim_plugins/mkm.dart';
 
 
-class CompatibleMetaFactory extends BaseMetaFactory {
-  CompatibleMetaFactory(super.type);
+abstract interface class MemoryCache<K, V> {
+
+  V? get(K key);
+
+  void put(K key, V? value);
+
+  int reduceMemory();
+
+}
+
+
+class ThanosCache<K, V> implements MemoryCache<K, V> {
+
+  final Map<K, V> _caches = {};
 
   @override
-  Meta? parseMeta(Map meta) {
-    Meta out;
-    var ext = SharedAccountExtensions();
-    String? version = ext.helper!.getMetaType(meta, '');
-    switch (version) {
+  V? get(K key) => _caches[K];
 
-      case 'MKM':
-      case 'mkm':
-      case '1':
-        out = DefaultMeta(meta);
-        break;
+  @override
+  void put(K key, V? value) => value == null
+      ? _caches.remove(key)
+      : _caches[key] = value;
 
-      case 'BTC':
-      case 'btc':
-      case '2':
-        out = BTCMeta(meta);
-        break;
-
-      case 'ETH':
-      case 'eth':
-      case '4':
-        out = ETHMeta(meta);
-        break;
-
-      default:
-        // TODO: other types of meta
-        throw Exception('unknown meta type: $type');
-    }
-    return out.isValid ? out : null;
+  @override
+  int reduceMemory() {
+    int finger = 0;
+    finger = thanos(_caches, finger);
+    return finger >> 1;
   }
 
+}
+
+
+/// Thanos
+/// ~~~~~~
+/// Thanos can kill half lives of a world with a snap of the finger
+int thanos(Map planet, int finger) {
+  // if ++finger is odd, remove it,
+  // else, let it go
+  planet.removeWhere((key, value) => (++finger & 1) == 1);
+  return finger;
 }

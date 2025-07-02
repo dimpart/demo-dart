@@ -49,11 +49,11 @@ class Register {
     //
     //  Step 1: generate private key (with asymmetric algorithm)
     //
-    PrivateKey idKey = PrivateKey.generate(AsymmetricKey.ECC)!;
+    PrivateKey idKey = PrivateKey.generate(AsymmetricAlgorithms.ECC)!;
     //
     //  Step 2: generate meta with private key (and meta seed)
     //
-    Meta meta = Meta.generate(Meta.ETH, idKey);
+    Meta meta = Meta.generate(MetaType.ETH, idKey);
     //
     //  Step 3: generate ID with meta
     //
@@ -61,7 +61,7 @@ class Register {
     //
     //  Step 4: generate visa with ID and sign with private key
     //
-    PrivateKey? msgKey = PrivateKey.generate(AsymmetricKey.RSA);
+    PrivateKey? msgKey = PrivateKey.generate(AsymmetricAlgorithms.RSA);
     EncryptKey visaKey = msgKey!.publicKey as EncryptKey;
     Visa visa = createVisa(identifier, visaKey, idKey, name: name, avatar: avatar);
     //
@@ -94,7 +94,7 @@ class Register {
     //
     //  Step 2: generate meta with private key (and meta seed)
     //
-    Meta meta = Meta.generate(Meta.MKM, privateKey, seed: seed);
+    Meta meta = Meta.generate(MetaType.MKM, privateKey, seed: seed);
     //
     //  Step 3: generate ID with meta
     //

@@ -35,6 +35,7 @@ import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import 'compat/compatible.dart';
+import 'compat/compressor.dart';
 
 import 'facebook.dart';
 import 'session.dart';
@@ -42,18 +43,23 @@ import 'session.dart';
 
 abstract class CommonMessenger extends Messenger with Logging
     implements Transmitter {
-  CommonMessenger(this.session, this.facebook, this.database)
+  CommonMessenger(this.session, this._facebook, this.database)
       : _packer = null, _processor = null;
 
   final Session session;
-  final CommonFacebook facebook;
+  final CommonFacebook _facebook;
   final CipherKeyDelegate database;
 
   Packer? _packer;
   Processor? _processor;
 
+  final Compressor _compressor = CompatibleCompressor();
+
   @override
-  EntityDelegate get entityDelegate => facebook;
+  CommonFacebook get facebook => _facebook;
+
+  @override
+  Compressor get compressor => _compressor;
 
   @override
   CipherKeyDelegate? get cipherKeyDelegate => database;
@@ -107,23 +113,8 @@ abstract class CommonMessenger extends Messenger with Logging
 
   @override
   Future<Uint8List> serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) async {
-    if (content is Command) {
-      content = Compatible.fixCommand(content);
-    } else if (content is FileContent) {
-      content = Compatible.fixFileContent(content);
-    }
+    CompatibleOutgoing.fixContent(content);
     return await super.serializeContent(content, password, iMsg);
-  }
-
-  @override
-  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
-    Content? content = await super.deserializeContent(data, password, sMsg);
-    if (content is Command) {
-      content = Compatible.fixCommand(content);
-    } else if (content is FileContent) {
-      content = Compatible.fixFileContent(content);
-    }
-    return content;
   }
 
   //

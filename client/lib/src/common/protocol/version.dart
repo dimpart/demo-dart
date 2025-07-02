@@ -51,7 +51,7 @@
 ///      0000 0010 - this meta generate BTC address
 ///      0000 0100 - this meta generate ETH address
 ///      ...
-class MetaType {
+class MetaVersion {
 
   // ignore_for_file: constant_identifier_names
   static const int DEFAULT = (0x01);
@@ -66,7 +66,7 @@ class MetaType {
   static String parseString(dynamic type) {
     if (type is String) {
       return type;
-    } else if (type is MetaType) {
+    } else if (type is MetaVersion) {
       return type.toString();
     } else if (type is int) {
       return type.toString();
@@ -105,7 +105,7 @@ class MetaType {
         return ExETH;
       }
       // TODO: other algorithms
-    // } else if (type is MetaType) {
+    // } else if (type is MetaVersion) {
     //   // enum
     //   return type;
     } else {

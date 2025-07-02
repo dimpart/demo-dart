@@ -29,11 +29,12 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/log.dart';
 
 import 'dbi/account.dart';
 import 'utils/checkers.dart';
 
-abstract class EntityChecker {
+abstract class EntityChecker with Logging {
   // ignore_for_file: non_constant_identifier_names
 
   /// each query will be expired after 10 minutes
@@ -164,7 +165,8 @@ abstract class EntityChecker {
       assert(doc.identifier == identifier, 'document not match: $identifier, $doc');
       docTime = doc.time;
       if (docTime == null) {
-        assert(false, 'document error: $doc');
+        // assert(false, 'document error: $doc');
+        logWarning('document time error: $doc');
       } else if (lastTime == null || lastTime.isBefore(docTime)) {
         lastTime = docTime;
       }
@@ -219,7 +221,8 @@ abstract class EntityChecker {
       his = pair.first;
       hisTime = his.time;
       if (hisTime == null) {
-        assert(false, 'group command error: $his');
+        // assert(false, 'group command error: $his');
+        logWarning('group command time error: $his');
       } else if (lastTime == null || lastTime.isBefore(hisTime)) {
         lastTime = hisTime;
       }

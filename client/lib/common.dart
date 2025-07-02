@@ -3,13 +3,16 @@ library dim_client;
 
 // export 'src/common/compat/address.dart';     // -> 'compat.dart'
 // export 'src/common/compat/compatible.dart';  // -> 'compat.dart'
+// export 'src/common/compat/compressor.dart';  // -> 'compat.dart'
 // export 'src/common/compat/network.dart';     // -> 'compat.dart'
 // export 'src/common/compat/entity.dart';      // -> 'compat.dart'
 // export 'src/common/compat/meta.dart';        // -> 'compat.dart'
 // export 'src/common/compat/loader.dart';      // -> 'compat.dart'
 
+export 'src/common/utils/cache.dart';
 export 'src/common/utils/checkers.dart';
 
+export 'src/common/protocol/members.dart';
 export 'src/common/protocol/version.dart';
 export 'src/common/protocol/utils.dart';
 

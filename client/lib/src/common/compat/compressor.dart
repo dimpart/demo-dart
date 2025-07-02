@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                               Written in 2023 by Moky <albert.moky@gmail.com>
+ *                               Written in 2025 by Moky <albert.moky@gmail.com>
  *
  * =============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Albert Moky
+ * Copyright (c) 2025 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,57 +28,56 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/log.dart';
+import 'dart:typed_data';
 
-import 'utils/cache.dart';
+import 'package:dimsdk/core.dart';
 
-class CommonArchivist extends Barrack with Logging {
-  CommonArchivist(Facebook facebook) : _facebook = WeakReference(facebook);
+import 'compatible.dart';
 
-  final WeakReference<Facebook> _facebook;
 
-  // protected
-  Facebook? get facebook => _facebook.target;
-
-  /// memory caches
-  late final MemoryCache<ID, User>   _userCache = createUserCache();
-  late final MemoryCache<ID, Group> _groupCache = createGroupCache();
-
-  // protected
-  MemoryCache<ID, User> createUserCache() => ThanosCache();
-  MemoryCache<ID, Group> createGroupCache() => ThanosCache();
-
-  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-  /// this will remove 50% of cached objects
-  ///
-  /// @return number of survivors
-  int reduceMemory() {
-    int cnt1 = _userCache.reduceMemory();
-    int cnt2 = _groupCache.reduceMemory();
-    return cnt1 + cnt2;
-  }
-
-  //
-  //  Barrack
-  //
+class CompatibleCompressor extends MessageCompressor {
 
   @override
-  void cacheUser(User user) {
-    user.dataSource ??= facebook;
-    _userCache.put(user.identifier, user);
+  MessageShortener createMessageShortener() {
+    return CompatibleShortener();
   }
 
   @override
-  void cacheGroup(Group group) {
-    group.dataSource ??= facebook;
-    _groupCache.put(group.identifier, group);
+  Uint8List compressContent(Map content, Map key) {
+    //CompatibleOutgoing.fixContent(content);
+    return super.compressContent(content, key);
   }
 
   @override
-  User? getUser(ID identifier) => _userCache.get(identifier);
+  Map? extractContent(Uint8List data, Map key) {
+    Map? content = super.extractContent(data, key);
+    if (content != null) {
+      CompatibleIncoming.fixContent(content);
+    }
+    return content;
+  }
+
+}
+
+
+class CompatibleShortener extends MessageShortener {
 
   @override
-  Group? getGroup(ID identifier) => _groupCache.get(identifier);
+  Map compressContent(Map content) {
+    // DON'T COMPRESS NOW
+    return content;
+  }
+
+  @override
+  Map compressSymmetricKey(Map key) {
+    // DON'T COMPRESS NOW
+    return key;
+  }
+
+  @override
+  Map compressReliableMessage(Map msg) {
+    // DON'T COMPRESS NOW
+    return msg;
+  }
 
 }

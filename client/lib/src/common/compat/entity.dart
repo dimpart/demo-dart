@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:dim_plugins/mkm.dart';
 
+import '../utils/cache.dart';
 import 'network.dart';
 
 
@@ -42,7 +43,7 @@ class EntityIDFactory extends IdentifierFactory {
   /// @return number of survivors
   int reduceMemory() {
     int finger = 0;
-    finger = Barrack.thanos(identifiers, finger);
+    finger = thanos(identifiers, finger);
     return finger >> 1;
   }
 
@@ -79,6 +80,7 @@ class EntityIDFactory extends IdentifierFactory {
         return ID.FOUNDER;
       }
     }
+    // normal ID
     return super.parse(identifier);
   }
 

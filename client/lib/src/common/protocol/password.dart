@@ -61,7 +61,7 @@ class Password {
     }
     // Uint8List iv = digest.sublist(digest.length - _blockSize);
     Map key = {
-      'algorithm': SymmetricKey.AES,
+      'algorithm': SymmetricAlgorithms.AES,
       'data': Base64.encode(data),
       // 'iv': Base64.encode(iv),
     };
