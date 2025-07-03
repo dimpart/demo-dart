@@ -104,7 +104,7 @@ class GroupManager extends TripletsHelper {
     Bulletin? doc = await delegate.getBulletin(group);
     Command content;
     if (doc != null) {
-      content = DocumentCommand.response(group, meta, doc);
+      content = DocumentCommand.response(group, meta, [doc]);
     } else if (meta != null) {
       content = MetaCommand.response(group, meta);
     } else {

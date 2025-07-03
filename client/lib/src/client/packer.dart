@@ -240,7 +240,7 @@ abstract class ClientMessagePacker extends CommonPacker {
   Future<InstantMessage?> getFailedMessage(SecureMessage sMsg) async {
     ID sender = sMsg.sender;
     ID? group = sMsg.group;
-    int? type = sMsg.type;
+    String? type = sMsg.type;
     if (type == ContentType.COMMAND || type == ContentType.HISTORY) {
       logWarning('ignore message unable to decrypt (type=$type) from "$sender"');
       return null;

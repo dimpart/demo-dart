@@ -117,7 +117,7 @@ class GroupHistoryBuilder extends TripletsHelper {
     }
     ID me = user.identifier;
     Meta? meta = await delegate.getMeta(group);
-    Command command = DocumentCommand.response(group, meta, doc);
+    Command command = DocumentCommand.response(group, meta, [doc]);
     ReliableMessage? rMsg = await _packBroadcastMessage(me, command);
     return Pair(doc, rMsg);
   }

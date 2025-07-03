@@ -54,9 +54,8 @@ class ClientMessageProcessor extends CommonProcessor {
     if (group == null) {
       return false;
     }
-    var barrack = facebook;
-    var checker = barrack?.checker;
-    if (barrack == null || checker == null) {
+    var checker = facebook?.checker;
+    if (checker == null) {
       assert(false, 'should not happen');
       return false;
     }
@@ -84,12 +83,12 @@ class ClientMessageProcessor extends CommonProcessor {
     // check whether needs update
     if (docUpdated) {
       logInfo('checking for new bulletin: $group');
-      await barrack.getDocuments(group);
+      await facebook?.getDocuments(group);
     }
     if (memUpdated) {
       checker.setLastActiveMember(rMsg.sender, group: group);
       logInfo('checking for group members: $group');
-      await barrack.getMembers(group);
+      await facebook?.getMembers(group);
     }
     return docUpdated || memUpdated;
   }

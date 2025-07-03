@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
-import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
 import '../common/checker.dart';
@@ -37,7 +36,7 @@ import '../common/facebook.dart';
 import '../common/messenger.dart';
 import '../common/session.dart';
 
-class ClientChecker extends EntityChecker with Logging {
+class ClientChecker extends EntityChecker {
   ClientChecker(CommonFacebook facebook, super.database)
       : _barrack = WeakReference(facebook);
 
@@ -259,8 +258,8 @@ class ClientChecker extends EntityChecker with Logging {
       logDebug('visa response not expired yet: $contact');
       return false;
     }
-    logInfo('push visa document: $me => $contact');
-    DocumentCommand command = DocumentCommand.response(me, null, visa);
+    logDebug('push visa document: $me => $contact');
+    DocumentCommand command = DocumentCommand.response(me, null, [visa]);
     var res = await transmitter.sendContent(command, sender: me, receiver: contact, priority: 1);
     return res.second != null;
   }

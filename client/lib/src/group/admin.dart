@@ -30,9 +30,6 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import '../common/facebook.dart';
-import '../common/messenger.dart';
-
 import 'delegate.dart';
 
 
@@ -47,19 +44,18 @@ class AdminManager extends TripletsHelper {
   /// @return false on error
   Future<bool> updateAdministrators(List<ID> newAdmins, {required ID group}) async {
     assert(group.isGroup, 'group ID error: $group');
-    CommonFacebook? barrack = facebook;
-    assert(barrack != null, 'facebook not ready');
+    assert(facebook != null, 'facebook not ready');
 
     //
     //  0. get current user
     //
-    User? user = await barrack?.currentUser;
+    User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
     }
     ID me = user.identifier;
-    SignKey? sKey = await barrack?.getPrivateKeyForVisaSignature(me);
+    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(me);
     assert(sKey != null, 'failed to get sign key for current user: $me');
 
     //
@@ -109,14 +105,13 @@ class AdminManager extends TripletsHelper {
 
   /// Broadcast group document
   Future<bool> broadcastGroupDocument(Bulletin doc) async {
-    CommonFacebook? barrack = facebook;
-    CommonMessenger? transceiver = messenger;
-    assert(barrack != null && transceiver != null, 'facebook messenger not ready: $barrack, $transceiver');
+    assert(facebook != null, 'facebook not ready: $facebook');
+    assert(messenger != null, 'messenger not ready: $messenger');
 
     //
     //  0. get current user
     //
-    User? user = await barrack?.currentUser;
+    User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
@@ -127,9 +122,9 @@ class AdminManager extends TripletsHelper {
     //  1. create 'document' command, and send to current station
     //
     ID group = doc.identifier;
-    Meta? meta = await barrack?.getMeta(group);
-    Command content = DocumentCommand.response(group, meta, doc);
-    transceiver?.sendContent(content, sender: me, receiver: Station.ANY, priority: 1);
+    Meta? meta = await facebook?.getMeta(group);
+    Command content = DocumentCommand.response(group, meta, [doc]);
+    messenger?.sendContent(content, sender: me, receiver: Station.ANY, priority: 1);
 
     //
     //  2. check group bots
@@ -142,7 +137,7 @@ class AdminManager extends TripletsHelper {
           assert(false, 'should not be a bot here: $me');
           continue;
         }
-        transceiver?.sendContent(content, sender: me, receiver: item, priority: 1);
+        messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
       }
       return true;
     }
@@ -160,7 +155,7 @@ class AdminManager extends TripletsHelper {
         logInfo('skip cycled message: $item, $group');
         continue;
       }
-      transceiver?.sendContent(content, sender: me, receiver: item, priority: 1);
+      messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
     }
     return true;
   }

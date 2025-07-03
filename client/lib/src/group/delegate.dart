@@ -32,7 +32,6 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/skywalker.dart';
 
-import '../common/archivist.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 import '../common/session.dart';
@@ -53,11 +52,11 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
 
   Future<String> buildGroupName(List<ID> members) async {
     assert(members.isNotEmpty, 'members should not be empty here');
-    CommonFacebook barrack = facebook!;
-    String text = await barrack.getName(members.first);
+    CommonFacebook facebook = this.facebook!;
+    String text = await facebook.getName(members.first);
     String nickname;
     for (int i = 1; i < members.length; ++i) {
-      nickname = await barrack.getName(members[i]);
+      nickname = await facebook.getName(members[i]);
       if (nickname.isEmpty) {
         continue;
       }
@@ -199,9 +198,6 @@ abstract class TripletsHelper with Logging {
 
   // protected
   CommonMessenger? get messenger => delegate.messenger;
-
-  // protected
-  CommonArchivist? get archivist => facebook?.archivist;
 
   // protected
   AccountDBI? get database => facebook?.database;

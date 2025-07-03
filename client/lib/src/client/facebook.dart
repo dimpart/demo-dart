@@ -31,14 +31,14 @@
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/ans.dart';
+import '../common/archivist.dart';
 import '../common/facebook.dart';
 import '../common/protocol/utils.dart';
 import '../group/shared.dart';
 
 
-///  Client Facebook with Address Name Service
-abstract class ClientFacebook extends CommonFacebook {
-  ClientFacebook(super.database);
+class ClientArchivist extends CommonArchivist {
+  ClientArchivist(super.facebook);
 
   @override
   void cacheGroup(Group group) {
@@ -46,33 +46,12 @@ abstract class ClientFacebook extends CommonFacebook {
     super.cacheGroup(group);
   }
 
-  @override
-  Future<User?> selectLocalUser(ID receiver) async {
-    if (receiver.isUser) {
-      return await super.selectLocalUser(receiver);
-    }
-    // group message (recipient not designated)
-    assert(receiver.isGroup, 'receiver error: $receiver');
-    // the messenger will check group info before decrypting message,
-    // so we can trust that the group's meta & members MUST exist here.
-    List<User> users = await archivist.localUsers;
-    if (users.isEmpty) {
-      assert(false, 'local users should not be empty');
-      return null;
-    } else if (receiver.isBroadcast) {
-      // broadcast message can decrypt by anyone, so just return current user
-      return users.first;
-    }
-    List<ID> members = await getMembers(receiver);
-    assert(members.isNotEmpty, "members not found: $receiver");
-    for (User item in users) {
-      if (members.contains(item.identifier)) {
-        // DISCUSS: set this item to be current user?
-        return item;
-      }
-    }
-    return null;
-  }
+}
+
+
+///  Client Facebook with Address Name Service
+abstract class ClientFacebook extends CommonFacebook {
+  ClientFacebook(super.database);
 
   @override
   Future<bool> saveDocument(Document doc) async {

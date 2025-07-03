@@ -50,7 +50,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   ClientContentProcessorCreator(super.facebook, super.messenger);
 
   @override
-  ContentProcessor? createContentProcessor(int msgType) {
+  ContentProcessor? createContentProcessor(String msgType) {
     switch (msgType) {
 
       // application customized
@@ -68,7 +68,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   }
 
   @override
-  ContentProcessor? createCommandProcessor(int msgType, String cmd) {
+  ContentProcessor? createCommandProcessor(String msgType, String cmd) {
     switch (cmd) {
       case Command.RECEIPT:
         return ReceiptCommandProcessor(facebook!, messenger!);
