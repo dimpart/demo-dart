@@ -50,6 +50,8 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   @override
   CommonMessenger? get messenger => super.messenger as CommonMessenger?;
 
+  Archivist? get archivist => facebook?.archivist;
+
   Future<String> buildGroupName(List<ID> members) async {
     assert(members.isNotEmpty, 'members should not be empty here');
     CommonFacebook facebook = this.facebook!;
@@ -84,7 +86,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
       await facebook?.getBulletin(group);
 
   Future<bool> saveDocument(Document doc) async =>
-      await facebook!.saveDocument(doc);
+      await archivist!.saveDocument(doc);
 
   //
   //  Group DataSource

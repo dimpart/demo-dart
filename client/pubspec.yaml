@@ -15,7 +15,7 @@ dependencies:
 #  startrek: ^1.1.0
   stargate: ^1.0.0
 #  dimp: ^2.0.1
-  dimsdk: ^2.0.0
+  dimsdk: ^2.0.1
   dim_plugins: ^2.0.0
 
 dev_dependencies:

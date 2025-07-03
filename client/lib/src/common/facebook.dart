@@ -50,8 +50,11 @@ abstract class CommonFacebook extends Facebook with Logging {
   User? _currentUser;
 
   @override
-  CommonArchivist get barrack => _archivist!;
-  set barrack(CommonArchivist archivist) => _archivist = archivist;
+  Archivist? get archivist => _archivist;
+
+  @override
+  CommonArchivist? get barrack => _archivist;
+  set barrack(CommonArchivist? archivist) => _archivist = archivist;
 
   //
   //  Current User
@@ -78,82 +81,32 @@ abstract class CommonFacebook extends Facebook with Logging {
   }
 
   @override
-  Future<List<User>> getLocalUsers() async {
-    User? current = _currentUser;
-    //
-    //  1. get local user ID list
-    //
-    List<ID> array = await database.getLocalUsers();
-    if (array.isEmpty) {
-      return current == null ? [] : [current];
-    }
-    List<User> allUsers = [];
-    //
-    //  2. get all users
-    //
-    User? user;
-    for (ID item in array) {
-      assert(await getPrivateKeyForSignature(item) != null, 'user error: $item');
-      user = await getUser(item);
-      if (user != null) {
-        allUsers.add(user);
-      } else {
-        assert(false, 'failed to create user: $item');
-      }
-    }
-    //
-    //  3. check current user
-    //
-    if (current != null && allUsers.isNotEmpty) {
-      if (allUsers.first != current) {
-        allUsers.insert(0, current);
-      }
-    }
-    return allUsers;
-  }
-
-  @override
-  Future<User?> selectLocalUser(ID receiver) async {
-    List<User> allUsers = await getLocalUsers();
-    //
-    //  1.
-    //
-    if (allUsers.isEmpty) {
-      assert(false, 'local users should not be empty');
-      return null;
-    } else if (receiver.isBroadcast) {
-      // broadcast message can decrypt by anyone,
-      // so just return current user
-      return allUsers.first;
-    }
-    //
-    //  2.
-    //
-    if (receiver.isUser) {
-      for (User item in allUsers) {
-        if (item.identifier == receiver) {
-          // DISCUSS: set this item to be current user?
-          return item;
+  Future<ID?> selectLocalUser(ID receiver) async {
+    User? user = _currentUser;
+    if (user != null) {
+      ID current = user.identifier;
+      if (current.isBroadcast) {
+        // broadcast message can be decrypted by anyone, so
+        // just return current user here
+        return current;
+      } else if (receiver.isGroup) {
+        // group message (recipient not designated)
+        //
+        // the messenger will check group info before decrypting message,
+        // so we can trust that the group's meta & members MUST exist here.
+        List<ID> members = await getMembers(receiver);
+        if (members.isEmpty) {
+          assert(false, 'members not found: $receiver');
+          return null;
+        } else if (members.contains(current)) {
+          return current;
         }
+      } else if (receiver == current) {
+        return current;
       }
-    } else if (receiver.isGroup) {
-      // group message (recipient not designated)
-      //
-      // the messenger will check group info before decrypting message,
-      // so we can trust that the group's meta & members MUST exist here.
-      List<ID> members = await getMembers(receiver);
-      assert(members.isNotEmpty, 'members not found: $receiver');
-      for (User item in allUsers) {
-        if (members.contains(item.identifier)) {
-          // DISCUSS: set this item to be current user?
-          return item;
-        }
-      }
-    } else {
-      assert(false, 'receiver error: $receiver');
     }
-    // not me?
-    return null;
+    // check local users
+    return await super.selectLocalUser(receiver);
   }
 
   //
@@ -199,120 +152,6 @@ abstract class CommonFacebook extends Facebook with Logging {
     }
     // get name from ID
     return Anonymous.getName(identifier);
-  }
-
-  // -------- Storage
-
-  @override
-  Future<bool> saveMeta(Meta meta, ID identifier) async {
-    //
-    //  1. check valid
-    //
-    if (!checkMeta(meta, identifier)) {
-      assert(false, 'meta not valid: $identifier');
-      return false;
-    }
-    //
-    //  2. check duplicated
-    //
-    Meta? old = await getMeta(identifier);
-    if (old != null) {
-      logDebug('meta duplicated: $identifier');
-      return true;
-    }
-    //
-    //  3. save into database
-    //
-    return await database.saveMeta(meta, identifier);
-  }
-
-  // protected
-  bool checkMeta(Meta meta, ID identifier) {
-    return meta.isValid && MetaUtils.matchIdentifier(identifier, meta);
-  }
-
-  @override
-  Future<bool> saveDocument(Document doc) async {
-    //
-    //  1. check valid
-    //
-    if (await checkDocumentValid(doc)) {
-      // document valid
-    } else {
-      assert(false, 'meta not valid: ${doc.identifier}');
-      return false;
-    }
-    //
-    //  2. check expired
-    //
-    if (await checkDocumentExpired(doc)) {
-      logInfo('drop expired document: $doc');
-      return false;
-    }
-    //
-    //  3. save into database
-    //
-    return await database.saveDocument(doc);
-  }
-
-  // protected
-  Future<bool> checkDocumentValid(Document doc) async {
-    ID identifier = doc.identifier;
-    DateTime? docTime = doc.time;
-    // check document time
-    if (docTime == null) {
-      // assert(false, 'document error: $doc');
-      logWarning('document without time: $identifier');
-    } else {
-      // calibrate the clock
-      // make sure the document time is not in the far future
-      DateTime nearFuture = DateTime.now().add(Duration(minutes: 30));
-      if (docTime.isAfter(nearFuture)) {
-        assert(false, 'document time error: $docTime, $doc');
-        logError('document time error: $docTime, $identifier');
-        return false;
-      }
-    }
-    // check valid
-    return await verifyDocument(doc);
-  }
-
-  // protected
-  Future<bool> verifyDocument(Document doc) async {
-    if (doc.isValid) {
-      return true;
-    }
-    Meta? meta = await getMeta(doc.identifier);
-    if (meta == null) {
-      logWarning('failed to get meta: ${doc.identifier}');
-      return false;
-    }
-    return doc.verify(meta.publicKey);
-  }
-
-  // protected
-  Future<bool> checkDocumentExpired(Document doc) async {
-    ID identifier = doc.identifier;
-    String type = DocumentUtils.getDocumentType(doc) ?? '*';
-    // check old documents with type
-    List<Document> documents = await getDocuments(identifier);
-    Document? old = DocumentUtils.lastDocument(documents, type);
-    return old != null && DocumentUtils.isExpired(doc, old);
-  }
-
-  @override
-  Future<VerifyKey?> getMetaKey(ID user) async {
-    Meta? meta = await getMeta(user);
-    // assert(meta != null, 'failed to get meta for: $entity');
-    return meta?.publicKey;
-  }
-
-  @override
-  Future<EncryptKey?> getVisaKey(ID user) async {
-    var docs = await getDocuments(user);
-    var visa = DocumentUtils.lastVisa(docs);
-    // assert(doc != null, 'failed to get visa for: $user');
-    return visa?.publicKey;
   }
 
   //

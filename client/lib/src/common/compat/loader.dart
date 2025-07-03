@@ -53,21 +53,12 @@ import 'meta.dart';
 
 /// Extensions Loader
 /// ~~~~~~~~~~~~~~~~~
-class CommonLoader extends ExtensionLoader {
-  CommonLoader() {
-    pluginLoader = createPluginLoader();
-  }
-
-  // private
-  late final PluginLoader pluginLoader;
-
-  // protected
-  PluginLoader createPluginLoader() => CommonPluginLoader();
+class CommonExtensionLoader extends ExtensionLoader {
 
   @override
-  void run() {
-    super.run();
-    pluginLoader.run();
+  void registerContentFactories() {
+    super.registerContentFactories();
+    registerCustomizedFactories();
   }
 
   /// Customized content factories
@@ -75,15 +66,9 @@ class CommonLoader extends ExtensionLoader {
   void registerCustomizedFactories() {
 
     // Application Customized
-    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
-    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
+    setContentFactory(ContentType.CUSTOMIZED, 'customized', creator: (dict) => AppCustomizedContent(dict));
+    setContentFactory(ContentType.APPLICATION, 'application', creator: (dict) => AppCustomizedContent(dict));
 
-  }
-
-  @override
-  void registerContentFactories() {
-    super.registerContentFactories();
-    registerCustomizedFactories();
   }
 
   @override

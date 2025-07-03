@@ -38,20 +38,13 @@ import '../group/shared.dart';
 
 
 class ClientArchivist extends CommonArchivist {
-  ClientArchivist(super.facebook);
+  ClientArchivist(super.facebook, super.database);
 
   @override
   void cacheGroup(Group group) {
     group.dataSource = SharedGroupManager();
     super.cacheGroup(group);
   }
-
-}
-
-
-///  Client Facebook with Address Name Service
-abstract class ClientFacebook extends CommonFacebook {
-  ClientFacebook(super.database);
 
   @override
   Future<bool> saveDocument(Document doc) async {
@@ -63,11 +56,18 @@ abstract class ClientFacebook extends CommonFacebook {
         ID group = doc.identifier;
         assert(group.isGroup, 'group ID error: $group');
         List<ID> admins = ID.convert(array);
-        ok = await saveAdministrators(admins, group);
+        ok = await database.saveAdministrators(admins, group: group);
       }
     }
     return ok;
   }
+
+}
+
+
+///  Client Facebook with Address Name Service
+abstract class ClientFacebook extends CommonFacebook {
+  ClientFacebook(super.database);
 
   //
   //  Group Data Source

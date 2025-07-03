@@ -38,7 +38,7 @@ import 'compatible.dart';
 class CompatibleCompressor extends MessageCompressor {
 
   @override
-  MessageShortener createMessageShortener() {
+  MessageShortener createShortener() {
     return CompatibleShortener();
   }
 

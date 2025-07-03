@@ -1,3 +1,7 @@
+## 1.0.0
+
+- Message Compressor.
+
 ## 0.7.7
 
 - Waiting to upload file content.

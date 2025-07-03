@@ -110,12 +110,11 @@ class ClientMessageProcessor extends CommonProcessor {
     }
     ID sender = rMsg.sender;
     ID receiver = rMsg.receiver;
-    User? user = await facebook?.selectLocalUser(receiver);
+    ID? user = await facebook?.selectLocalUser(receiver);
     if (user == null) {
       assert(false, "receiver error: $receiver");
       return responses;
     }
-    receiver = user.identifier;
     // check responses
     bool fromBots = sender.type == EntityType.STATION || sender.type == EntityType.BOT;
     for (Content res in responses) {
@@ -131,7 +130,7 @@ class ClientMessageProcessor extends CommonProcessor {
         }
       }
       // normal response
-      await messenger?.sendContent(res, sender: receiver, receiver: sender, priority: 1);
+      await messenger?.sendContent(res, sender: user, receiver: sender, priority: 1);
     }
     // DON'T respond to station directly
     return [];
