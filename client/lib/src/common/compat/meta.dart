@@ -40,7 +40,7 @@ class CompatibleMetaFactory extends BaseMetaFactory {
   Meta? parseMeta(Map meta) {
     Meta out;
     var ext = SharedAccountExtensions();
-    String? version = ext.helper!.getMetaType(meta, '');
+    String? version = ext.helper!.getMetaType(meta, null);
     switch (version) {
 
       case 'MKM':

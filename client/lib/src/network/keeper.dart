@@ -118,8 +118,8 @@ abstract class GateKeeper extends Runner with Logging implements PorterDelegate 
         // processed income/outgo packages
         return true;
       }
-    } catch (e) {
-      logError('gate process error: $e');
+    } catch (e, st) {
+      logError('gate process error: $e, $st');
       return false;
     }
     if (!isActive) {

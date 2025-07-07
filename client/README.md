@@ -22,15 +22,15 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  object_key:  ^1.0.0
-  lnc:         ^1.0.0
-#  startrek:    ^1.0.0
+  object_key:  ^1.1.0
+  lnc:         ^1.1.0
+#  startrek:    ^1.1.0
   stargate:    ^1.0.0
-#  mkm:         ^1.2.2
-#  dkd:         ^1.2.2
-#  dimp:        ^1.2.2
-  dimsdk:      ^1.2.2
-  dim_plugins: ^1.2.2
+#  mkm:         ^2.0.2
+#  dkd:         ^2.0.2
+#  dimp:        ^2.0.2
+  dimsdk:      ^2.0.2
+  dim_plugins: ^2.0.1
 ```
 
 * Latest Versions

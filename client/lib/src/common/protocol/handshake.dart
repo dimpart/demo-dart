@@ -104,7 +104,7 @@ class BaseHandshakeCommand extends BaseCommand implements HandshakeCommand {
   }
 
   @override
-  String get title => getString('title', '')!;
+  String get title => getString('title', null) ?? '';
 
   @override
   String? get sessionKey => getString('session', null);

@@ -247,8 +247,8 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
     //
     try {
       await keepOnline();
-    } catch (e) {
-      logError('Terminal error: $e');
+    } catch (e, st) {
+      logError('Terminal error: $e, $st');
     }
     return false;
   }

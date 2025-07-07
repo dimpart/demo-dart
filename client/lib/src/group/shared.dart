@@ -185,7 +185,7 @@ class SharedGroupManager implements GroupDataSource {
     bool isOwner = await delegate.isOwner(me, group: group);
     bool isAdmin = await delegate.isAdministrator(me, group: group);
 
-    // 0. check permission
+    // check permission
     bool canReset = isOwner || isAdmin;
     if (canReset) {
       // You are the owner/admin, then
@@ -218,7 +218,7 @@ class SharedGroupManager implements GroupDataSource {
   //  Sending group message
   //
 
-  ///  Send group message content
+  ///  Send group message
   ///
   /// @param iMsg
   /// @param priority

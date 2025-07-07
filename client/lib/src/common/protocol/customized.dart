@@ -78,12 +78,12 @@ class AppCustomizedContent extends BaseContent implements CustomizedContent {
   }) : this.fromType(ContentType.CUSTOMIZED, app: app, mod: mod, act: act);
 
   @override
-  String get application => getString('app', '')!;
+  String get application => getString('app', null) ?? '';
 
   @override
-  String get module => getString('mod', '')!;
+  String get module => getString('mod', null) ?? '';
 
   @override
-  String get action => getString('act', '')!;
+  String get action => getString('act', null) ?? '';
 
 }

@@ -31,7 +31,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:lnc/log.dart';
 import 'package:stargate/startrek.dart';
 import 'package:stargate/stargate.dart';
 import 'package:dimsdk/dimsdk.dart';
@@ -69,7 +68,7 @@ class AckEnablePorter extends PlainPorter {
           String? signature = UTF8.decode(sig);
           String? timestamp = UTF8.decode(sec);
           String text = 'ACK:{"time":$timestamp,"signature":"$signature"}';
-          Log.info('sending response: $text');
+          // Log.info('sending response: $text');
           Uint8List data = DataUtils.bytes(text);
           await respond(data);
         }

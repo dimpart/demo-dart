@@ -47,8 +47,8 @@ abstract interface class ReportCommand implements Command {
   static const String ONLINE  = 'online';
   static const String OFFLINE = 'offline';
 
-  String? get title;
-  set title(String? text);
+  String get title;
+  set title(String text);
 
   //
   //  Factory
@@ -66,9 +66,9 @@ class BaseReportCommand extends BaseCommand implements ReportCommand {
   }
 
   @override
-  String? get title => getString('title', null);
+  String get title => getString('title', null) ?? '';
 
   @override
-  set title(String? text) => this['title'] = text;
+  set title(String text) => this['title'] = text;
 
 }

@@ -44,17 +44,17 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   final AccountDBI database;
 
-  CommonArchivist? _archivist;
+  CommonArchivist? _barrack;
   EntityChecker? checker;
 
   User? _currentUser;
 
   @override
-  Archivist? get archivist => _archivist;
+  Archivist? get archivist => _barrack;
 
   @override
-  CommonArchivist? get barrack => _archivist;
-  set barrack(CommonArchivist? archivist) => _archivist = archivist;
+  CommonArchivist? get barrack => _barrack;
+  set barrack(CommonArchivist? archivist) => _barrack = archivist;
 
   //
   //  Current User
@@ -85,7 +85,7 @@ abstract class CommonFacebook extends Facebook with Logging {
     User? user = _currentUser;
     if (user != null) {
       ID current = user.identifier;
-      if (current.isBroadcast) {
+      if (receiver.isBroadcast) {
         // broadcast message can be decrypted by anyone, so
         // just return current user here
         return current;

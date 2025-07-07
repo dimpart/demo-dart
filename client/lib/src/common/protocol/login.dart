@@ -94,11 +94,11 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
   BaseLoginCommand(super.dict);
 
   BaseLoginCommand.fromID(ID identifier) : super.fromName(LoginCommand.LOGIN) {
-    setString('ID', identifier);
+    setString('did', identifier);
   }
 
   @override
-  ID get identifier => ID.parse(this['ID'])!;
+  ID get identifier => ID.parse(this['did'])!;
 
   @override
   String? get device => getString('device', null);
@@ -122,11 +122,11 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
       if (sid.isBroadcast) {
         info = {'host': info.host, 'port': info.port};
       } else {
-        info = {'host': info.host, 'port': info.port, 'ID': sid.toString()};
+        info = {'host': info.host, 'port': info.port, 'did': sid.toString()};
       }
       this['station'] = info;
     } else if (info is Map) {
-      assert(info.containsKey('ID'), 'station info error: $info');
+      assert(info.containsKey('did'), 'station info error: $info');
       this['station'] = info;
     } else {
       assert(info == null, 'station info error: $info');
@@ -140,11 +140,11 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
   @override
   set provider(dynamic info) {
     if (info is ServiceProvider) {
-      this['provider'] = {'ID': info.identifier.toString()};
+      this['provider'] = {'did': info.identifier.toString()};
     } else if (info is ID) {
-      this['provider'] = {'ID': info.toString()};
+      this['provider'] = {'did': info.toString()};
     } else if (info is Map) {
-      assert(info.containsKey('ID'), 'station info error: $info');
+      assert(info.containsKey('did'), 'station info error: $info');
       this['provider'] = info;
     } else {
       assert(info == null, 'provider info error: $info');
