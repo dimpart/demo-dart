@@ -39,12 +39,13 @@ import '../facebook.dart';
 
 
 class LibraryLoader {
+  LibraryLoader({ExtensionLoader? extensionLoader, PluginLoader? pluginLoader}) {
+    this.extensionLoader = extensionLoader ?? CommonExtensionLoader();
+    this.pluginLoader = pluginLoader ?? ClientPluginLoader();
+  }
 
-  late final ExtensionLoader extensionLoader = createExtensionLoader();
-  late final PluginLoader pluginLoader = createPluginLoader();
-
-  ExtensionLoader createExtensionLoader() => CommonExtensionLoader();
-  PluginLoader createPluginLoader() => ClientPluginLoader();
+  late final ExtensionLoader extensionLoader;
+  late final PluginLoader pluginLoader;
 
   void run() {
     extensionLoader.run();

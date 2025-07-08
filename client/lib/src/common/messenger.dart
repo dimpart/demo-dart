@@ -73,6 +73,32 @@ abstract class CommonMessenger extends Messenger with Logging
   set processor(Processor? messageProcessor) => _processor = messageProcessor;
 
   @override
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
+    Compatible.fixMetaAttachment(rMsg);
+    Compatible.fixVisaAttachment(rMsg);
+    return await super.serializeMessage(rMsg);
+  }
+
+  @override
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
+    if (data.length <= 8) {
+      // message data error
+      return null;
+      // } else if (data.first != '{'.codeUnitAt(0) || data.last != '}'.codeUnitAt(0)) {
+      //   // only support JsON format now
+      //   return null;
+    }
+    ReliableMessage? rMsg = await super.deserializeMessage(data);
+    if (rMsg != null) {
+      Compatible.fixMetaAttachment(rMsg);
+      Compatible.fixVisaAttachment(rMsg);
+    }
+    return rMsg;
+  }
+
+  //-------- InstantMessageDelegate
+
+  @override
   Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
     try {
       return await super.encryptKey(key, receiver, iMsg);

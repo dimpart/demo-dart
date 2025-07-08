@@ -84,7 +84,7 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     DateTime? queryTime = command.lastTime;
     if (queryTime != null) {
       // check last group history time
-      var checker = facebook?.checker;
+      var checker = facebook?.entityChecker;
       DateTime? lastTime = await checker?.getLastGroupHistoryTime(group);
       if (lastTime == null) {
         assert(false, 'group history error: $group');

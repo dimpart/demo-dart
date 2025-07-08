@@ -45,7 +45,7 @@ abstract class CommonFacebook extends Facebook with Logging {
   final AccountDBI database;
 
   CommonArchivist? _barrack;
-  EntityChecker? checker;
+  EntityChecker? entityChecker;
 
   User? _currentUser;
 
@@ -161,14 +161,14 @@ abstract class CommonFacebook extends Facebook with Logging {
   @override
   Future<Meta?> getMeta(ID identifier) async {
     var meta = await database.getMeta(identifier);
-    /*await */checker?.checkMeta(identifier, meta);
+    /*await */entityChecker?.checkMeta(identifier, meta);
     return meta;
   }
 
   @override
   Future<List<Document>> getDocuments(ID identifier) async {
     var docs = await database.getDocuments(identifier);
-    /*await */checker?.checkDocuments(identifier, docs);
+    /*await */entityChecker?.checkDocuments(identifier, docs);
     return docs;
   }
 

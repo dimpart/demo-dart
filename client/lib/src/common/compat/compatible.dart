@@ -44,17 +44,41 @@ abstract interface class Compatible {
       fixMetaVersion(meta);
     }
   }
-  static void fixMetaType(Map meta) => fixMetaVersion(meta);
+  // static void fixMetaType(Map meta) => fixMetaVersion(meta);
 
   /// Fix visa document
   static void fixVisaAttachment(ReliableMessage rMsg) {
     Map? visa = rMsg['visa'];
     if (visa != null) {
-      fixDocId(visa);
+      fixDocument(visa);
     }
   }
-  static void fixDocumentID(Map document) => fixDocId(document);
+  // static void fixDocumentID(Map document) => fixDocId(document);
 
+}
+
+/// 'type' <-> 'version'
+void fixMetaVersion(Map meta) {
+  dynamic type = meta['type'];
+  if (type == null) {
+    type = meta['version'];
+  } else if (type is String && !meta.containsKey('algorithm')) {
+    // TODO: check number
+    if (type.length > 2) {
+      meta['algorithm'] = type;
+    }
+  }
+  int version = MetaVersion.parseInt(type, 0);
+  if (version > 0) {
+    meta['type'] = version;
+    meta['version'] = version;
+  }
+}
+
+/// 'ID' <-> 'did'
+Map fixDocument(Map document) {
+  fixDid(document);
+  return document;
 }
 
 
@@ -97,30 +121,6 @@ void fixDid(Map content) {
     content['ID'] = did;
   }
 }
-
-/// 'ID' <-> 'did'
-Map fixDocId(Map document) {
-  fixDid(document);
-  return document;
-}
-
-void fixMetaVersion(Map meta) {
-  dynamic type = meta['type'];
-  if (type == null) {
-    type = meta['version'];
-  } else if (type is String && !meta.containsKey('algorithm')) {
-    // TODO: check number
-    if (type.length > 2) {
-      meta['algorithm'] = type;
-    }
-  }
-  int version = MetaVersion.parseInt(type, 0);
-  if (version > 0) {
-    meta['type'] = version;
-    meta['version'] = version;
-  }
-}
-
 
 void fixFileContent(Map content) {
   var pwd = content['key'];
@@ -171,7 +171,7 @@ abstract interface class CompatibleIncoming {
     //
     //  get command name
     //
-    String? cmd = content['command'];
+    String? cmd = Converter.getString(content['command'], null);
     // cmd = Converter.getString(cmd, null);
     if (cmd == null || cmd.isEmpty) {
       return;
@@ -194,6 +194,8 @@ abstract interface class CompatibleIncoming {
 
     if (Command.META == cmd || Command.DOCUMENTS == cmd || cmd == 'document') {
       // 3. 'ID' <-> 'did'
+      fixDid(content);
+
       Map? meta = content['meta'];
       if (meta != null) {
         // 4. 'type' <-> 'version'
@@ -212,7 +214,7 @@ abstract interface class CompatibleIncoming {
     // 'document' -> 'documents
     Map? doc = content['document'];
     if (doc != null) {
-      content['documents'] = [fixDocId(doc)];
+      content['documents'] = [fixDocument(doc)];
       content.remove('document');
     }
   }
@@ -257,7 +259,7 @@ abstract interface class CompatibleOutgoing {
 
     if (content is ReceiptCommand) {
       // 2. check for v2.0
-      fixReceiptCommand(content);
+      fixReceiptCommand(content.toMap());
       return;
     }
 
@@ -289,6 +291,7 @@ abstract interface class CompatibleOutgoing {
     if (content is MetaCommand) {
       // 3. 'ID' <-> 'did'
       fixDid(content.toMap());
+
       Map? meta = content['meta'];
       if (meta != null) {
         // 4. 'type' <-> 'version'
@@ -311,20 +314,20 @@ abstract interface class CompatibleOutgoing {
       List<Document> docs = Document.convert(array);
       Document? last = DocumentUtils.lastDocument(docs);
       if (last != null) {
-        content['document'] = fixDocId(last.toMap());
+        content['document'] = fixDocument(last.toMap());
       }
       if (docs.length == 1) {
         content.remove('documents');
       }
     }
-    Map? document = content['document'];
-    if (document != null) {
-      fixDocId(document);
+    Object? document = content['document'];
+    if (document is Map) {
+      fixDid(document);
     }
   }
 
 }
 
-void fixReceiptCommand(ReceiptCommand content) {
+void fixReceiptCommand(Map content) {
   // TODO: check for v2.0
 }

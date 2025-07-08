@@ -72,7 +72,7 @@ class Password {
   /// ~~~~~~~~~
   /// (no password)
   // ignore: constant_identifier_names
-  static const String PLAIN = PlainKey.PLAIN;
+  static const String PLAIN = SymmetricAlgorithms.PLAIN;
   static final SymmetricKey plainKey = PlainKey.getInstance();
 
 }

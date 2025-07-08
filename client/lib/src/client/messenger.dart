@@ -28,6 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'dart:typed_data';
+
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/messenger.dart';
@@ -37,6 +39,7 @@ import '../common/protocol/login.dart';
 import '../common/protocol/report.dart';
 
 import 'network/session.dart';
+import 'checkpoint.dart';
 
 
 ///  Client Messenger for Handshake & Broadcast Report
@@ -45,6 +48,26 @@ abstract class ClientMessenger extends CommonMessenger {
 
   @override
   ClientSession get session => super.session as ClientSession;
+
+  @override
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
+    var msg = await super.deserializeMessage(data);
+    if (msg != null && checkMessageDuplicated(msg)) {
+      msg = null;
+    }
+    return msg;
+  }
+
+  // protected
+  bool checkMessageDuplicated(ReliableMessage msg) {
+    var cp = Checkpoint();
+    bool duplicated = cp.duplicated(msg);
+    if (duplicated) {
+      String? sig = cp.getSig(msg);
+      logWarning('drop duplicated message ($sig): ${msg.sender} -> ${msg.receiver}');
+    }
+    return duplicated;
+  }
 
   @override
   Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async {
@@ -213,7 +236,7 @@ abstract class ClientMessenger extends CommonMessenger {
       return;
     }
     ID me = visa.identifier;
-    var checker = facebook.checker;
+    var checker = facebook.entityChecker;
     //
     //  send to all contacts
     //

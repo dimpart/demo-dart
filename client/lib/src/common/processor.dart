@@ -31,13 +31,20 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
+import 'checker.dart';
 import 'facebook.dart';
 
 abstract class CommonProcessor extends MessageProcessor with Logging {
   CommonProcessor(super.facebook, super.messenger);
 
-  @override
-  CommonFacebook? get facebook => super.facebook as CommonFacebook?;
+  EntityChecker? get entityChecker {
+    var facebook = this.facebook;
+    if (facebook is CommonFacebook) {
+      return facebook.entityChecker;
+    }
+    assert(facebook == null, 'facebook error: $facebook');
+    return null;
+  }
 
   @override
   ContentProcessorFactory createFactory(Facebook facebook, Messenger messenger) {
@@ -49,7 +56,7 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
 
   // private
   Future<bool> checkVisaTime(Content content, ReliableMessage rMsg) async {
-    var checker = facebook?.checker;
+    var checker = entityChecker;
     if (checker == null) {
       assert(false, 'should not happen');
       return false;

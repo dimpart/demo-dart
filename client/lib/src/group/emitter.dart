@@ -90,7 +90,7 @@ class GroupEmitter extends TripletsHelper {
       iMsg.setDateTime('GDT', lastDocumentTime);
     }
     // attach group history time
-    var checker = facebook?.checker;
+    var checker = facebook?.entityChecker;
     DateTime? lastHistoryTime = await checker?.getLastGroupHistoryTime(group);
     if (lastHistoryTime == null) {
       assert(false, 'failed to get history time: $group');

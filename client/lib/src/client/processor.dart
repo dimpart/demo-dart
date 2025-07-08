@@ -30,18 +30,17 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/messenger.dart';
 import '../common/processor.dart';
 import '../common/protocol/handshake.dart';
 
 import 'cpu/creator.dart';
 
-import 'messenger.dart';
-
 class ClientMessageProcessor extends CommonProcessor {
   ClientMessageProcessor(super.facebook, super.messenger);
 
   @override
-  ClientMessenger? get messenger => super.messenger as ClientMessenger?;
+  CommonMessenger? get messenger => super.messenger as CommonMessenger?;
 
   @override
   ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger) {
@@ -54,7 +53,7 @@ class ClientMessageProcessor extends CommonProcessor {
     if (group == null) {
       return false;
     }
-    var checker = facebook?.checker;
+    var checker = entityChecker;
     if (checker == null) {
       assert(false, 'should not happen');
       return false;
@@ -108,9 +107,15 @@ class ClientMessageProcessor extends CommonProcessor {
       // urgent command
       return responses;
     }
+    var facebook = this.facebook;
+    var messenger = this.messenger;
+    if (facebook == null || messenger == null) {
+      assert(false, 'twins not ready: $facebook, $messenger');
+      return [];
+    }
     ID sender = rMsg.sender;
     ID receiver = rMsg.receiver;
-    ID? user = await facebook?.selectLocalUser(receiver);
+    ID? user = await facebook.selectLocalUser(receiver);
     if (user == null) {
       assert(false, "receiver error: $receiver");
       return responses;
@@ -130,7 +135,7 @@ class ClientMessageProcessor extends CommonProcessor {
         }
       }
       // normal response
-      await messenger?.sendContent(res, sender: user, receiver: sender, priority: 1);
+      await messenger.sendContent(res, sender: user, receiver: sender, priority: 1);
     }
     // DON'T respond to station directly
     return [];

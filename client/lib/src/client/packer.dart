@@ -28,20 +28,17 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/facebook.dart';
 import '../common/packer.dart';
 
-import 'checkpoint.dart';
-import 'facebook.dart';
 
 abstract class ClientMessagePacker extends CommonPacker {
   ClientMessagePacker(super.facebook, super.messenger);
 
   @override
-  ClientFacebook? get facebook => super.facebook as ClientFacebook?;
+  CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
   /// for checking whether group's ready
   // protected
@@ -150,26 +147,6 @@ abstract class ClientMessagePacker extends CommonPacker {
   }
 
   @override
-  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    var msg = await super.deserializeMessage(data);
-    if (msg != null && checkDuplicated(msg)) {
-      msg = null;
-    }
-    return msg;
-  }
-
-  // protected
-  bool checkDuplicated(ReliableMessage msg) {
-    var cp = Checkpoint();
-    bool duplicated = cp.duplicated(msg);
-    if (duplicated) {
-      String? sig = cp.getSig(msg);
-      logWarning('drop duplicated message ($sig): ${msg.sender} -> ${msg.receiver}');
-    }
-    return duplicated;
-  }
-
-  @override
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
     InstantMessage? iMsg;
     try {
@@ -228,7 +205,7 @@ abstract class ClientMessagePacker extends CommonPacker {
       // FIXME: user visa not found?
       throw Exception('user visa error: $user');
     }
-    var checker = facebook?.checker;
+    var checker = facebook?.entityChecker;
     if (checker == null) {
       assert(false, 'failed to get entity checker');
       return false;

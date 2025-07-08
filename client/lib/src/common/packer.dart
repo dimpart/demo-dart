@@ -28,18 +28,12 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
-import 'compat/compatible.dart';
 
 abstract class CommonPacker extends MessagePacker with Logging {
   CommonPacker(super.facebook, super.messenger);
-
-  @override
-  Compressor? get compressor => messenger?.compressor;
 
   ///  Add income message in a queue for waiting sender's visa
   ///
@@ -160,30 +154,6 @@ abstract class CommonPacker extends MessagePacker with Logging {
       return sMsg;
     }
     return await super.signMessage(sMsg);
-  }
-
-  @override
-  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    if (data.length <= 4) {
-      // message data error
-      return null;
-    // } else if (data.first != '{'.codeUnitAt(0) || data.last != '}'.codeUnitAt(0)) {
-    //   // only support JsON format now
-    //   return null;
-    }
-    ReliableMessage? rMsg = await super.deserializeMessage(data);
-    if (rMsg != null) {
-      Compatible.fixMetaAttachment(rMsg);
-      Compatible.fixVisaAttachment(rMsg);
-    }
-    return rMsg;
-  }
-
-  @override
-  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
-    Compatible.fixMetaAttachment(rMsg);
-    Compatible.fixVisaAttachment(rMsg);
-    return await super.serializeMessage(rMsg);
   }
 
   // @override

@@ -145,7 +145,7 @@ abstract class ClientFacebook extends CommonFacebook {
     }
     // check local storage
     var members = await database.getMembers(group: group);
-    /*await */checker?.checkMembers(group, members);
+    /*await */entityChecker?.checkMembers(group, members);
     return members.isEmpty ? [owner] : members;
   }
 

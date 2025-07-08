@@ -36,11 +36,7 @@ import 'compatible.dart';
 
 
 class CompatibleCompressor extends MessageCompressor {
-
-  @override
-  MessageShortener createShortener() {
-    return CompatibleShortener();
-  }
+  CompatibleCompressor() : super(CompatibleShortener());
 
   @override
   Uint8List compressContent(Map content, Map key) {

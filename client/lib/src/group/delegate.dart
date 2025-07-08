@@ -350,7 +350,7 @@ class _GroupBotsManager extends Runner with Logging {
       logError('failed to get current user: $e, $st');
       return false;
     }
-    var checker = facebook?.checker;
+    var checker = facebook?.entityChecker;
     //
     //  3. check candidates
     //
