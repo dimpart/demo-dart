@@ -1,6 +1,6 @@
 ## 1.0.1
 
-- Default values.
+- Group Key Command.
 
 ## 1.0.0
 

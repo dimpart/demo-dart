@@ -38,11 +38,11 @@ import 'compatible.dart';
 class CompatibleCompressor extends MessageCompressor {
   CompatibleCompressor() : super(CompatibleShortener());
 
-  @override
-  Uint8List compressContent(Map content, Map key) {
-    //CompatibleOutgoing.fixContent(content);
-    return super.compressContent(content, key);
-  }
+  // @override
+  // Uint8List compressContent(Map content, Map key) {
+  //   //CompatibleOutgoing.fixContent(content);
+  //   return super.compressContent(content, key);
+  // }
 
   @override
   Map? extractContent(Uint8List data, Map key) {
@@ -57,6 +57,19 @@ class CompatibleCompressor extends MessageCompressor {
 
 
 class CompatibleShortener extends MessageShortener {
+
+  @override  // protected
+  void moveKey(String from, String to, Map info) {
+    var value = info[from];
+    if (value != null) {
+      if (info[to] != null) {
+        assert(false, 'keys conflicted: "$from" -> "$to", $info');
+        return;
+      }
+      info.remove(from);
+      info[to] = value;
+    }
+  }
 
   @override
   Map compressContent(Map content) {

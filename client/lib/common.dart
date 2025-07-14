@@ -24,6 +24,7 @@ export 'src/common/protocol/mute.dart';
 export 'src/common/protocol/report.dart';
 export 'src/common/protocol/search.dart';
 export 'src/common/protocol/customized.dart';
+export 'src/common/protocol/groups.dart';
 export 'src/common/protocol/password.dart';
 
 export 'src/common/dbi/account.dart';
