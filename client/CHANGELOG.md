@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Default values.
+
 ## 1.0.0
 
 - Message Compressor.

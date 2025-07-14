@@ -150,7 +150,7 @@ abstract interface class CompatibleIncoming {
 
   static void fixContent(Map content) {
     // get content type
-    String type = Converter.getString(content['type'], null) ?? '';
+    String type = Converter.getString(content['type']) ?? '';
 
     if (fileTypes.contains(type)) {
       // 1. 'key' <-> 'password'
@@ -171,8 +171,8 @@ abstract interface class CompatibleIncoming {
     //
     //  get command name
     //
-    String? cmd = Converter.getString(content['command'], null);
-    // cmd = Converter.getString(cmd, null);
+    String? cmd = Converter.getString(content['command']);
+    // cmd = Converter.getString(cmd);
     if (cmd == null || cmd.isEmpty) {
       return;
     }
@@ -226,7 +226,7 @@ abstract interface class CompatibleIncoming {
 void fixType(Map content) {
   var type = content['type'];
   if (type is String) {
-    int? number = Converter.getInt(type, -1);
+    int? number = Converter.getInt(type);
     if (number != null && number >= 0) {
       content['type'] = number;
     }

@@ -62,7 +62,7 @@ class ClientMessageProcessor extends CommonProcessor {
     bool docUpdated = false;
     bool memUpdated = false;
     // check group document time
-    DateTime? lastDocumentTime = rMsg.getDateTime('GDT', null);
+    DateTime? lastDocumentTime = rMsg.getDateTime('GDT');
     if (lastDocumentTime != null) {
       if (lastDocumentTime.isAfter(now)) {
         // calibrate the clock
@@ -71,7 +71,7 @@ class ClientMessageProcessor extends CommonProcessor {
       docUpdated = checker.setLastDocumentTime(lastDocumentTime, group);
     }
     // check group history time
-    DateTime? lastHistoryTime = rMsg.getDateTime('GHT', null);
+    DateTime? lastHistoryTime = rMsg.getDateTime('GHT');
     if (lastHistoryTime != null) {
       if (lastHistoryTime.isAfter(now)) {
         // calibrate the clock

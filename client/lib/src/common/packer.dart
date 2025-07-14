@@ -162,7 +162,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
   //   assert(key != null, 'encrypt key should not empty here');
   //   String? digest = _getKeyDigest(key);
   //   if (digest != null) {
-  //     bool reused = key!.getBool('reused', false)!;
+  //     bool reused = key!.getBool('reused') ?? false;
   //     if (reused) {
   //       // replace key/keys with key digest
   //       Map keys = {
@@ -185,7 +185,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
 //     // key error
 //     return null;
 //   }
-//   String? value = key.getString('digest', null);
+//   String? value = key.getString('digest');
 //   if (value != null) {
 //     return value;
 //   }

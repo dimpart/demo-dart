@@ -127,7 +127,7 @@ abstract class CommonMessenger extends Messenger with Logging
     // 2. serialize key without flags
     Uint8List? data = await super.serializeKey(password, iMsg);
     // 3. put them back after serialized
-    if (Converter.getBool(reused, false)!) {
+    if (Converter.getBool(reused) == true) {
       password['reused'] = true;
     }
     if (digest != null) {

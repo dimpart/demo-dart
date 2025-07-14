@@ -59,7 +59,7 @@ class ProviderInfo {
     int chosen;
     for (var item in array) {
       identifier = ID.parse(item['ID']);
-      chosen = Converter.getInt(item['chosen'], 0)!;
+      chosen = Converter.getInt(item['chosen']) ?? 0;
       if (identifier == null) {
         // SP ID error
         continue;
@@ -116,9 +116,9 @@ class StationInfo {
     ID? provider;
     for (var item in array) {
       sid = ID.parse(item['ID']);
-      chosen = Converter.getInt(item['chosen'], 0)!;
-      host = Converter.getString(item['host'], null);
-      port = Converter.getInt(item['port'], 0)!;
+      chosen = Converter.getInt(item['chosen']) ?? 0;
+      host = Converter.getString(item['host']);
+      port = Converter.getInt(item['port']) ?? 0;
       provider = ID.parse(item['provider']);
       if (host == null || port == 0/* || provider == null*/) {
         // station socket error

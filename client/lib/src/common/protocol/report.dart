@@ -66,7 +66,7 @@ class BaseReportCommand extends BaseCommand implements ReportCommand {
   }
 
   @override
-  String get title => getString('title', null) ?? '';
+  String get title => getString('title') ?? '';
 
   @override
   set title(String text) => this['title'] = text;

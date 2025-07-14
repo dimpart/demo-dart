@@ -76,7 +76,7 @@ class BaseAnsCommand extends BaseCommand implements AnsCommand {
 
   @override
   List<String> get names {
-    String? string = getString('names', null);
+    String? string = getString('names');
     return string == null ? [] : string.split(' ');
   }
 

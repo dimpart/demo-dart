@@ -77,15 +77,15 @@ abstract class ResultSet {
 
   dynamic getValue(String column);
 
-  String? getString(String column) => Converter.getString(getValue(column), null);
+  String? getString(String column) => Converter.getString(getValue(column));
 
-  bool? getBool(String column) => Converter.getBool(getValue(column), null);
+  bool? getBool(String column) => Converter.getBool(getValue(column));
 
-  int? getInt(String column) => Converter.getInt(getValue(column), null);
+  int? getInt(String column) => Converter.getInt(getValue(column));
 
-  double? getDouble(String column) => Converter.getDouble(getValue(column), null);
+  double? getDouble(String column) => Converter.getDouble(getValue(column));
 
-  DateTime? getDateTime(String column) => Converter.getDateTime(getValue(column), null);
+  DateTime? getDateTime(String column) => Converter.getDateTime(getValue(column));
 
   void close();
 

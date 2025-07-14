@@ -203,7 +203,7 @@ class _RSAPrivateKeyFactory extends RSAPrivateKeyFactory {
 /// RSA key with created time
 class _RSAPrivateKey extends RSAPrivateKey {
   _RSAPrivateKey(super.dict) {
-    DateTime? time = getDateTime('time', null);
+    DateTime? time = getDateTime('time');
     if (time == null) {
       time = DateTime.now();
       setDateTime('time', time);
@@ -213,7 +213,7 @@ class _RSAPrivateKey extends RSAPrivateKey {
   @override
   PublicKey get publicKey {
     PublicKey key = super.publicKey;
-    DateTime? time = getDateTime('time', null);
+    DateTime? time = getDateTime('time');
     if (time != null) {
       key.setDateTime('time', time);
     }
@@ -231,7 +231,7 @@ class _SafeConverter extends BaseConverter with Logging {
       return super.getBool(value, defaultValue);
     } catch (e, st) {
       logError('failed to get bool: $value, error: $e, $st');
-      return null;
+      return defaultValue;
     }
   }
 
@@ -241,7 +241,7 @@ class _SafeConverter extends BaseConverter with Logging {
       return super.getInt(value, defaultValue);
     } catch (e, st) {
       logError('failed to get int: $value, error: $e, $st');
-      return null;
+      return defaultValue;
     }
   }
 
@@ -251,7 +251,7 @@ class _SafeConverter extends BaseConverter with Logging {
       return super.getDouble(value, defaultValue);
     } catch (e, st) {
       logError('failed to get double: $value, error: $e, $st');
-      return null;
+      return defaultValue;
     }
   }
 
@@ -261,7 +261,7 @@ class _SafeConverter extends BaseConverter with Logging {
       return super.getDateTime(value, defaultValue);
     } catch (e, st) {
       logError('failed to get datetime: $value, error: $e, $st');
-      return null;
+      return defaultValue;
     }
   }
 

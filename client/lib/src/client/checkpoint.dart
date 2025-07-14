@@ -59,7 +59,7 @@ class SigPool {
 
   /// Check whether duplicated
   bool duplicated(ReliableMessage msg) {
-    String? sig = msg.getString('signature', null);
+    String? sig = msg.getString('signature');
     if (sig == null) {
       assert(false, 'message error: $msg');
       return true;
@@ -105,7 +105,7 @@ class Checkpoint {
   }
 
   String? getSig(ReliableMessage msg) {
-    String? sig = msg.getString('signature', null);
+    String? sig = msg.getString('signature');
     return SigPool.getSig(sig, 8);
   }
 

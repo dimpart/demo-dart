@@ -97,7 +97,7 @@ class BaseSearchCommand extends BaseCommand implements SearchCommand {
 
   @override
   String? get keywords {
-    String? words = getString('keywords', null);
+    String? words = getString('keywords');
     if (words == null && cmd == SearchCommand.ONLINE_USERS) {
       words = SearchCommand.ONLINE_USERS;
     }
@@ -123,7 +123,7 @@ class BaseSearchCommand extends BaseCommand implements SearchCommand {
   }
 
   @override
-  int get start => getInt('start', 0)!;
+  int get start => getInt('start') ?? 0;
 
   @override
   set start(int value) => this['start'] = value;

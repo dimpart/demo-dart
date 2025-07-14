@@ -63,7 +63,7 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
     }
     bool docUpdated = false;
     // check sender document time
-    DateTime? lastDocumentTime = rMsg.getDateTime('SDT', null);
+    DateTime? lastDocumentTime = rMsg.getDateTime('SDT');
     if (lastDocumentTime != null) {
       DateTime now = DateTime.now();
       if (lastDocumentTime.isAfter(now)) {
