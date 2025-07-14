@@ -34,8 +34,46 @@ import 'package:dimsdk/dimsdk.dart';
 
 import 'customized.dart';
 
+// ignore_for_file: constant_identifier_names
 
-///  Group Key Command: {
+///  Group Query Command: {
+///      "type" : i2s(0xCC),
+///      "sn"   : 123,
+///      "time" : 123.456,
+///
+///      "app"  : "chat.dim.group",
+///      "mod"  : "history",
+///      "act"  : "query",
+///
+///      "group"     : "{GROUP_ID}",
+///      "last_time" : 0,             // Last group history time for querying
+///  }
+abstract interface class GroupHistory {
+
+  static const String APP = 'chat.dim.group';
+  static const String MOD = 'history';
+
+  static const String ACT_QUERY = 'query';
+
+  //
+  //  Factory method
+  //
+
+  /// QueryCommand is deprecated, use this method instead.
+  static CustomizedContent queryGroupHistory(ID group, DateTime? lastTime) {
+    var content = CustomizedContent.create(app: APP, mod: MOD, act: ACT_QUERY);
+    content.group = group;
+    if (lastTime != null) {
+      // Last group history time for querying
+      content.setDateTime('last_time', lastTime);
+    }
+    return content;
+  }
+
+}
+
+
+///  Group Keys Command: {
 ///      "type" : i2s(0xCC),
 ///      "sn"   : 123,
 ///      "time" : 123.456,
@@ -53,8 +91,7 @@ import 'customized.dart';
 ///          "{MEMBER_ID}" : "{ENCRYPTED_KEY}",
 ///      }
 ///  }
-abstract interface class GroupKeyCommand implements GroupCommand {
-  // ignore_for_file: constant_identifier_names
+abstract interface class GroupKeys {
 
   static const String APP = 'chat.dim.group';
   static const String MOD = 'keys';
@@ -80,7 +117,7 @@ abstract interface class GroupKeyCommand implements GroupCommand {
   //  Factory methods
   //
 
-  static Content create(String action, ID group, {
+  static CustomizedContent create(String action, ID group, {
     required ID sender, // keys from this user
     List<ID>? members,  // query for members
     String? digest,     // query with digest
@@ -92,7 +129,7 @@ abstract interface class GroupKeyCommand implements GroupCommand {
     var content = CustomizedContent.create(app: APP, mod: MOD, act: action);
     content.group = group;
     // 2. direction: sender -> members
-    content['from'] = sender.toString();
+    content.setString('from', sender);
     if (members != null) {
       content['to'] = ID.revert(members);
     }
@@ -108,7 +145,7 @@ abstract interface class GroupKeyCommand implements GroupCommand {
 
   // 1. bot -> sender
   /// Query group keys from sender
-  static Content queryGroupKeys(ID group, {
+  static CustomizedContent queryGroupKeys(ID group, {
     required ID sender,
     required List<ID> members,
     String? digest,
@@ -116,20 +153,21 @@ abstract interface class GroupKeyCommand implements GroupCommand {
 
   // 2. sender -> bot
   /// Update group keys from sender
-  static Content updateGroupKeys(ID group, {
+  static CustomizedContent updateGroupKeys(ID group, {
     required ID sender,
     required Map encodedKeys,
   }) => create(ACT_UPDATE, group, sender: sender, encodedKeys: encodedKeys);
 
   // 3. member -> bot
   /// Request group key for this member
-  static Content requestGroupKey(ID group, {
+  static CustomizedContent requestGroupKey(ID group, {
     required ID sender,
-  }) => create(ACT_REQUEST, group, sender: sender);
+    String? digest,
+  }) => create(ACT_REQUEST, group, sender: sender, digest: digest);
 
   // 4. bot -> member
   /// Respond group key to member
-  static Content respondGroupKey(ID group, {
+  static CustomizedContent respondGroupKey(ID group, {
     required ID sender,
     required ID member,
     required Object encodedKey,

@@ -1,3 +1,7 @@
+## 1.0.2
+
+- Customized Group Querying.
+
 ## 1.0.1
 
 - Group Key Command.
