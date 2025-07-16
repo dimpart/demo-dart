@@ -28,8 +28,6 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dimsdk/dimsdk.dart';
 
 import 'customized.dart';
@@ -176,18 +174,5 @@ abstract interface class GroupKeys {
     'digest': digest,
     member.toString(): encodedKey,
   });
-
-  //
-  //  Key Digest
-  //
-
-  /// Get key digest
-  static String digest(SymmetricKey password) {
-    Uint8List key = password.data;                 // 32 bytes
-    Uint8List suf = key.sublist(key.length >> 1);  // last 16 bytes
-    Uint8List dig = MD5.digest(suf);               // 16 bytes
-    String result = Base64.encode(dig);            // 24 chars
-    return result.substring(result.length >> 1);   // last 12 chars
-  }
 
 }

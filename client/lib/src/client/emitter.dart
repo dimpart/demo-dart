@@ -184,7 +184,7 @@ abstract class Emitter with Logging {
     VideoContent content = FileContent.video(
       filename: filename,
       url: url,
-      password: Password.plainKey,
+      password: Password.kPlainKey,
     );
     // set extra params
     if (snapshot != null) {

@@ -42,6 +42,7 @@ class Password {
   static const int _keySize = 32;
   // static const int _blockSize = 16;
 
+  /// Generate AES key
   static SymmetricKey generate(String passphrase) {
     Uint8List data = UTF8.encode(passphrase);
     Uint8List digest = SHA256.digest(data);
@@ -68,11 +69,23 @@ class Password {
     return SymmetricKey.parse(key)!;
   }
 
+  //
+  //  Key Digest
+  //
+
+  /// Get key digest
+  static String digest(SymmetricKey password) {
+    Uint8List key = password.data;      // 32 bytes
+    Uint8List dig = MD5.digest(key);    // 16 bytes
+    Uint8List pre = dig.sublist(0, 6);  //  6 bytes
+    return Base64.encode(pre);          //  8 chars
+  }
+
   /// Plain Key
   /// ~~~~~~~~~
   /// (no password)
   // ignore: constant_identifier_names
   static const String PLAIN = SymmetricAlgorithms.PLAIN;
-  static final SymmetricKey plainKey = PlainKey.getInstance();
+  static final SymmetricKey kPlainKey = PlainKey.getInstance();
 
 }
