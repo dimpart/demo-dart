@@ -45,7 +45,43 @@ abstract interface class CustomizedContentHandler {
   /// @param content - customized content
   /// @param rMsg    - network message
   /// @return responses
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg);
+  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
+      ReliableMessage rMsg);
+
+}
+
+/// Default Handler
+/// ~~~~~~~~~~~~~~~
+class BaseCustomizedHandler extends TwinsHelper implements CustomizedContentHandler {
+  BaseCustomizedHandler(super.facebook, super.messenger);
+
+  @override
+  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
+      ReliableMessage rMsg) async {
+    String app = content.application;
+    String mod = content.module;
+    String text = 'Content not support.';
+    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+      'template': 'Customized content (app: \${app}, mod: \${mod}, act: \${act}) not support yet!',
+      'replacements': {
+        'app': app,
+        'mod': mod,
+        'act': act,
+      }
+    });
+  }
+
+  //
+  //  Convenient responding
+  //
+
+  // protected
+  List<ReceiptCommand> respondReceipt(String text, {
+    required Envelope envelope, Content? content, Map<String, Object>? extra
+  }) => [
+    // create base receipt command with text & original envelope
+    BaseContentProcessor.createReceipt(text, envelope: envelope, content: content, extra: extra)
+  ];
 
 }
 
@@ -66,8 +102,10 @@ abstract interface class CustomizedContentHandler {
     |   "last_time" : 0             |   "last_time" : 0             |
     +===============================+===============================+
  */
-class _GroupHistoryHandler extends TwinsHelper implements CustomizedContentHandler {
-  _GroupHistoryHandler(super.facebook, super.messenger);
+class GroupHistoryHandler extends BaseCustomizedHandler {
+  GroupHistoryHandler(super.facebook, super.messenger);
+
+  bool matches(String app, String mod) => app == GroupHistory.APP && mod == GroupHistory.MOD;
 
   @override
   Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) async {
@@ -81,7 +119,7 @@ class _GroupHistoryHandler extends TwinsHelper implements CustomizedContentHandl
       assert(content.group != null, 'group command error: $content, sender: $sender');
     } else {
       assert(false, 'unknown action: $act, $content, sender: $sender');
-      return [];
+      return await super.handleAction(act, sender, content, rMsg);
     }
     Map info = content.copyMap(false);
     info['type'] = ContentType.COMMAND;
@@ -91,7 +129,8 @@ class _GroupHistoryHandler extends TwinsHelper implements CustomizedContentHandl
       return await transceiver.processContent(query, rMsg);
     }
     assert(false, 'query command error: $query, $content, sender: $sender');
-    return [];
+    String text = 'Query command error.';
+    return respondReceipt(text, envelope: rMsg.envelope, content: content);
   }
 
 }
@@ -99,84 +138,52 @@ class _GroupHistoryHandler extends TwinsHelper implements CustomizedContentHandl
 
 ///  Customized Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class CustomizedContentProcessor extends BaseContentProcessor implements CustomizedContentHandler {
+///  Handle content for application customized
+class CustomizedContentProcessor extends BaseContentProcessor {
   CustomizedContentProcessor(Facebook facebook, Messenger messenger) : super(facebook, messenger) {
-    _groupHistoryHandler = _GroupHistoryHandler(facebook, messenger);
+    defaultHandler = createDefaultHandler(facebook, messenger);
+    groupHistoryHandler = createGroupHistoryHandler(facebook, messenger);
   }
 
-  late final _GroupHistoryHandler _groupHistoryHandler;
+  // protected
+  CustomizedContentHandler createDefaultHandler(Facebook facebook, Messenger messenger) =>
+      BaseCustomizedHandler(facebook, messenger);
+  // protected
+  GroupHistoryHandler createGroupHistoryHandler(Facebook facebook, Messenger messenger) =>
+      GroupHistoryHandler(facebook, messenger);
+
+  // protected
+  late final CustomizedContentHandler defaultHandler;
+  // protected
+  late final GroupHistoryHandler groupHistoryHandler;
 
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is CustomizedContent, 'customized content error: $content');
     CustomizedContent customized = content as CustomizedContent;
-    // 1. check app id
+    // get handler for 'app' & 'mod'
     String app = customized.application;
-    List<Content>? res = filter(app, content, rMsg);
-    if (res != null) {
-      // app id not found
-      return res;
-    }
-    // 2. get handler with module name
     String mod = customized.module;
-    CustomizedContentHandler? handler = fetch(mod, customized, rMsg);
-    if (handler == null) {
-      // module not support
-      return [];
-    }
-    // 3. do the job
+    CustomizedContentHandler? handler = filter(app, mod, customized, rMsg);
+    handler ??= defaultHandler;
+    // handle the action
     String act = customized.action;
     ID sender = rMsg.sender;
     return await handler.handleAction(act, sender, customized, rMsg);
   }
 
-  /// override for your application
-  // protected
-  List<Content>? filter(String app, CustomizedContent content, ReliableMessage rMsg) {
-    if (app == GroupHistory.APP) {
-      // app id matched,
-      // return no errors
-      return null;
-    }
-    String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Customized content (app: \${app}) not support yet!',
-      'replacements': {
-        'app': app,
-      }
-    });
-  }
-
   /// override for your modules
   // protected
-  CustomizedContentHandler? fetch(String mod, CustomizedContent content, ReliableMessage rMsg) {
-    if (mod == GroupHistory.MOD) {
-      String app = content.application;
-      if (app == GroupHistory.APP) {
-        return _groupHistoryHandler;
+  CustomizedContentHandler? filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
+    if (content.group != null) {
+      if (groupHistoryHandler.matches(app, mod)) {
+        return groupHistoryHandler;
       }
-      assert(false, 'unknown app: $app, content: $content, sender: ${rMsg.sender}');
-      // return null;
     }
+    assert(false, 'unknown app: $app, mod: $mod, content: $content, sender: ${rMsg.sender}');
     // if the application has too many modules, I suggest you to
     // use different handler to do the jobs for each module.
-    return this;
-  }
-
-  /// override for customized actions
-  @override
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) async {
-    String app = content.application;
-    String mod = content.module;
-    String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Customized content (app: \${app}, mod: \${mod}, act: \${act}) not support yet!',
-      'replacements': {
-        'app': app,
-        'mod': mod,
-        'act': act,
-      }
-    });
+    return null;
   }
 
 }

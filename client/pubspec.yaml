@@ -1,6 +1,6 @@
 name: dim_client
 description: DIM demo.
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/dimchat/demo-dart
 repository: https://github.com/dimchat/demo-dart
 issue_tracker: https://github.com/dimchat/demo-dart/issues

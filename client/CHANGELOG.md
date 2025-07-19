@@ -1,3 +1,7 @@
+## 1.0.4
+
+- Default customized content handler.
+
 ## 1.0.3
 
 - Customized group query command.
