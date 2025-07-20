@@ -26,11 +26,11 @@ dependencies:
   lnc:         ^1.1.0
 #  startrek:    ^1.1.0
   stargate:    ^1.0.0
-#  mkm:         ^2.0.2
-#  dkd:         ^2.0.2
-#  dimp:        ^2.0.2
-  dimsdk:      ^2.0.2
-  dim_plugins: ^2.0.1
+#  mkm:         ^2.1.1
+#  dkd:         ^2.1.1
+#  dimp:        ^2.1.1
+  dimsdk:      ^2.1.1
+  dim_plugins: ^2.1.1
 ```
 
 * Latest Versions

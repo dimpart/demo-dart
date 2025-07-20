@@ -30,60 +30,7 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import '../../common/protocol/customized.dart';
 import '../../common/protocol/groups.dart';
-
-
-///  Handler for Customized Content
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-abstract interface class CustomizedContentHandler {
-
-  ///  Do your job
-  ///
-  /// @param act     - action
-  /// @param sender  - user ID
-  /// @param content - customized content
-  /// @param rMsg    - network message
-  /// @return responses
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
-      ReliableMessage rMsg);
-
-}
-
-/// Default Handler
-/// ~~~~~~~~~~~~~~~
-class BaseCustomizedHandler extends TwinsHelper implements CustomizedContentHandler {
-  BaseCustomizedHandler(super.facebook, super.messenger);
-
-  @override
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
-      ReliableMessage rMsg) async {
-    String app = content.application;
-    String mod = content.module;
-    String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Customized content (app: \${app}, mod: \${mod}, act: \${act}) not support yet!',
-      'replacements': {
-        'app': app,
-        'mod': mod,
-        'act': act,
-      }
-    });
-  }
-
-  //
-  //  Convenient responding
-  //
-
-  // protected
-  List<ReceiptCommand> respondReceipt(String text, {
-    required Envelope envelope, Content? content, Map<String, Object>? extra
-  }) => [
-    // create base receipt command with text & original envelope
-    BaseContentProcessor.createReceipt(text, envelope: envelope, content: content, extra: extra)
-  ];
-
-}
 
 
 /*  Command Transform:
@@ -139,51 +86,27 @@ class GroupHistoryHandler extends BaseCustomizedHandler {
 ///  Customized Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ///  Handle content for application customized
-class CustomizedContentProcessor extends BaseContentProcessor {
-  CustomizedContentProcessor(Facebook facebook, Messenger messenger) : super(facebook, messenger) {
-    defaultHandler = createDefaultHandler(facebook, messenger);
+class AppCustomizedContentProcessor extends CustomizedContentProcessor {
+  AppCustomizedContentProcessor(Facebook facebook, Messenger messenger) : super(facebook, messenger) {
     groupHistoryHandler = createGroupHistoryHandler(facebook, messenger);
   }
 
-  // protected
-  CustomizedContentHandler createDefaultHandler(Facebook facebook, Messenger messenger) =>
-      BaseCustomizedHandler(facebook, messenger);
   // protected
   GroupHistoryHandler createGroupHistoryHandler(Facebook facebook, Messenger messenger) =>
       GroupHistoryHandler(facebook, messenger);
 
   // protected
-  late final CustomizedContentHandler defaultHandler;
-  // protected
   late final GroupHistoryHandler groupHistoryHandler;
 
-  @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    assert(content is CustomizedContent, 'customized content error: $content');
-    CustomizedContent customized = content as CustomizedContent;
-    // get handler for 'app' & 'mod'
-    String app = customized.application;
-    String mod = customized.module;
-    CustomizedContentHandler? handler = filter(app, mod, customized, rMsg);
-    handler ??= defaultHandler;
-    // handle the action
-    String act = customized.action;
-    ID sender = rMsg.sender;
-    return await handler.handleAction(act, sender, customized, rMsg);
-  }
-
   /// override for your modules
-  // protected
-  CustomizedContentHandler? filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
+  @override
+  CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
     if (content.group != null) {
       if (groupHistoryHandler.matches(app, mod)) {
         return groupHistoryHandler;
       }
     }
-    assert(false, 'unknown app: $app, mod: $mod, content: $content, sender: ${rMsg.sender}');
-    // if the application has too many modules, I suggest you to
-    // use different handler to do the jobs for each module.
-    return null;
+    return super.filter(app, mod, content, rMsg);
   }
 
 }

@@ -58,7 +58,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
       case ContentType.CUSTOMIZED:
       case 'application':
       case 'customized':
-        return CustomizedContentProcessor(facebook!, messenger!);
+        return AppCustomizedContentProcessor(facebook!, messenger!);
 
       // history command
       case ContentType.HISTORY:

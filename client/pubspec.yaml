@@ -14,9 +14,9 @@ dependencies:
   lnc: ^1.1.0
 #  startrek: ^1.1.0
   stargate: ^1.0.0
-#  dimp: ^2.1.0
-  dimsdk: ^2.1.0
-  dim_plugins: ^2.1.0
+#  dimp: ^2.1.1
+  dimsdk: ^2.1.1
+  dim_plugins: ^2.1.1
 
 dev_dependencies:
   lints: ^2.0.0

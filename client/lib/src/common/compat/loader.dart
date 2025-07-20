@@ -39,7 +39,6 @@ import 'package:lnc/log.dart';
 
 import '../protocol/ans.dart';
 import '../protocol/block.dart';
-import '../protocol/customized.dart';
 import '../protocol/handshake.dart';
 import '../protocol/login.dart';
 import '../protocol/mute.dart';
@@ -55,20 +54,15 @@ import 'meta.dart';
 /// ~~~~~~~~~~~~~~~~~
 class CommonExtensionLoader extends ExtensionLoader {
 
-  @override
-  void registerContentFactories() {
-    super.registerContentFactories();
-    registerCustomizedFactories();
-  }
-
   /// Customized content factories
-  // protected
+  @override
   void registerCustomizedFactories() {
 
     // Application Customized
     setContentFactory(ContentType.CUSTOMIZED, 'customized', creator: (dict) => AppCustomizedContent(dict));
     setContentFactory(ContentType.APPLICATION, 'application', creator: (dict) => AppCustomizedContent(dict));
 
+    // super.registerCustomizedFactories();
   }
 
   @override
