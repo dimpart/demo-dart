@@ -43,7 +43,6 @@ import '../protocol/handshake.dart';
 import '../protocol/login.dart';
 import '../protocol/mute.dart';
 import '../protocol/report.dart';
-import '../protocol/search.dart';
 
 import 'address.dart';
 import 'entity.dart';
@@ -86,10 +85,6 @@ class CommonExtensionLoader extends ExtensionLoader {
     setCommandFactory(ReportCommand.REPORT,  creator: (dict) => BaseReportCommand(dict));
     setCommandFactory(ReportCommand.ONLINE,  creator: (dict) => BaseReportCommand(dict));
     setCommandFactory(ReportCommand.OFFLINE, creator: (dict) => BaseReportCommand(dict));
-
-    // Search: users
-    setCommandFactory(SearchCommand.SEARCH,       creator: (dict) => BaseSearchCommand(dict));
-    setCommandFactory(SearchCommand.ONLINE_USERS, creator: (dict) => BaseSearchCommand(dict));
 
   }
 

@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 
 import '../../common/protocol/ans.dart';
+import '../../common/protocol/groups.dart';
 import '../../common/protocol/handshake.dart';
 import '../../common/protocol/login.dart';
 
@@ -46,8 +47,21 @@ import 'group/resign.dart';
 import 'handshake.dart';
 import 'customized.dart';
 
+
 class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   ClientContentProcessorCreator(super.facebook, super.messenger);
+  
+  // protected
+  AppCustomizedProcessor createCustomizedContentProcessor(Facebook facebook, Messenger messenger) {
+    var cpu = AppCustomizedProcessor(facebook, messenger);
+    // 'chat.dim.group:history'
+    cpu.setHandler(
+      app: GroupHistory.APP,
+      mod: GroupHistory.MOD,
+      handler: GroupHistoryHandler(facebook, messenger),
+    );
+    return cpu;
+  }
 
   @override
   ContentProcessor? createContentProcessor(String msgType) {
@@ -55,10 +69,10 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
       // application customized
       case ContentType.APPLICATION:
-      case ContentType.CUSTOMIZED:
       case 'application':
+      case ContentType.CUSTOMIZED:
       case 'customized':
-        return AppCustomizedContentProcessor(facebook!, messenger!);
+        return createCustomizedContentProcessor(facebook!, messenger!);
 
       // history command
       case ContentType.HISTORY:

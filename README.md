@@ -22,28 +22,28 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  object_key:  ^0.1.1
-  lnc:         ^0.1.2
-#  startrek:    ^0.5.2
-  stargate:    ^0.5.2
-#  mkm:         ^1.2.1
-#  dkd:         ^1.2.1
-#  dimp:        ^1.2.1
-  dimsdk:      ^1.2.1
-  dim_plugins: ^1.2.1
+  object_key:  ^1.1.0
+  lnc:         ^1.1.0
+#  startrek:    ^1.1.0
+  stargate:    ^1.0.0
+#  mkm:         ^2.1.1
+#  dkd:         ^2.1.1
+#  dimp:        ^2.1.1
+  dimsdk:      ^2.1.1
+  dim_plugins: ^2.1.1
 ```
 
 * Latest Versions
 
 | Name | Version | Description |
 |------|---------|-------------|
-| [Ming Ke Ming (名可名)](https://github.com/dimchat/mkm-dart) | [![Pub Version](https://img.shields.io/pub/v/mkm)](https://pub.dev/packages/mkm) | Decentralized User Identity Authentication |
-| [Dao Ke Dao (道可道)](https://github.com/dimchat/dkd-dart) | [![Pub Version](https://img.shields.io/pub/v/dkd)](https://pub.dev/packages/dkd) | Universal Message Module |
-| [DIMP (去中心化通讯协议)](https://github.com/dimchat/core-dart) | [![Pub Version](https://img.shields.io/pub/v/dimp)](https://pub.dev/packages/dimp) | Decentralized Instant Messaging Protocol |
-| [DIM SDK](https://github.com/dimchat/sdk-dart) | [![Pub Version](https://img.shields.io/pub/v/dimsdk)](https://pub.dev/packages/dimsdk) | Software Development Kit |
-| [DIM Plugins](https://github.com/dimchat/sdk-dart) | [![Pub Version](https://img.shields.io/pub/v/dim_plugins)](https://pub.dev/packages/dim_plugins) | Cryptography & Account Plugins |
-| [LNC](https://github.com/dimchat/sdk-dart) | [![Pub Version](https://img.shields.io/pub/v/lnc)](https://pub.dev/packages/lnc) | Log & Notification Center |
-| [StarGate](https://github.com/moky/StarGate) | [![Pub Version](https://img.shields.io/pub/v/stargate)](https://pub.dev/packages/stargate) | Network Connection Module (WebSocket) |
+| [Ming Ke Ming (名可名)](https://github.com/dimchat/mkm-dart) | [![Version](https://img.shields.io/pub/v/mkm)](https://pub.dev/packages/mkm) | Decentralized User Identity Authentication |
+| [Dao Ke Dao (道可道)](https://github.com/dimchat/dkd-dart) | [![Version](https://img.shields.io/pub/v/dkd)](https://pub.dev/packages/dkd) | Universal Message Module |
+| [DIMP (去中心化通讯协议)](https://github.com/dimchat/core-dart) | [![Version](https://img.shields.io/pub/v/dimp)](https://pub.dev/packages/dimp) | Decentralized Instant Messaging Protocol |
+| [DIM SDK](https://github.com/dimchat/sdk-dart) | [![Version](https://img.shields.io/pub/v/dimsdk)](https://pub.dev/packages/dimsdk) | Software Development Kit |
+| [DIM Plugins](https://github.com/dimchat/sdk-dart) | [![Version](https://img.shields.io/pub/v/dim_plugins)](https://pub.dev/packages/dim_plugins) | Cryptography & Account Plugins |
+| [LNC](https://github.com/dimchat/sdk-dart) | [![Version](https://img.shields.io/pub/v/lnc)](https://pub.dev/packages/lnc) | Log, Notification & Cache |
+| [Star Gate](https://github.com/moky/StarGate) | [![Version](https://img.shields.io/pub/v/stargate)](https://pub.dev/packages/stargate) | Network Connection Module (WebSocket) |
 
 Talk is cheap, [read my codes](https://github.com/dimchat/demo-dart).
 

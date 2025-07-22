@@ -93,6 +93,6 @@ class UnknownAddress extends ConstantString implements Address {
   UnknownAddress(super.string);
 
   @override
-  int get network => 0;
+  int get network => 0;  // EntityType.USER;
 
 }

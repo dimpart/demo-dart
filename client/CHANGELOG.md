@@ -1,3 +1,7 @@
+## 1.0.5
+
+- AppCustomizedProcessor.
+
 ## 1.0.4
 
 - Default customized content handler.
