@@ -11,6 +11,7 @@ library dim_client;
 
 export 'src/common/utils/cache.dart';
 export 'src/common/utils/checkers.dart';
+export 'src/common/utils/time.dart';
 
 export 'src/common/protocol/members.dart';
 export 'src/common/protocol/version.dart';

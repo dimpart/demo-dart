@@ -102,9 +102,9 @@ class AppCustomizedProcessor extends CustomizedContentProcessor {
     required CustomizedContentHandler handler
   }) => _handlers['$app:$mod'] = handler;
 
-  // private
+  // protected
   CustomizedContentHandler? getHandler({
-    required String app, required String mod
+    required String app, required String mod,
   }) => _handlers['$app:$mod'];
 
   /// override for your modules

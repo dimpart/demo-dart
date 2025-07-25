@@ -54,12 +54,14 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   // protected
   AppCustomizedProcessor createCustomizedContentProcessor(Facebook facebook, Messenger messenger) {
     var cpu = AppCustomizedProcessor(facebook, messenger);
+
     // 'chat.dim.group:history'
     cpu.setHandler(
       app: GroupHistory.APP,
       mod: GroupHistory.MOD,
       handler: GroupHistoryHandler(facebook, messenger),
     );
+
     return cpu;
   }
 
