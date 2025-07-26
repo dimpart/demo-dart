@@ -180,8 +180,7 @@ class GroupEmitter extends TripletsHelper {
     // this is usually not a problem;
     // but sometimes we want to respond a receipt with original sn,
     // so I suggest to expose 'sn' too.
-    int sn = iMsg.content.sn;
-    iMsg['sn'] = sn;
+    iMsg['sn'] = iMsg.content.sn;
 
     //
     //  1. pack message

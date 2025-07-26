@@ -10,8 +10,11 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  bip32: ^2.0.0
+  bip39: ^1.0.6
+
   object_key: ^1.1.0
-  lnc: ^1.1.1
+  lnc: ^1.2.0
 #  startrek: ^1.1.0
   stargate: ^1.0.0
 #  dimp: ^2.1.1

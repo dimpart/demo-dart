@@ -150,6 +150,27 @@ class CommonPluginLoader extends PluginLoader {
     PrivateKey.setFactory('RSA/ECB/PKCS1Padding', rsaPri);
   }
 
+  @override
+  void registerPNFFactory() {
+    /// PNF
+    PortableNetworkFile.setFactory(_BaseNetworkFileFactory());
+  }
+
+}
+
+class _BaseNetworkFileFactory extends BaseNetworkFileFactory {
+
+  @override
+  PortableNetworkFile? parsePortableNetworkFile(Map pnf) {
+    // check 'data', 'URL', 'filename'
+    if (pnf['data'] == null && pnf['URL'] == null && pnf['filename'] == null) {
+      // pnf.data and pnf.URL and pnf.filename should not be empty at the same time
+      assert(false, 'PNF error: $pnf');
+      // return null;
+    }
+    return BaseNetworkFile(pnf);
+  }
+
 }
 
 /// Base-64

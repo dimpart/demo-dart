@@ -1,3 +1,7 @@
+## 1.0.6
+
+- Web3.
+
 ## 1.0.5
 
 - AppCustomizedProcessor.
