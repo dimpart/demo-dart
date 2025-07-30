@@ -73,18 +73,18 @@ class QuitCommandProcessor extends GroupCommandProcessor {
     if (isOwner) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-        'template': 'Owner cannot quit from group: \${ID}',
+        'template': 'Owner cannot quit from group: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     }
     if (isAdmin) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-        'template': 'Administrator cannot quit from group: \${ID}',
+        'template': 'Administrator cannot quit from group: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     }

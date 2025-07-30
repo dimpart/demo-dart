@@ -73,9 +73,9 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     if (!canQuery) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-        'template': 'Not allowed to query members of group: \${ID}',
+        'template': 'Not allowed to query members of group: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     }
@@ -92,9 +92,9 @@ class QueryCommandProcessor extends GroupCommandProcessor {
         // group history not updated
         text = 'Group history not updated.';
         return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-          'template': 'Group history not updated: \${ID}, last time: \${time}',
+          'template': 'Group history not updated: \${gid}, last time: \${time}',
           'replacements': {
-            'ID': group.toString(),
+            'gid': group.toString(),
             'time': lastTime.millisecondsSinceEpoch / 1000.0,
           }
         });

@@ -43,7 +43,7 @@ import 'checkpoint.dart';
 
 
 ///  Client Messenger for Handshake & Broadcast Report
-abstract class ClientMessenger extends CommonMessenger {
+class ClientMessenger extends CommonMessenger {
   ClientMessenger(super.session, super.facebook, super.mdb);
 
   @override

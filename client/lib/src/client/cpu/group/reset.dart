@@ -79,9 +79,9 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     if (!canReset) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-        'template': 'Not allowed to reset members of group: \${ID}',
+        'template': 'Not allowed to reset members of group: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     }
@@ -89,9 +89,9 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     if (newMembers.first != owner) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-        'template': 'Owner must be the first member of group: \${ID}',
+        'template': 'Owner must be the first member of group: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     }
@@ -106,9 +106,9 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     if (expelAdmin) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-        'template': 'Not allowed to expel administrator of group: \${ID}',
+        'template': 'Not allowed to expel administrator of group: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     }

@@ -1,3 +1,7 @@
+## 1.0.7
+
+- Replace 'ID' with 'did'.
+
 ## 1.0.6
 
 - Web3.

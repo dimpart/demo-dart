@@ -66,7 +66,7 @@ class ClientArchivist extends CommonArchivist {
 
 
 ///  Client Facebook with Address Name Service
-abstract class ClientFacebook extends CommonFacebook {
+class ClientFacebook extends CommonFacebook {
   ClientFacebook(super.database);
 
   //

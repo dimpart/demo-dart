@@ -58,7 +58,8 @@ class ProviderInfo {
     ID? identifier;
     int chosen;
     for (var item in array) {
-      identifier = ID.parse(item['ID']);
+      identifier = ID.parse(item['did']);
+      identifier ??= ID.parse(item['ID']);
       chosen = Converter.getInt(item['chosen']) ?? 0;
       if (identifier == null) {
         // SP ID error
@@ -74,6 +75,7 @@ class ProviderInfo {
     for (var info in providers) {
       array.add({
         'ID': info.identifier.toString(),
+        'did': info.identifier.toString(),
         'chosen': info.chosen,
       });
     }
@@ -115,7 +117,8 @@ class StationInfo {
     int port;
     ID? provider;
     for (var item in array) {
-      sid = ID.parse(item['ID']);
+      sid = ID.parse(item['did']);
+      sid ??= ID.parse(item['ID']);
       chosen = Converter.getInt(item['chosen']) ?? 0;
       host = Converter.getString(item['host']);
       port = Converter.getInt(item['port']) ?? 0;
@@ -134,6 +137,7 @@ class StationInfo {
     for (var info in stations) {
       array.add({
         'ID': info.identifier.toString(),
+        'did': info.identifier.toString(),
         'chosen': info.chosen,
         'host': info.host,
         'port': info.port,

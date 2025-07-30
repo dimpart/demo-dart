@@ -87,9 +87,9 @@ class InviteCommandProcessor extends GroupCommandProcessor {
     if (!isMember) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {
-        'template': 'Not allowed to invite member into group: \${ID}',
+        'template': 'Not allowed to invite member into group: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     }

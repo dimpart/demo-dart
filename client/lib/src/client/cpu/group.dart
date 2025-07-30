@@ -137,10 +137,10 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     if (expired) {
       String text = 'Command expired.';
       errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group command expired: \${cmd}, group: \${ID}',
+        'template': 'Group command expired: \${cmd}, group: \${gid}',
         'replacements': {
           'cmd': content.cmd,
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
       group = null;
@@ -163,9 +163,9 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     if (members.isEmpty) {
       String text = 'Command error.';
       errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group members empty: \${ID}',
+        'template': 'Group members empty: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     } else {
@@ -189,9 +189,9 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       // TODO: query group members?
       String text = 'Group empty.';
       errors = respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-        'template': 'Group empty: \${ID}',
+        'template': 'Group empty: \${gid}',
         'replacements': {
-          'ID': group.toString(),
+          'gid': group.toString(),
         }
       });
     } else {
