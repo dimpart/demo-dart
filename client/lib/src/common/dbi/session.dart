@@ -42,7 +42,7 @@ class ProviderInfo {
 
   @override
   String toString() {
-    return '<$runtimeType ID="$identifier" chosen=$chosen />';
+    return '<$runtimeType did="$identifier" chosen=$chosen />';
   }
 
   /// default service provider
@@ -101,8 +101,8 @@ class StationInfo {
 
   @override
   String toString() {
-    return '<$runtimeType host="$host" port=$port ID="$identifier"'
-        ' SP="$provider" chosen=$chosen />';
+    return '<$runtimeType host="$host" port=$port did="$identifier"'
+        ' provider="$provider" chosen=$chosen />';
   }
 
   //
