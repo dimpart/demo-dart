@@ -1,3 +1,7 @@
+## 1.3.1
+
+- Lib all.
+
 ## 1.3.0
 
 - Check duplicated tasks.

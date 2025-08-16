@@ -31,12 +31,15 @@
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+
 import 'package:mkm/format.dart';
-import 'package:pnf/pnf.dart';
 
 import 'dos/paths.dart';
 import 'http/client.dart';
 import 'http/tasks.dart';
+
+import 'external.dart';
+import 'wrapper.dart';
 
 
 ///  Transportable File

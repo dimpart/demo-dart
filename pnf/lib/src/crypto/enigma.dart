@@ -33,7 +33,7 @@ import 'dart:typed_data';
 
 import 'package:mkm/digest.dart';
 import 'package:mkm/format.dart';
-import 'package:mkm/mkm.dart';
+import 'package:mkm/protocol.dart';
 import 'package:object_key/object_key.dart';
 
 import 'template.dart';

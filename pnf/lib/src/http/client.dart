@@ -31,6 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+
 import 'package:mkm/type.dart';
 
 
@@ -44,7 +45,7 @@ class HTTPClient {
 
   String userAgent = 'DIMP/1.0 (Linux; U; Android 4.1; zh-CN)'
       ' DIMCoreKit/1.0 (Terminal, like WeChat)'
-      ' DIM-by-GSP/1.0.1';
+      ' DIM-by-GSP/1.3.1';
 
   //
   //  Upload
