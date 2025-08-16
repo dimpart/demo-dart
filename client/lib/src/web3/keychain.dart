@@ -33,10 +33,11 @@ import 'dart:typed_data';
 import 'package:bip32/bip32.dart';
 import 'package:bip39/bip39.dart';
 
-import 'package:dim_client/ok.dart';
-import 'package:dim_client/sdk.dart';
-import 'package:dim_client/plugins.dart';
-import 'package:dim_client/common.dart';
+import 'package:dimsdk/dimp.dart';
+import 'package:dim_plugins/mkm.dart';
+import 'package:lnc/log.dart';
+
+import '../common/dbi/account.dart';
 
 
 // https://iancoleman.io/bip39/#english

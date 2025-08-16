@@ -29,8 +29,7 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
-import 'package:dimsdk/plugins.dart';
-import 'package:dim_plugins/plugins.dart';
+import 'package:dim_plugins/loader.dart';
 
 import '../../common/compat/entity.dart';
 import '../../common/compat/loader.dart';
@@ -47,9 +46,24 @@ class LibraryLoader {
   late final ExtensionLoader extensionLoader;
   late final PluginLoader pluginLoader;
 
+  bool _loaded = false;
+
   void run() {
-    extensionLoader.run();
-    pluginLoader.run();
+    if (_loaded) {
+      // no need to load it again
+      return;
+    } else {
+      // mark it to loaded
+      _loaded = true;
+    }
+    // try to load all plugins
+    load();
+  }
+
+  // protected
+  void load() {
+    extensionLoader.load();
+    pluginLoader.load();
   }
 
 }

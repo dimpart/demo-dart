@@ -33,6 +33,49 @@ import 'package:dimsdk/dimsdk.dart';
 
 // ignore_for_file: constant_identifier_names
 
+
+///  History command: {
+///      type : i2s(0x88),
+///      sn   : 123,
+///
+///      command : "query",
+///      time    : 123.456,
+///
+///      group     : "{GROUP_ID}",
+///      last_time : 0
+///  }
+abstract interface class QueryCommand implements GroupCommand {
+  // NOTICE:
+  //     This command is just for querying group info,
+  //     should not be saved in group history
+  static const String QUERY    = "query";
+
+  /// Last group history time for querying
+  DateTime? get lastTime;
+
+  //
+  //  Factory
+  //
+  static QueryCommand query(ID group, [DateTime? lastTime]) =>
+      QueryGroupCommand.from(group, lastTime);
+
+}
+class QueryGroupCommand extends BaseGroupCommand implements QueryCommand {
+  QueryGroupCommand([super.dict]);
+
+  @override
+  DateTime? get lastTime => getDateTime('last_time');
+
+  QueryGroupCommand.from(ID group, [DateTime? lastTime])
+      : super.from(QueryCommand.QUERY, group) {
+    if (lastTime != null) {
+      setDateTime('last_time', lastTime);
+    }
+  }
+
+}
+
+
 ///  Group Query Command: {
 ///      "type" : i2s(0xCC),
 ///      "sn"   : 123,

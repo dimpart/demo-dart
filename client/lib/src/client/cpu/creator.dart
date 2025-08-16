@@ -110,7 +110,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
         return JoinCommandProcessor(facebook!, messenger!);
       case GroupCommand.QUIT:
         return QuitCommandProcessor(facebook!, messenger!);
-      case GroupCommand.QUERY:
+      case QueryCommand.QUERY:
         return QueryCommandProcessor(facebook!, messenger!);
       case GroupCommand.RESET:
         return ResetCommandProcessor(facebook!, messenger!);

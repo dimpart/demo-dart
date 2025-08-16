@@ -31,7 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/plain.dart';
+import 'package:dim_plugins/crypto.dart';
 
 
 /// SymmetricKey

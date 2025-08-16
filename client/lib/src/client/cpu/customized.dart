@@ -76,7 +76,7 @@ class GroupHistoryHandler extends BaseCustomizedHandler {
     }
     Map info = content.copyMap(false);
     info['type'] = ContentType.COMMAND;
-    info['command'] = GroupCommand.QUERY;
+    info['command'] = QueryCommand.QUERY;
     Content? query = Content.parse(info);
     if (query is QueryCommand) {
       return await transceiver.processContent(query, rMsg);

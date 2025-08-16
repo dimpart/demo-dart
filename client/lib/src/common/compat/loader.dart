@@ -31,14 +31,13 @@
 import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
-import 'package:dimsdk/plugins.dart';
 import 'package:dim_plugins/crypto.dart';
-import 'package:dim_plugins/format.dart';
-import 'package:dim_plugins/plugins.dart';
+import 'package:dim_plugins/loader.dart';
 import 'package:lnc/log.dart';
 
 import '../protocol/ans.dart';
 import '../protocol/block.dart';
+import '../protocol/groups.dart';
 import '../protocol/handshake.dart';
 import '../protocol/login.dart';
 import '../protocol/mute.dart';
@@ -86,6 +85,8 @@ class CommonExtensionLoader extends ExtensionLoader {
     setCommandFactory(ReportCommand.ONLINE,  creator: (dict) => BaseReportCommand(dict));
     setCommandFactory(ReportCommand.OFFLINE, creator: (dict) => BaseReportCommand(dict));
 
+    // Group command (deprecated)
+    setCommandFactory(QueryCommand.QUERY,  creator: (dict) => QueryGroupCommand(dict));
   }
 
 }

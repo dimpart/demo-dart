@@ -30,9 +30,11 @@
  */
 import 'dart:typed_data';
 
-import 'package:dim_client/common.dart';
-import 'package:dim_client/ok.dart';
-import 'package:dim_client/sdk.dart';
+import 'package:dimsdk/dimp.dart';
+import 'package:lnc/log.dart';
+
+import '../common/dbi/account.dart';
+import '../common/protocol/version.dart';
 
 import 'keychain.dart';
 

@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:object_key/object_key.dart';
 
+import '../common/protocol/groups.dart';
 import '../common/checker.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
@@ -112,7 +113,8 @@ class ClientChecker extends EntityChecker {
     DateTime? lastTime = await getLastGroupHistoryTime(group);
     logInfo('querying members for group: $group, last time: $lastTime');
     // build query command for group members
-    var command = GroupCommand.query(group, lastTime);
+    // TODO: use 'GroupHistory.queryGroupHistory(group, lastTime)' instead
+    Content command = QueryCommand.query(group, lastTime);
     bool ok;
     // 1. check group bots
     ok = await queryMembersFromAssistants(command, sender: me, group: group);
@@ -141,7 +143,7 @@ class ClientChecker extends EntityChecker {
   }
 
   // protected
-  Future<bool> queryMembersFromAssistants(QueryCommand command, {required ID sender, required ID group}) async {
+  Future<bool> queryMembersFromAssistants(Content command, {required ID sender, required ID group}) async {
     List<ID>? bots = await facebook?.getAssistants(group);
     if (bots == null || bots.isEmpty) {
       logWarning('assistants not designated for group: $group');
@@ -176,7 +178,7 @@ class ClientChecker extends EntityChecker {
   }
 
   // protected
-  Future<bool> queryMembersFromAdministrators(QueryCommand command, {required ID sender, required ID group}) async {
+  Future<bool> queryMembersFromAdministrators(Content command, {required ID sender, required ID group}) async {
     List<ID>? admins = await facebook?.getAdministrators(group);
     if (admins == null || admins.isEmpty) {
       logWarning('administrators not found for group: $group');
@@ -211,7 +213,7 @@ class ClientChecker extends EntityChecker {
   }
 
   // protected
-  Future<bool> queryMembersFromOwner(QueryCommand command, {required ID sender, required ID group}) async {
+  Future<bool> queryMembersFromOwner(Content command, {required ID sender, required ID group}) async {
     ID? owner = await facebook?.getOwner(group);
     if (owner == null) {
       logWarning('owner not found for group: $group');

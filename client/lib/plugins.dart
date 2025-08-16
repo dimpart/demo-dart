@@ -1,12 +1,7 @@
 library dim_client;
 
-// export 'package:dimp/plugins.dart';
-export 'package:dimsdk/plugins.dart';
-
-export 'package:dim_plugins/plugins.dart';
-
-export 'package:dim_plugins/crypto.dart';
-export 'package:dim_plugins/digest.dart';
-export 'package:dim_plugins/format.dart';
-export 'package:dim_plugins/mkm.dart';
-// export 'package:dim_plugins/plain.dart';  // -> 'sdk.dart'
+// export 'package:dimp/dimp.dart';
+export 'package:dim_plugins/dimp.dart';
+export 'package:dim_plugins/dkd.dart';
+export 'package:dim_plugins/ext.dart';
+export 'package:dim_plugins/loader.dart';
