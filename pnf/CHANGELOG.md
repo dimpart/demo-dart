@@ -1,3 +1,7 @@
+## 1.3.2
+
+- Message Digest.
+
 ## 1.3.1
 
 - Lib all.

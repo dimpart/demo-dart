@@ -30,9 +30,9 @@
  */
 import 'dart:typed_data';
 
-import 'package:mkm/digest.dart';
 import 'package:mkm/format.dart';
 
+import 'crypto/digest.dart';
 import 'dos/paths.dart';
 
 
