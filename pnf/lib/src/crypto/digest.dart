@@ -32,10 +32,23 @@ import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
+import 'package:mkm/digest.dart';
+
 
 class MD5 {
 
   static Uint8List digest(Uint8List data) {
+    return digester.digest(data);
+  }
+
+  static MessageDigester digester = MD5Digester();
+
+}
+
+class MD5Digester implements MessageDigester {
+
+  @override
+  Uint8List digest(Uint8List data) {
     Digest digester = MD5Digest();
     digester.reset();
     return digester.process(data);
