@@ -48,7 +48,7 @@ class CacheHolder <V> {
   V? get value => _value;
 
   /// update cache value with current time in seconds
-  void update(V? newValue, {double? now}) {
+  void updateValue(V? newValue, {double? now}) {
     _value = newValue;
     now ??= Time.currentTimestamp;
     _expired = now + _life;

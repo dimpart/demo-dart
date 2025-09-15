@@ -1,9 +1,9 @@
 name: lnc
 description: Log & Notification Center.
-version: 1.2.1
-homepage: https://github.com/dimchat/sdk-dart
-repository: https://github.com/dimchat/sdk-dart
-issue_tracker: https://github.com/dimchat/sdk-dart/issues
+version: 1.2.2
+homepage: https://github.com/dimpart/demo-dart
+repository: https://github.com/dimpart/demo-dart
+issue_tracker: https://github.com/dimpart/demo-dart/issues
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -14,8 +14,8 @@ dependencies:
    dio: ^5.3.3
    pointycastle: ^3.7.2
    object_key: ^1.1.1
-   startrek: ^1.1.1
-   mkm: ^2.2.0
+   startrek: ^1.1.2
+   mkm: ^2.2.1
 
 dev_dependencies:
   lints: ^2.0.0

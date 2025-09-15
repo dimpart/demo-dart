@@ -1,3 +1,7 @@
+## 1.2.2
+
+- Update value holder.
+
 ## 1.2.1
 
 - Show class name while logging.

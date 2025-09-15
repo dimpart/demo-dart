@@ -47,14 +47,14 @@ class CachePool <K, V> {
   Iterable<K> get keys => _holderMap.keys;
 
   /// update cache holder for key
-  CacheHolder<V> update(K key, CacheHolder<V> holder) {
+  CacheHolder<V> updateHolder(K key, CacheHolder<V> holder) {
     _holderMap[key] = holder;
     return holder;
   }
 
   /// update cache value for key with timestamp in seconds
   CacheHolder<V> updateValue(K key, V? value, double life, {double? now}) =>
-      update(key, CacheHolder(value, life, now: now));
+      updateHolder(key, CacheHolder(value, life, now: now));
 
   /// erase cache for key
   CachePair<V>? erase(K key, {double? now}) {
