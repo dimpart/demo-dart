@@ -49,7 +49,7 @@ abstract class EntityChecker with Logging {
   final FrequencyChecker<ID> _membersQueries = FrequencyChecker(QUERY_EXPIRES);
 
   /// response checker
-  final FrequencyChecker<ID> _visaResponses  = FrequencyChecker(QUERY_EXPIRES);
+  final FrequencyChecker<ID> _visaResponses  = FrequencyChecker(RESPOND_EXPIRES);
 
   /// recent time checkers
   final RecentTimeChecker<ID> _lastDocumentTimes = RecentTimeChecker();
@@ -143,6 +143,7 @@ abstract class EntityChecker with Logging {
   }
 
   ///  check whether need to query documents
+  // protected
   bool needsQueryDocuments(ID identifier, List<Document> documents) {
     if (identifier.isBroadcast) {
       // broadcast entity has no document to query
@@ -155,6 +156,7 @@ abstract class EntityChecker with Logging {
     return _lastDocumentTimes.isExpired(identifier, current);
   }
 
+  // protected
   DateTime? getLastDocumentTime(ID identifier, List<Document> documents) {
     if (documents.isEmpty) {
       return null;
@@ -197,6 +199,7 @@ abstract class EntityChecker with Logging {
   }
 
   ///  check whether need to query group members
+  // protected
   Future<bool> needsQueryMembers(ID group, List<ID> members) async {
     if (group.isBroadcast) {
       // broadcast group has no members to query

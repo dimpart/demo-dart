@@ -1,3 +1,7 @@
+## 1.1.0
+
+- MD5 from pnf.
+
 ## 1.0.9
 
 - QueryCommand.

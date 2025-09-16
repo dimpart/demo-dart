@@ -35,14 +35,15 @@ environment:
 
 dependencies:
   object_key:  ^1.1.1
-  lnc:         ^1.2.1
-#  startrek:    ^1.1.1
-  stargate:    ^1.1.0
-#  mkm:         ^2.1.1
-#  dkd:         ^2.1.1
-#  dimp:        ^2.1.1
-  dimsdk:      ^2.1.2
-  dim_plugins: ^2.1.2
+  lnc:         ^1.2.2
+  pnf:         ^1.3.3
+#  startrek:    ^1.1.2
+  stargate:    ^1.1.1
+#  mkm:         ^2.2.1
+#  dkd:         ^2.2.1
+#  dimp:        ^2.2.1
+  dimsdk:      ^2.2.0
+  dim_plugins: ^2.2.0
 ```
 
 Copyright &copy; 2023-2025 Albert Moky

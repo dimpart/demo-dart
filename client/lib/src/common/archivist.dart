@@ -123,7 +123,7 @@ class CommonArchivist extends Barrack with Logging implements Archivist {
     if (await checkDocumentValid(doc)) {
       // document valid
     } else {
-      assert(false, 'meta not valid: ${doc.identifier}');
+      assert(false, 'document not valid: ${doc.identifier}');
       return false;
     }
     //
