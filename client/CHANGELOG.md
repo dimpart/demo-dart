@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Shared gate hub.
+
 ## 1.1.0
 
 - MD5 from pnf.

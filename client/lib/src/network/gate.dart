@@ -38,7 +38,7 @@ import 'package:dimsdk/dimsdk.dart';
 
 /// Client Gate
 class AckEnableGate extends CommonGate {
-  AckEnableGate(super.keeper);
+  AckEnableGate();
 
   @override
   Porter createPorter({required SocketAddress remote, SocketAddress? local}) {

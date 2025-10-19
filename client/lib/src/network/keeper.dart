@@ -41,7 +41,7 @@ import 'queue.dart';
 abstract class GateKeeper extends Runner with Logging implements PorterDelegate {
   GateKeeper({required SocketAddress remote}) : super(Runner.INTERVAL_SLOW) {
     _remoteAddress = remote;
-    _gate = createGate(remote);
+    _gate = connectGate(remote);
     _queue = MessageQueue();
     _active = false;
     _lastActiveTime = null;
@@ -54,18 +54,42 @@ abstract class GateKeeper extends Runner with Logging implements PorterDelegate 
   late DateTime? _lastActiveTime;  // last update time
 
   // protected
-  CommonGate createGate(SocketAddress remote) {
-    CommonGate gate = AckEnableGate(this);
-    gate.hub = createHub(gate, remote);
+  CommonGate connectGate(SocketAddress remote) {
+    CommonGate gate = createGate();
+    Hub? hub = gate.hub;
+    if (hub == null) {
+      hub = createHub();
+      gate.hub = hub;
+    }
+    // set PorterDelegate
+    gate.delegate = this;
+    // connect remote address via the hub
+    hub.connect(remote: remote).then((conn) {
+      assert(conn != null, 'failed to connect remote: $remote');
+    });
+    return gate;
+  }
+
+  static CommonGate? commonGate;
+  static CommonHub? commonHub;
+
+  // protected
+  CommonGate createGate() {
+    CommonGate? gate = commonGate;
+    if (gate == null) {
+      gate = AckEnableGate();
+      commonGate = gate;
+    }
     return gate;
   }
 
   // protected
-  StreamHub createHub(ConnectionDelegate delegate, SocketAddress remote) {
-    ClientHub hub = ClientHub(delegate);
-    hub.connect(remote: remote).then((conn) {
-      assert(conn != null, 'failed to connect remote: $remote');
-    });
+  CommonHub createHub() {
+    CommonHub? hub = commonHub;
+    if (hub == null) {
+      hub = ClientHub();
+      commonHub = hub;
+    }
     // TODO: reset send buffer size
     return hub;
   }

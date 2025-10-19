@@ -82,20 +82,22 @@ abstract class BaseSession extends GateKeeper implements Session {
   //
 
   @override
-  Future<Pair<InstantMessage, ReliableMessage?>> sendContent(Content content,
-      {required ID? sender, required ID receiver, int priority = 0}) async =>
-      await messenger!.sendContent(content,
-        sender: sender, receiver: receiver, priority: priority,
-      );
+  Future<Pair<InstantMessage, ReliableMessage?>> sendContent(Content content, {
+    required ID? sender,
+    required ID receiver,
+    int priority = 0,
+  }) async => await messenger!.sendContent(content,
+    sender: sender, receiver: receiver, priority: priority,
+  );
 
   @override
-  Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg,
-      {int priority = 0}) async =>
-      await messenger!.sendInstantMessage(iMsg, priority: priority);
+  Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {
+    int priority = 0,
+  }) async => await messenger!.sendInstantMessage(iMsg, priority: priority);
 
   @override
-  Future<bool> sendReliableMessage(ReliableMessage rMsg,
-      {int priority = 0}) async =>
-      await messenger!.sendReliableMessage(rMsg, priority: priority);
+  Future<bool> sendReliableMessage(ReliableMessage rMsg, {
+    int priority = 0,
+  }) async => await messenger!.sendReliableMessage(rMsg, priority: priority);
 
 }
