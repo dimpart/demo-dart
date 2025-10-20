@@ -58,16 +58,37 @@ abstract class GateKeeper extends Runner with Logging implements PorterDelegate 
     CommonGate gate = createGate();
     Hub? hub = gate.hub;
     if (hub == null) {
-      hub = createHub();
+      hub = createHub(gate);
       gate.hub = hub;
     }
     // set PorterDelegate
     gate.delegate = this;
     // connect remote address via the hub
-    hub.connect(remote: remote).then((conn) {
+    reconnect(hub, remote: remote).then((conn) {
       assert(conn != null, 'failed to connect remote: $remote');
     });
     return gate;
+  }
+
+  // protected
+  Future<Connection?> reconnect(Hub hub, {required SocketAddress remote}) async {
+    // remove old connection
+    if (hub is BaseHub) {
+      Connection? conn = hub.getConnection(remote: remote);
+      Connection? cached = hub.removeConnection(conn, remote: remote);
+      if (cached == null || identical(cached, conn)) {} else {
+        logWarning('close cached connection: $remote, $cached');
+        await cached.close();
+      }
+      if (conn != null) {
+        logWarning('close connection: $remote, $conn');
+        await conn.close();
+      }
+    }
+    // build new connection
+    Connection? conn = await hub.connect(remote: remote);
+    logInfo('new connection: $remote, $conn');
+    return conn;
   }
 
   static CommonGate? commonGate;
@@ -84,10 +105,11 @@ abstract class GateKeeper extends Runner with Logging implements PorterDelegate 
   }
 
   // protected
-  CommonHub createHub() {
+  CommonHub createHub(ConnectionDelegate gate) {
     CommonHub? hub = commonHub;
     if (hub == null) {
       hub = ClientHub();
+      hub.delegate = gate;
       commonHub = hub;
     }
     // TODO: reset send buffer size
