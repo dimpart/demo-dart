@@ -29,133 +29,89 @@
  * =============================================================================
  */
 import 'package:lnc/log.dart';
+import 'package:object_key/object_key.dart';
 import 'package:stargate/skywalker.dart';
 import 'package:stargate/startrek.dart';
 import 'package:stargate/websocket.dart';
-import 'package:dimsdk/dimsdk.dart';
 
 import 'gate.dart';
-import 'queue.dart';
 
 
-abstract class GateKeeper extends Runner with Logging implements PorterDelegate {
-  GateKeeper({required SocketAddress remote}) : super(Runner.INTERVAL_SLOW) {
-    _remoteAddress = remote;
-    _gate = connectGate(remote);
-    _queue = MessageQueue();
-    _active = false;
-    _lastActiveTime = null;
+class GateKeeper extends Runner with Logging implements PorterDelegate {
+  factory GateKeeper() => _instance;
+  static final GateKeeper _instance = GateKeeper._internal();
+  GateKeeper._internal() : super(Runner.INTERVAL_SLOW) {
+    _gate = createGate();
+    _hub = createHub(_gate);
+    start();
   }
 
-  late final SocketAddress _remoteAddress;
+  late final CommonHub _hub;
   late final CommonGate _gate;
-  late final MessageQueue _queue;
-  late bool _active;
-  late DateTime? _lastActiveTime;  // last update time
 
-  // protected
-  CommonGate connectGate(SocketAddress remote) {
-    CommonGate gate = createGate();
-    Hub? hub = gate.hub;
-    if (hub == null) {
-      hub = createHub(gate);
-      gate.hub = hub;
-    }
-    // set PorterDelegate
-    gate.delegate = this;
-    // connect remote address via the hub
-    reconnect(hub, remote: remote).then((conn) {
-      assert(conn != null, 'failed to connect remote: $remote');
-    });
-    return gate;
+  CommonGate get gate => _gate;
+  // CommonHub get hub => _hub;
+
+  final Set<PorterDelegate> _listeners = WeakSet();
+
+  void start() {
+    _gate.hub = _hub;
+    /*await */run();
   }
-
-  // protected
-  Future<Connection?> reconnect(Hub hub, {required SocketAddress remote}) async {
-    // remove old connection
-    if (hub is BaseHub) {
-      Connection? conn = hub.getConnection(remote: remote);
-      Connection? cached = hub.removeConnection(conn, remote: remote);
-      if (cached == null || identical(cached, conn)) {} else {
-        logWarning('close cached connection: $remote, $cached');
-        await cached.close();
-      }
-      if (conn != null) {
-        logWarning('close connection: $remote, $conn');
-        await conn.close();
-      }
-    }
-    // build new connection
-    Connection? conn = await hub.connect(remote: remote);
-    logInfo('new connection: $remote, $conn');
-    return conn;
-  }
-
-  static CommonGate? commonGate;
-  static CommonHub? commonHub;
 
   // protected
   CommonGate createGate() {
-    CommonGate? gate = commonGate;
-    if (gate == null) {
-      gate = AckEnableGate();
-      commonGate = gate;
-    }
+    CommonGate gate =  AckEnableGate();
+    gate.delegate = this;
     return gate;
   }
 
   // protected
-  CommonHub createHub(ConnectionDelegate gate) {
-    CommonHub? hub = commonHub;
-    if (hub == null) {
-      hub = ClientHub();
-      hub.delegate = gate;
-      commonHub = hub;
-    }
+  CommonHub createHub(ConnectionDelegate delegate) {
+    CommonHub hub = ClientHub();
+    hub.delegate = delegate;
     // TODO: reset send buffer size
     return hub;
   }
 
-  SocketAddress get remoteAddress => _remoteAddress;
+  void addListener(PorterDelegate delegate) =>
+      _listeners.add(delegate);
 
-  CommonGate get gate => _gate;
+  void removeListener(PorterDelegate delegate) =>
+      _listeners.remove(delegate);
 
-  bool get isActive => _active;
-  bool setActive(bool flag, DateTime? when) {
-    if (_active == flag) {
-      // flag not changed
-      return false;
-    }
-    DateTime? last = _lastActiveTime;
-    if (when == null) {
-      when = DateTime.now();
-    } else if (last != null && !when.isAfter(last)) {
-      return false;
-    }
-    _active = flag;
-    _lastActiveTime = when;
-    return true;
+  Future<Connection?> reconnect({required SocketAddress remote}) async {
+    // remove old connection
+    await disconnect(remote: remote);
+    // build new connection
+    return await connect(remote: remote);
   }
 
-  int _reconnectTime = 0;
+  Future<Connection?> connect({required SocketAddress remote}) async {
+    Connection? conn = await _hub.connect(remote: remote);
+    logInfo('new connection: $remote, $conn');
+    return conn;
+  }
+
+  Future<int> disconnect({required SocketAddress remote}) async {
+    int count = 0;
+    Connection? conn = _hub.getConnection(remote: remote);
+    Connection? cached = _hub.removeConnection(conn, remote: remote);
+    if (cached == null || identical(cached, conn)) {} else {
+      logWarning('close cached connection: $remote, $cached');
+      await cached.close();
+      count += 1;
+    }
+    if (conn != null) {
+      logWarning('close connection: $remote, $conn');
+      await conn.close();
+      count += 1;
+    }
+    return count;
+  }
 
   @override
   Future<bool> process() async {
-    // check docker for remote address
-    Porter? docker = gate.getPorter(remote: remoteAddress);
-    if (docker == null) {
-      int now = DateTime.now().millisecondsSinceEpoch;
-      if (now < _reconnectTime) {
-        return false;
-      }
-      logInfo('fetch docker: $remoteAddress');
-      docker = await gate.fetchPorter(remote: remoteAddress);
-      if (docker == null) {
-        logError('gate error: $remoteAddress');
-        _reconnectTime = now + 8000;
-        return false;
-      }
-    }
     // try to process income/outgo packages
     try {
       bool incoming = await _gate.hub?.process() ?? false;
@@ -168,35 +124,8 @@ abstract class GateKeeper extends Runner with Logging implements PorterDelegate 
       logError('gate process error: $e, $st');
       return false;
     }
-    if (!isActive) {
-      // inactive, wait a while to check again
-      _queue.purge();
-      return false;
-    }
-    // get next message
-    MessageWrapper? wrapper = _queue.next();
-    if (wrapper == null) {
-      // no more task now, purge failed task
-      _queue.purge();
-      return false;
-    }
-    // if msg in this wrapper is null (means sent successfully),
-    // it must have bean cleaned already, so iit should not be empty here
-    ReliableMessage? msg = wrapper.message;
-    if (msg == null) {
-      // msg sent?
-      return true;
-    }
-    // try to push
-    bool ok = await docker.sendShip(wrapper);
-    if (!ok) {
-      logError('docker error: $_remoteAddress, $docker');
-    }
     return true;
   }
-
-  // protected
-  bool queueAppend(ReliableMessage rMsg, Departure ship) => _queue.append(rMsg, ship);
 
   //
   //  Docker Delegate
@@ -204,27 +133,42 @@ abstract class GateKeeper extends Runner with Logging implements PorterDelegate 
 
   @override
   Future<void> onPorterStatusChanged(PorterStatus previous, PorterStatus current, Porter porter) async {
-    logInfo('docker status changed: $previous => $current, $porter');
+    logInfo('docker status changed: $previous => $current, $porter, calling ${_listeners.length} listeners');
+    for (var delegate in _listeners) {
+      await delegate.onPorterStatusChanged(previous, current, porter);
+    }
   }
 
   @override
   Future<void> onPorterReceived(Arrival ship, Porter porter) async {
-    logDebug('docker received a ship: $ship, $porter');
+    logDebug('docker received a ship: $ship, $porter, calling ${_listeners.length} listeners');
+    for (var delegate in _listeners) {
+      await delegate.onPorterReceived(ship, porter);
+    }
   }
 
   @override
   Future<void> onPorterSent(Departure ship, Porter porter) async {
     // TODO: remove sent message from local cache
+    for (var delegate in _listeners) {
+      await delegate.onPorterSent(ship, porter);
+    }
   }
 
   @override
   Future<void> onPorterFailed(IOError error, Departure ship, Porter porter) async {
-    logError('docker failed to send ship: $ship, $porter');
+    logError('docker failed to send ship: $ship, $porter, calling ${_listeners.length} listeners');
+    for (var delegate in _listeners) {
+      await delegate.onPorterFailed(error, ship, porter);
+    }
   }
 
   @override
   Future<void> onPorterError(IOError error, Departure ship, Porter porter) async {
-    logError('docker error while sending ship: $ship, $porter');
+    logError('docker error while sending ship: $ship, $porter, calling ${_listeners.length} listeners');
+    for (var delegate in _listeners) {
+      await delegate.onPorterError(error, ship, porter);
+    }
   }
 
 }

@@ -1,3 +1,7 @@
+## 1.1.2
+
+- Shared GateKeeper.
+
 ## 1.1.1
 
 - Shared gate hub.
