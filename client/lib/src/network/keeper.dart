@@ -37,27 +37,24 @@ import 'package:stargate/websocket.dart';
 import 'gate.dart';
 
 
-class GateKeeper extends Runner with Logging implements PorterDelegate {
+class GateKeeper with Logging implements Processor, PorterDelegate {
   factory GateKeeper() => _instance;
   static final GateKeeper _instance = GateKeeper._internal();
-  GateKeeper._internal() : super(Runner.INTERVAL_SLOW) {
+  GateKeeper._internal() {
     _gate = createGate();
     _hub = createHub(_gate);
-    start();
+    _gate.hub = _hub;
   }
 
   late final CommonHub _hub;
   late final CommonGate _gate;
 
+  bool _processing = false;
+
   CommonGate get gate => _gate;
   // CommonHub get hub => _hub;
 
   final Set<PorterDelegate> _listeners = WeakSet();
-
-  void start() {
-    _gate.hub = _hub;
-    /*await */run();
-  }
 
   // protected
   CommonGate createGate() {
@@ -74,10 +71,10 @@ class GateKeeper extends Runner with Logging implements PorterDelegate {
     return hub;
   }
 
-  void addListener(PorterDelegate delegate) =>
+  bool addListener(PorterDelegate delegate) =>
       _listeners.add(delegate);
 
-  void removeListener(PorterDelegate delegate) =>
+  bool removeListener(PorterDelegate delegate) =>
       _listeners.remove(delegate);
 
   Future<Connection?> reconnect({required SocketAddress remote}) async {
@@ -112,19 +109,15 @@ class GateKeeper extends Runner with Logging implements PorterDelegate {
 
   @override
   Future<bool> process() async {
-    // try to process income/outgo packages
-    try {
-      bool incoming = await _gate.hub?.process() ?? false;
-      bool outgoing = await _gate.process();
-      if (incoming || outgoing) {
-        // processed income/outgo packages
-        return true;
-      }
-    } catch (e, st) {
-      logError('gate process error: $e, $st');
+    if (_processing) {
       return false;
+    } else {
+      _processing = true;
     }
-    return true;
+    bool incoming = await _hub.process();
+    bool outgoing = await _gate.process();
+    _processing = false;
+    return incoming || outgoing;
   }
 
   //
@@ -133,7 +126,7 @@ class GateKeeper extends Runner with Logging implements PorterDelegate {
 
   @override
   Future<void> onPorterStatusChanged(PorterStatus previous, PorterStatus current, Porter porter) async {
-    logInfo('docker status changed: $previous => $current, $porter, calling ${_listeners.length} listeners');
+    logInfo('onPorterStatusChanged: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
       await delegate.onPorterStatusChanged(previous, current, porter);
     }
@@ -141,7 +134,7 @@ class GateKeeper extends Runner with Logging implements PorterDelegate {
 
   @override
   Future<void> onPorterReceived(Arrival ship, Porter porter) async {
-    logDebug('docker received a ship: $ship, $porter, calling ${_listeners.length} listeners');
+    logDebug('onPorterReceived: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
       await delegate.onPorterReceived(ship, porter);
     }
@@ -149,7 +142,7 @@ class GateKeeper extends Runner with Logging implements PorterDelegate {
 
   @override
   Future<void> onPorterSent(Departure ship, Porter porter) async {
-    // TODO: remove sent message from local cache
+    logDebug('onPorterSent: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
       await delegate.onPorterSent(ship, porter);
     }
@@ -157,7 +150,7 @@ class GateKeeper extends Runner with Logging implements PorterDelegate {
 
   @override
   Future<void> onPorterFailed(IOError error, Departure ship, Porter porter) async {
-    logError('docker failed to send ship: $ship, $porter, calling ${_listeners.length} listeners');
+    logWarning('onPorterFailed: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
       await delegate.onPorterFailed(error, ship, porter);
     }
@@ -165,7 +158,7 @@ class GateKeeper extends Runner with Logging implements PorterDelegate {
 
   @override
   Future<void> onPorterError(IOError error, Departure ship, Porter porter) async {
-    logError('docker error while sending ship: $ship, $porter, calling ${_listeners.length} listeners');
+    logError('onPorterError: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
       await delegate.onPorterError(error, ship, porter);
     }

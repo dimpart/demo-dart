@@ -44,16 +44,11 @@ import '../common/session.dart';
 import 'keeper.dart';
 import 'queue.dart';
 
+
 abstract class BaseSession extends Runner with Logging implements Session, PorterDelegate {
   BaseSession(this._db, {required SocketAddress remote}) : super(Runner.INTERVAL_SLOW) {
     _remoteAddress = remote;
     _queue = MessageQueue();
-
-    _active = false;
-    _lastActiveTime = null;
-
-    _identifier = null;
-    _transceiver = null;
   }
 
   static final GateKeeper keeper = GateKeeper();
@@ -63,8 +58,8 @@ abstract class BaseSession extends Runner with Logging implements Session, Porte
   late final SocketAddress _remoteAddress;
   late final MessageQueue _queue;
 
-  late bool _active;
-  late DateTime? _lastActiveTime;  // last update time
+  bool _active = false;
+  DateTime? _lastActiveTime;  // last update time
 
   ID? _identifier;
   WeakReference<CommonMessenger>? _transceiver;
@@ -155,6 +150,17 @@ abstract class BaseSession extends Runner with Logging implements Session, Porte
         _reconnectTime = now + 8000;
         return false;
       }
+    }
+    // try to process income/outgo packages
+    try {
+      bool busy = await keeper.process();
+      if (busy) {
+        // processed income/outgo packages
+        return true;
+      }
+    } catch (e, st) {
+      logError('gate process error: $e, $st');
+      return false;
     }
     if (!isActive) {
       // inactive, wait a while to check again

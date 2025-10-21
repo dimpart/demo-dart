@@ -64,7 +64,6 @@ class ClientSession extends BaseSession with Logging {
   ClientSession(SessionDBI database, this._server)
       : super(database, remote: InetSocketAddress(_server.host!, _server.port)) {
     _fsm = SessionStateMachine(this);
-    _key = null;
   }
 
   final Station _server;
@@ -151,7 +150,7 @@ class ClientSession extends BaseSession with Logging {
     // start state machine
     _fsm.delegate = delegate;
     await _fsm.start();
-}
+  }
 
   /// stop state machine for this session
   /// stop background machine for this session
@@ -174,15 +173,6 @@ class ClientSession extends BaseSession with Logging {
     setActive(false, null);
     await super.finish();
   }
-
-  // @override
-  // StreamHub createHub(ConnectionDelegate delegate, SocketAddress remote) {
-  //   ClientHub hub = ClientHub(delegate);
-  //   // Connection? conn = await hub.connect(remote: remote);
-  //   // assert(conn != null, 'failed to connect remote: $remote');
-  //   // TODO: reset send buffer size
-  //   return hub;
-  // }
 
   //
   //  Docker Delegate
