@@ -55,7 +55,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
 
   /// for checking whether user's ready
   // protected
-  Future<EncryptKey?> getVisaKey(ID user) async =>
+  Future<EncryptKey?> getMessageKey(ID user) async =>
       await facebook?.getPublicKeyForEncryption(user);
 
   ///  Check sender before verifying received message
@@ -74,7 +74,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
       //assert Meta.matches(sender, rMsg.getMeta()) : "meta error: " + rMsg;
       assert(matched, 'visa ID not match: $sender');
       return matched;
-    } else if (await getVisaKey(sender) != null) {
+    } else if (await getMessageKey(sender) != null) {
       // sender is OK
       return true;
     }
@@ -104,7 +104,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
       //         that should be sent to a group bot first,
       //         and the bot will split it for all members.
       return false;
-    } else if (await getVisaKey(receiver) != null) {
+    } else if (await getMessageKey(receiver) != null) {
       // receiver is OK
       return true;
     }

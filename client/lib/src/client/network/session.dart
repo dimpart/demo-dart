@@ -195,14 +195,19 @@ class ClientSession extends BaseSession with Logging {
   @override
   Future<void> onPorterReceived(Arrival ship, Porter porter) async {
     // await super.onPorterReceived(ship, porter);
+    var transceiver = messenger;
     List<Uint8List> allResponses = [];
     // 1. get data packages from arrival ship's payload
     List<Uint8List> packages = _getDataPackages(ship);
     List<Uint8List> responses;
     for (Uint8List pack in packages) {
+      if (transceiver == null) {
+        logError('failed to process package: messenger lost, drop ${pack.length} byte(s) from ${porter.remoteAddress}');
+        continue;
+      }
       try {
         // 2. process each data package
-        responses = await messenger!.processPackage(pack);
+        responses = await transceiver.processPackage(pack);
         if (responses.isEmpty) {
           continue;
         }

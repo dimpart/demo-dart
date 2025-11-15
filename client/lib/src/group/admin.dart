@@ -90,11 +90,11 @@ class AdminManager extends TripletsHelper {
     if (signature == null) {
       assert(false, 'failed to sign document for group: $group, owner: $me');
       return false;
-    } else if (!await delegate.saveDocument(bulletin)) {
+    } else if (await delegate.saveDocument(bulletin)) {
+      logInfo('group document updated: $group');
+    } else {
       assert(false, 'failed to save document for group: $group');
       return false;
-    } else {
-      logInfo('group document updated: $group');
     }
 
     //

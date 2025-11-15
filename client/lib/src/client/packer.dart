@@ -73,7 +73,7 @@ abstract class ClientMessagePacker extends CommonPacker {
     //
     List<ID> waiting = [];
     for (ID item in members) {
-      if (await getVisaKey(item) == null) {
+      if (await getMessageKey(item) == null) {
         // member not ready
         waiting.add(item);
       }
