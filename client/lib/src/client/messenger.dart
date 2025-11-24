@@ -228,26 +228,31 @@ class ClientMessenger extends CommonMessenger {
 
   ///  Broadcast meta & visa document to all stations
   Future<void> broadcastDocuments({bool updated = false}) async {
+    var checker = facebook.entityChecker;
+    if (checker == null) {
+      assert(false, 'entity checker not found');
+      return;
+    }
     User? user = await facebook.currentUser;
-    assert(user != null, 'current user not found');
     Visa? visa = await user?.visa;
     if (visa == null) {
       assert(false, 'visa not found: $user');
       return;
     }
-    ID me = visa.identifier;
-    var checker = facebook.entityChecker;
-    //
-    //  send to all contacts
-    //
-    List<ID> contacts = await facebook.getContacts(me);
-    for (ID item in contacts) {
-      await checker?.sendVisa(visa, item, updated: updated);
+    if (updated) {
+      //
+      //  send to all contacts
+      //
+      ID me = visa.identifier;
+      List<ID> contacts = await facebook.getContacts(me);
+      for (ID item in contacts) {
+        await checker.sendVisa(visa, item, updated: updated);
+      }
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await checker?.sendVisa(visa, ID.EVERYONE, updated: updated);
+    await checker.sendVisa(visa, ID.EVERYONE, updated: updated);
   }
 
   ///  Send login command to keep roaming
