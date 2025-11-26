@@ -225,7 +225,7 @@ abstract class ClientMessagePacker extends CommonPacker {
     // create text content
     Content content = TextContent.create('Failed to decrypt message.');
     content.addAll({
-      'template': 'Failed to decrypt message (type=\${type}) from "\${sender}".',
+      'template': 'Failed to decrypt message (type=\${type}) from "\${sender}", group: "\${group}".',
       'replacements': {
         'type': type,
         'sender': sender.toString(),

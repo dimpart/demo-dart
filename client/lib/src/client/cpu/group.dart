@@ -53,9 +53,9 @@ class HistoryCommandProcessor extends BaseCommandProcessor with Logging {
     HistoryCommand command = content as HistoryCommand;
     String text = 'Command not support.';
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'History command (name: \${command}) not support yet!',
+      'template': 'History command (name: \${cmd}) not support yet!',
       'replacements': {
-        'command': command.cmd,
+        'cmd': command.cmd,
       },
     });
   }
@@ -118,9 +118,9 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
     GroupCommand command = content as GroupCommand;
     String text = 'Command not support.';
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Group command (name: \${command}) not support yet!',
+      'template': 'Group command (name: \${cmd}) not support yet!',
       'replacements': {
-        'command': command.cmd,
+        'cmd': command.cmd,
       },
     });
   }
