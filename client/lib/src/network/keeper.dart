@@ -126,9 +126,13 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
 
   @override
   Future<void> onPorterStatusChanged(PorterStatus previous, PorterStatus current, Porter porter) async {
-    logInfo('onPorterStatusChanged: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
+    logInfo('onPorterStatusChanged: ${porter.remoteAddress}, $previous -> $current, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
-      await delegate.onPorterStatusChanged(previous, current, porter);
+      try {
+        await delegate.onPorterStatusChanged(previous, current, porter);
+      } catch (e, st) {
+        logError('onPorterStatusChanged error: $e, ${porter.remoteAddress} -> $delegate, $st');
+      }
     }
   }
 
@@ -136,7 +140,11 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
   Future<void> onPorterReceived(Arrival ship, Porter porter) async {
     logDebug('onPorterReceived: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
-      await delegate.onPorterReceived(ship, porter);
+      try {
+        await delegate.onPorterReceived(ship, porter);
+      } catch (e, st) {
+        logError('onPorterReceived error: $e, ${porter.remoteAddress} -> $delegate, $st');
+      }
     }
   }
 
@@ -144,23 +152,35 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
   Future<void> onPorterSent(Departure ship, Porter porter) async {
     logDebug('onPorterSent: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
-      await delegate.onPorterSent(ship, porter);
+      try {
+        await delegate.onPorterSent(ship, porter);
+      } catch (e, st) {
+        logError('onPorterSent error: $e, ${porter.remoteAddress} -> $delegate, $st');
+      }
     }
   }
 
   @override
   Future<void> onPorterFailed(IOError error, Departure ship, Porter porter) async {
-    logWarning('onPorterFailed: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
+    logWarning('onPorterFailed: ${porter.remoteAddress}, $error, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
-      await delegate.onPorterFailed(error, ship, porter);
+      try {
+        await delegate.onPorterFailed(error, ship, porter);
+      } catch (e, st) {
+        logError('onPorterFailed error: $e, ${porter.remoteAddress} -> $delegate, $st');
+      }
     }
   }
 
   @override
   Future<void> onPorterError(IOError error, Departure ship, Porter porter) async {
-    logError('onPorterError: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
+    logError('onPorterError: ${porter.remoteAddress}, $error, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
-      await delegate.onPorterError(error, ship, porter);
+      try {
+        await delegate.onPorterError(error, ship, porter);
+      } catch (e, st) {
+        logError('onPorterError error: $e, ${porter.remoteAddress} -> $delegate, $st');
+      }
     }
   }
 
