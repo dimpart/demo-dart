@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Broadcast visa after updated.
+
 ## 1.1.3
 
 - Process income/outgo packages.

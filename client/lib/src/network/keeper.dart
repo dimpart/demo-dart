@@ -138,7 +138,7 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
 
   @override
   Future<void> onPorterReceived(Arrival ship, Porter porter) async {
-    logDebug('onPorterReceived: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
+    logInfo('onPorterReceived: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
       try {
         await delegate.onPorterReceived(ship, porter);

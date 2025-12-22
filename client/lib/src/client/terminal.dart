@@ -156,6 +156,7 @@ abstract class Terminal extends Runner with DeviceMixin, Logging
     } else {
       session.setIdentifier(user.identifier);
     }
+    logInfo('user login: $user');
     return transceiver;
   }
 

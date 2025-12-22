@@ -38,17 +38,17 @@ import 'package:dimsdk/dimsdk.dart';
 ///      command  : "login",
 ///      time     : 0,
 ///      //---- client info ----
-///      ID       : "{UserID}",
+///      did      : "{UserID}",
 ///      device   : "DeviceID",  // (optional)
 ///      agent    : "UserAgent", // (optional)
 ///      //---- server info ----
 ///      station  : {
-///          ID   : "{StationID}",
+///          did  : "{StationID}",
 ///          host : "{IP}",
 ///          port : 9394
 ///      },
 ///      provider : {
-///          ID   : "{SP_ID}"
+///          did  : "{SP_ID}"
 ///      }
 ///  }
 abstract interface class LoginCommand implements Command {
