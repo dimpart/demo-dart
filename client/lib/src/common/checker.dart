@@ -44,9 +44,9 @@ abstract class EntityChecker with Logging {
   static Duration RESPOND_EXPIRES = Duration(minutes: 10);
 
   /// query checkers
-  final FrequencyChecker<ID> _metaQueries    = FrequencyChecker(QUERY_EXPIRES);
-  final FrequencyChecker<ID> _docsQueries    = FrequencyChecker(QUERY_EXPIRES);
-  final FrequencyChecker<ID> _membersQueries = FrequencyChecker(QUERY_EXPIRES);
+  final FrequencyChecker<String> _metaQueries    = FrequencyChecker(QUERY_EXPIRES);
+  final FrequencyChecker<String> _docsQueries    = FrequencyChecker(QUERY_EXPIRES);
+  final FrequencyChecker<String> _membersQueries = FrequencyChecker(QUERY_EXPIRES);
 
   /// response checker
   final FrequencyChecker<ID> _visaResponses  = FrequencyChecker(RESPOND_EXPIRES);
@@ -64,9 +64,13 @@ abstract class EntityChecker with Logging {
   EntityChecker(this.database);
 
   // protected
-  bool isMetaQueryExpired(ID identifier)     => _metaQueries.isExpired(identifier);
-  bool isDocumentQueryExpired(ID identifier) => _docsQueries.isExpired(identifier);
-  bool isMembersQueryExpired(ID identifier)  => _membersQueries.isExpired(identifier);
+  bool isMetaQueryExpired(ID identifier, {required ID respondent}) =>
+      _metaQueries.isExpired('$identifier<<$respondent');
+  bool isDocumentQueryExpired(ID identifier, {required ID respondent}) =>
+      _docsQueries.isExpired('$identifier<<$respondent');
+  bool isMembersQueryExpired(ID identifier, {required ID respondent})  =>
+      _membersQueries.isExpired('$identifier<<$respondent');
+
   bool isDocumentResponseExpired(ID identifier, bool force) =>
       _visaResponses.isExpired(identifier, force: force);
 
@@ -92,18 +96,20 @@ abstract class EntityChecker with Logging {
   ///
   /// @param identifier - entity ID
   /// @param meta       - exists meta
+  /// @param sender     - message sender
   /// @return ture on querying
-  Future<bool> checkMeta(ID identifier, Meta? meta) async {
-    if (needsQueryMeta(identifier, meta)) {
-      // if (!isMetaQueryExpired(identifier)) {
-      //   // query not expired yet
-      //   return false;
-      // }
-      return await queryMeta(identifier);
-    } else {
+  Future<bool> checkMeta(ID identifier, Meta? meta, {ID? sender}) async {
+    if (!needsQueryMeta(identifier, meta)) {
       // no need to query meta again
       return false;
     }
+    // send command to ['station@anywhere', sender]
+    List<ID> respondents = [Station.ANY];
+    if (sender != null) {
+      assert(sender != Station.ANY, 'sender error: $sender');
+      respondents.add(sender);
+    }
+    return await queryMeta(identifier, respondents: respondents);
   }
 
   ///  check whether need to query meta
@@ -116,8 +122,9 @@ abstract class EntityChecker with Logging {
       // meta not found, sure to query
       return true;
     }
-    assert(MetaUtils.matchIdentifier(identifier, meta), 'meta not match: $identifier, $meta');
-    return false;
+    bool matched = MetaUtils.matchIdentifier(identifier, meta);
+    assert(matched, 'meta not match: $identifier, $meta');
+    return !matched;
   }
 
   //
@@ -128,32 +135,37 @@ abstract class EntityChecker with Logging {
   ///
   /// @param identifier - entity ID
   /// @param documents  - exist document
+  /// @param sender     - message sender
   /// @return true on querying
-  Future<bool> checkDocuments(ID identifier, List<Document> documents) async {
-    if (needsQueryDocuments(identifier, documents)) {
-      // if (!isDocumentQueryExpired(identifier)) {
-      //   // query not expired yet
-      //   return false;
-      // }
-      return await queryDocuments(identifier, documents);
-    } else {
+  Future<bool> checkDocuments(ID identifier, List<Document>? documents, {ID? sender}) async {
+    DateTime? lastTime;
+    if (documents != null) {
+      lastTime = getLastDocumentTime(identifier, documents);
+    }
+    if (!needsQueryDocuments(identifier, lastTime)) {
       // no need to update documents now
       return false;
     }
+    // send command to ['station@anywhere', sender]
+    List<ID> respondents = [Station.ANY];
+    if (sender != null) {
+      assert(sender != Station.ANY, 'sender error: $sender');
+      respondents.add(sender);
+    }
+    return await queryDocuments(identifier, lastTime, respondents: respondents);
   }
 
   ///  check whether need to query documents
   // protected
-  bool needsQueryDocuments(ID identifier, List<Document> documents) {
+  bool needsQueryDocuments(ID identifier, DateTime? lastTime) {
     if (identifier.isBroadcast) {
       // broadcast entity has no document to query
       return false;
-    } else if (documents.isEmpty) {
-      // documents not found, sure to query
-      return true;
+    //} else if (lastTime == null) {
+    //  // document time not found, sure to query
+    //  return true;
     }
-    DateTime? current = getLastDocumentTime(identifier, documents);
-    return _lastDocumentTimes.isExpired(identifier, current);
+    return _lastDocumentTimes.isExpired(identifier, lastTime);
   }
 
   // protected
@@ -182,34 +194,40 @@ abstract class EntityChecker with Logging {
 
   ///  Check group members for querying
   ///
-  /// @param group   - group ID
-  /// @param members - exist members
+  /// @param group      - group ID
+  /// @param members    - exist members
+  /// @param sender     - message sender
   /// @return true on querying
-  Future<bool> checkMembers(ID group, List<ID> members) async {
-    if (await needsQueryMembers(group, members)) {
-      // if (!isMembersQueryExpired(group)) {
-      //   // query not expired yet
-      //   return false;
-      // }
-      return await queryMembers(group, members);
-    } else {
+  Future<bool> checkMembers(ID group, List<ID>? members, {ID? sender}) async {
+    DateTime? lastTime = await getLastGroupHistoryTime(group);
+    if (!needsQueryMembers(group, members, lastTime)) {
       // no need to update group members now
       return false;
     }
+    // send command to [sender, lastMember]
+    List<ID> respondents = [];
+    if (sender != null) {
+      assert(sender != Station.ANY, 'sender error: $sender');
+      respondents.add(sender);
+    }
+    ID? lastMember = getLastActiveMember(group: group);
+    if (lastMember != null && lastMember != sender) {
+      respondents.add(lastMember);
+    }
+    return await queryMembers(group, lastTime, respondents: respondents);
   }
 
   ///  check whether need to query group members
   // protected
-  Future<bool> needsQueryMembers(ID group, List<ID> members) async {
+  bool needsQueryMembers(ID group, List<ID>? members, DateTime? lastTime) {
     if (group.isBroadcast) {
       // broadcast group has no members to query
       return false;
-    } else if (members.isEmpty) {
+    } else if (members != null && members.isEmpty) {
       // members not found, sure to query
       return true;
     }
-    DateTime? current = await getLastGroupHistoryTime(group);
-    return _lastHistoryTimes.isExpired(group, current);
+    return _lastHistoryTimes.isExpired(group, lastTime);
   }
 
   Future<DateTime?> getLastGroupHistoryTime(ID group) async {
@@ -238,25 +256,28 @@ abstract class EntityChecker with Logging {
   ///  Request for meta with entity ID
   ///  (call 'isMetaQueryExpired()' before sending command)
   ///
-  /// @param identifier - entity ID
+  /// @param identifier  - entity ID
+  /// @param respondents - receivers
   /// @return false on duplicated
-  Future<bool> queryMeta(ID identifier);
+  Future<bool> queryMeta(ID identifier, {required List<ID> respondents});
 
   ///  Request for documents with entity ID
   ///  (call 'isDocumentQueryExpired()' before sending command)
   ///
-  /// @param identifier - entity ID
-  /// @param documents  - exist documents
+  /// @param identifier  - entity ID
+  /// @param lastTime    - last document time
+  /// @param respondents - receivers
   /// @return false on duplicated
-  Future<bool> queryDocuments(ID identifier, List<Document> documents);
+  Future<bool> queryDocuments(ID identifier, DateTime? lastTime, {required List<ID> respondents});
 
-    ///  Request for group members with group ID
-    ///  (call 'isMembersQueryExpired()' before sending command)
-    ///
-    /// @param group      - group ID
-    /// @param members    - exist members
-    /// @return false on duplicated
-  Future<bool> queryMembers(ID group, List<ID> members);
+  ///  Request for group members with group ID
+  ///  (call 'isMembersQueryExpired()' before sending command)
+  ///
+  /// @param group       - group ID
+  /// @param lastTime    - last history time
+  /// @param respondents - receivers
+  /// @return false on duplicated
+  Future<bool> queryMembers(ID group, DateTime? lastTime, {required List<ID> respondents});
 
   // -------- Responding
 

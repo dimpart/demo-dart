@@ -54,150 +54,116 @@ class ClientChecker extends EntityChecker {
       _transceiver = delegate == null ? null : WeakReference(delegate);
 
   @override
-  Future<bool> queryMeta(ID identifier) async {
-    Transmitter? transmitter = messenger;
-    if (transmitter == null) {
-      logWarning('messenger not ready yet, cannot query meta now: $identifier');
-      return false;
-    }
-    if (!isMetaQueryExpired(identifier)) {
-      // query not expired yet
-      logInfo('meta query not expired yet: $identifier');
-      return false;
-    }
-    logInfo('querying meta for: $identifier');
-    var content = MetaCommand.query(identifier);
-    var pair = await transmitter.sendContent(content,
-      sender: null, receiver: Station.ANY, priority: 1,);
-    return pair.second != null;
-  }
-
-  @override
-  Future<bool> queryDocuments(ID identifier, List<Document> documents) async {
-    Transmitter? transmitter = messenger;
-    if (transmitter == null) {
-      logWarning('messenger not ready yet, cannot query documents now: $identifier');
-      return false;
-    }
-    if (!isDocumentQueryExpired(identifier)) {
-      // query not expired yet
-      logInfo('document query not expired yet: $identifier');
-      return false;
-    }
-    DateTime? lastTime = getLastDocumentTime(identifier, documents);
-    logInfo('querying documents for: $identifier, last time: $lastTime');
-    var content = DocumentCommand.query(identifier, lastTime);
-    var pair = await transmitter.sendContent(content,
-        sender: null, receiver: Station.ANY, priority: 1);
-    return pair.second != null;
-  }
-
-  @override
-  Future<bool> queryMembers(ID group, List<ID> members) async {
+  Future<bool> queryMeta(ID identifier, {required List<ID> respondents}) async {
     User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
       return false;
     }
+    ID me = user.identifier;
+    Transmitter? transmitter = messenger;
+    if (transmitter == null) {
+      logWarning('messenger not ready yet, cannot query meta now: $identifier');
+      return false;
+    }
+    Content content = MetaCommand.query(identifier);
+    logInfo('querying meta for: $identifier << $respondents');
+    int success = 0;
+    Pair<InstantMessage, ReliableMessage?> pair;
+    for (ID receiver in respondents) {
+      if (receiver == me) {
+        logWarning('ignore cycled querying: $identifier, receiver: $receiver');
+        continue;
+      } else if (!isMetaQueryExpired(identifier, respondent: receiver)) {
+        logInfo('meta query not expired yet: $identifier');
+        continue;
+      }
+      pair = await transmitter.sendContent(content, sender: me, receiver: receiver, priority: 1);
+      if (pair.second != null) {
+        success += 1;
+      }
+    }
+    return success > 0;
+  }
+
+  @override
+  Future<bool> queryDocuments(ID identifier, DateTime? lastTime, {required List<ID> respondents}) async {
+    User? user = await facebook?.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+      return false;
+    }
+    ID me = user.identifier;
+    Transmitter? transmitter = messenger;
+    if (transmitter == null) {
+      logWarning('messenger not ready yet, cannot query documents now: $identifier');
+      return false;
+    }
+    Content content = DocumentCommand.query(identifier, lastTime);
+    logInfo('querying documents for: $identifier, last time: $lastTime << $respondents');
+    int success = 0;
+    Pair<InstantMessage, ReliableMessage?> pair;
+    for (ID receiver in respondents) {
+      if (receiver == me) {
+        logWarning('ignore cycled querying: $identifier, receiver: $receiver');
+        continue;
+      } else if (!isDocumentQueryExpired(identifier, respondent: receiver)) {
+        logInfo('document query not expired yet: $identifier');
+        continue;
+      }
+      pair = await transmitter.sendContent(content, sender: me, receiver: receiver, priority: 1);
+      if (pair.second != null) {
+        success += 1;
+      }
+    }
+    return success > 0;
+  }
+
+  @override
+  Future<bool> queryMembers(ID group, DateTime? lastTime, {required List<ID> respondents}) async {
+    User? user = await facebook?.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+      return false;
+    }
+    ID me = user.identifier;
     Transmitter? transmitter = messenger;
     if (transmitter == null) {
       logWarning('messenger not ready yet, cannot query members now: $group');
       return false;
     }
-    if (!isMembersQueryExpired(group)) {
-      // query not expired yet
-      logInfo('members query not expired yet: $group');
-      return false;
-    }
-    ID me = user.identifier;
-    DateTime? lastTime = await getLastGroupHistoryTime(group);
-    logInfo('querying members for group: $group, last time: $lastTime');
-    // build query command for group members
-    // TODO: use 'GroupHistory.queryGroupHistory(group, lastTime)' instead
-    Content command = QueryCommand.query(group, lastTime);
-    bool ok;
-    // check administrators
-    ok = await queryMembersFromAdministrators(command, sender: me, group: group);
-    if (ok) {
-      return true;
-    }
-    // check group owner
-    ok = await queryMembersFromOwner(command, sender: me, group: group);
-    if (ok) {
-      return true;
-    }
-    Pair<InstantMessage, ReliableMessage?>? pair;
-    // all failed, try last active member
-    ID? lastMember = getLastActiveMember(group: group);
-    if (lastMember != null) {
-      logInfo('querying members from: $lastMember, group: $group');
-      pair = await transmitter.sendContent(command, sender: me, receiver: lastMember, priority: 1);
-    }
-    logError('group not ready: $group');
-    return pair?.second != null;
-  }
-
-  // protected
-  Future<bool> queryMembersFromAdministrators(Content command, {required ID sender, required ID group}) async {
-    List<ID>? admins = await facebook?.getAdministrators(group);
-    if (admins == null || admins.isEmpty) {
-      logWarning('administrators not found for group: $group');
-      return false;
-    }
-    int success = 0;
-    Pair<InstantMessage, ReliableMessage?>? pair;
-    // querying members from admins
-    logInfo('querying members from admins: $admins, group: $group');
-    for (ID receiver in admins) {
-      if (sender == receiver) {
-        logWarning('ignore cycled querying: $sender, group: $group');
-        continue;
-      }
-      pair = await messenger?.sendContent(command, sender: sender, receiver: receiver, priority: 1);
-      if (pair?.second != null) {
-        success += 1;
-      }
-    }
-    if (success == 0) {
-      // failed
-      return false;
-    }
-    ID? lastMember = getLastActiveMember(group: group);
-    if (lastMember == null || admins.contains(lastMember)) {
-      // last active member is an admin, already queried
-    } else {
-      logInfo('querying members from: $lastMember, group: $group');
-      await messenger?.sendContent(command, sender: sender, receiver: lastMember, priority: 1);
-    }
-    return true;
-  }
-
-  // protected
-  Future<bool> queryMembersFromOwner(Content command, {required ID sender, required ID group}) async {
+    // add owner, administrators to respondents
     ID? owner = await facebook?.getOwner(group);
     if (owner == null) {
       logWarning('owner not found for group: $group');
-      return false;
-    } else if (owner == sender) {
-      logError('you are the owner of group: $group');
-      return false;
-    }
-    Pair<InstantMessage, ReliableMessage?>? pair;
-    // querying members from owner
-    logInfo('querying members from owner: $owner, group: $group');
-    pair = await messenger?.sendContent(command, sender: sender, receiver: owner, priority: 1);
-    if (pair?.second == null) {
-      // failed
-      return false;
-    }
-    ID? lastMember = getLastActiveMember(group: group);
-    if (lastMember == null || lastMember == owner) {
-      // last active member is the owner, already queried
     } else {
-      logInfo('querying members from: $lastMember, group: $group');
-      messenger?.sendContent(command, sender: sender, receiver: lastMember, priority: 1);
+      respondents.add(owner);
     }
-    return true;
+    List<ID>? admins = await facebook?.getAdministrators(group);
+    if (admins == null || admins.isEmpty) {
+      logWarning('administrators not found for group: $group');
+    } else {
+      respondents.addAll(admins);
+    }
+    // TODO: use 'GroupHistory.queryGroupHistory(group, lastTime)' instead
+    Content content = QueryCommand.query(group, lastTime);
+    logInfo('querying members for group: $group, last time: $lastTime << $respondents');
+    int success = 0;
+    Pair<InstantMessage, ReliableMessage?> pair;
+    for (ID receiver in respondents) {
+      if (receiver == me) {
+        logWarning('ignore cycled querying: $group, receiver: $receiver');
+        continue;
+      } else if (!isMembersQueryExpired(group, respondent: receiver)) {
+        logInfo('members query not expired yet: $group');
+        continue;
+      }
+      pair = await transmitter.sendContent(content, sender: me, receiver: receiver, priority: 1);
+      if (pair.second != null) {
+        success += 1;
+      }
+    }
+    return success > 0;
   }
 
   ///  Send my visa document to contact

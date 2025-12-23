@@ -75,7 +75,7 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
       // check whether needs update
       if (docUpdated) {
         logInfo('checking for new visa: $sender');
-        await facebook?.getDocuments(sender);
+        await checker.checkDocuments(sender, null, sender: rMsg.sender);
       }
     }
     return docUpdated;
