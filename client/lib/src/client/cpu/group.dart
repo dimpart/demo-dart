@@ -60,9 +60,11 @@ class HistoryCommandProcessor extends BaseCommandProcessor with Logging {
     });
   }
 
-  //
-  //  Group History Delegates
-  //
+}
+
+
+class GroupCommandProcessor extends HistoryCommandProcessor {
+  GroupCommandProcessor(super.facebook, super.messenger);
 
   // protected
   late final GroupDelegate delegate = createdDelegate();
@@ -79,12 +81,6 @@ class HistoryCommandProcessor extends BaseCommandProcessor with Logging {
 
   /// override for customized builder
   GroupHistoryBuilder createBuilder() => GroupHistoryBuilder(delegate);
-
-}
-
-
-class GroupCommandProcessor extends HistoryCommandProcessor {
-  GroupCommandProcessor(super.facebook, super.messenger);
 
   // protected
   Future<ID?> getOwner(ID group) async =>

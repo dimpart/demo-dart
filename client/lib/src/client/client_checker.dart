@@ -57,7 +57,7 @@ class ClientChecker extends EntityChecker {
   Future<bool> queryMeta(ID identifier) async {
     Transmitter? transmitter = messenger;
     if (transmitter == null) {
-      logWarning('messenger not ready yet');
+      logWarning('messenger not ready yet, cannot query meta now: $identifier');
       return false;
     }
     if (!isMetaQueryExpired(identifier)) {
@@ -76,7 +76,7 @@ class ClientChecker extends EntityChecker {
   Future<bool> queryDocuments(ID identifier, List<Document> documents) async {
     Transmitter? transmitter = messenger;
     if (transmitter == null) {
-      logWarning('messenger not ready yet');
+      logWarning('messenger not ready yet, cannot query documents now: $identifier');
       return false;
     }
     if (!isDocumentQueryExpired(identifier)) {
@@ -101,7 +101,7 @@ class ClientChecker extends EntityChecker {
     }
     Transmitter? transmitter = messenger;
     if (transmitter == null) {
-      logWarning('messenger not ready yet');
+      logWarning('messenger not ready yet, cannot query members now: $group');
       return false;
     }
     if (!isMembersQueryExpired(group)) {
@@ -116,17 +116,12 @@ class ClientChecker extends EntityChecker {
     // TODO: use 'GroupHistory.queryGroupHistory(group, lastTime)' instead
     Content command = QueryCommand.query(group, lastTime);
     bool ok;
-    // 1. check group bots
-    ok = await queryMembersFromAssistants(command, sender: me, group: group);
-    if (ok) {
-      return true;
-    }
-    // 2. check administrators
+    // check administrators
     ok = await queryMembersFromAdministrators(command, sender: me, group: group);
     if (ok) {
       return true;
     }
-    // 3. check group owner
+    // check group owner
     ok = await queryMembersFromOwner(command, sender: me, group: group);
     if (ok) {
       return true;
@@ -140,41 +135,6 @@ class ClientChecker extends EntityChecker {
     }
     logError('group not ready: $group');
     return pair?.second != null;
-  }
-
-  // protected
-  Future<bool> queryMembersFromAssistants(Content command, {required ID sender, required ID group}) async {
-    List<ID>? bots = await facebook?.getAssistants(group);
-    if (bots == null || bots.isEmpty) {
-      logWarning('assistants not designated for group: $group');
-      return false;
-    }
-    int success = 0;
-    Pair<InstantMessage, ReliableMessage?>? pair;
-    // querying members from bots
-    logInfo('querying members from bots: $bots, group: $group');
-    for (ID receiver in bots) {
-      if (sender == receiver) {
-        logWarning('ignore cycled querying: $sender, group: $group');
-        continue;
-      }
-      pair = await messenger?.sendContent(command, sender: sender, receiver: receiver, priority: 1);
-      if (pair?.second != null) {
-        success += 1;
-      }
-    }
-    if (success == 0) {
-      // failed
-      return false;
-    }
-    ID? lastMember = getLastActiveMember(group: group);
-    if (lastMember == null || bots.contains(lastMember)) {
-      // last active member is a bot??
-    } else {
-      logInfo('querying members from: $lastMember, group: $group');
-      await messenger?.sendContent(command, sender: sender, receiver: lastMember, priority: 1);
-    }
-    return true;
   }
 
   // protected
