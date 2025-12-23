@@ -364,7 +364,7 @@ class _GroupBotsManager extends Runner with Logging {
       }
       // no respond yet, try to push visa to the bot
       try {
-        await checker?.sendVisa(visa, item);
+        await checker?.sendVisa(recipients: [item]);
       } catch (e, st) {
         logError('failed to query assistant: $item, $e, $st');
       }

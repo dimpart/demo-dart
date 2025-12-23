@@ -234,25 +234,21 @@ class ClientMessenger extends CommonMessenger {
       return;
     }
     User? user = await facebook.currentUser;
-    Visa? visa = await user?.visa;
-    if (visa == null) {
-      assert(false, 'visa not found: $user');
+    if (user == null) {
+      assert(false, 'current user not found');
       return;
     }
     if (updated) {
       //
       //  send to all contacts
       //
-      ID me = visa.identifier;
-      List<ID> contacts = await facebook.getContacts(me);
-      for (ID item in contacts) {
-        await checker.sendVisa(visa, item, updated: updated);
-      }
+      List<ID> contacts = await user.contacts;
+      await checker.sendVisa(updated: updated, recipients: contacts);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await checker.sendVisa(visa, ID.EVERYONE, updated: updated);
+    await checker.sendVisa(updated: updated, recipients: [ID.EVERYONE]);
   }
 
   ///  Send login command to keep roaming

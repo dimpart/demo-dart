@@ -71,7 +71,7 @@ abstract class EntityChecker with Logging {
   bool isMembersQueryExpired(ID identifier, {required ID respondent})  =>
       _membersQueries.isExpired('$identifier<<$respondent');
 
-  bool isDocumentResponseExpired(ID identifier, bool force) =>
+  bool isVisaResponseExpired(ID identifier, bool force) =>
       _visaResponses.isExpired(identifier, force: force);
 
   /// Set last active member for group
@@ -281,9 +281,9 @@ abstract class EntityChecker with Logging {
 
   // -------- Responding
 
-  ///  Send my visa document to contact
+  ///  Send my visa document to recipients
   ///  if document is updated, force to send it again.
   ///  else only send once every 10 minutes.
-  Future<bool> sendVisa(Visa visa, ID receiver, {bool updated = false});
+  Future<bool> sendVisa({bool updated = false, required List<ID> recipients});
 
 }

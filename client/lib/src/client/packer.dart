@@ -195,22 +195,12 @@ abstract class ClientMessagePacker extends CommonPacker {
   // protected
   Future<bool> pushVisa(ID contact) async {
     // visa.key not updated?
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
-    Visa? visa = await user.visa;
-    if (visa == null || !visa.isValid) {
-      // FIXME: user visa not found?
-      throw Exception('user visa error: $user');
-    }
     var checker = facebook?.entityChecker;
     if (checker == null) {
       assert(false, 'failed to get entity checker');
       return false;
     }
-    return await checker.sendVisa(visa, contact);
+    return await checker.sendVisa(recipients: [contact]);
   }
 
   // protected
