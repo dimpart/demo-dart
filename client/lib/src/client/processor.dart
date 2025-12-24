@@ -82,12 +82,14 @@ class ClientMessageProcessor extends CommonProcessor {
     // check whether needs update
     if (docUpdated) {
       logInfo('checking for new bulletin: $group, $facebook');
-      await checker.checkDocuments(group, null, sender: rMsg.sender);
+      List<Document> docs = await checker.database.getDocuments(group);
+      await checker.checkDocuments(group, docs, sender: rMsg.sender);
     }
     if (memUpdated) {
       checker.setLastActiveMember(rMsg.sender, group: group);
       logInfo('checking for group members: $group, $facebook');
-      await checker.checkMembers(group, null, sender: rMsg.sender);
+      List<ID> members = await checker.database.getMembers(group: group);
+      await checker.checkMembers(group, members, sender: rMsg.sender);
     }
     return docUpdated || memUpdated;
   }

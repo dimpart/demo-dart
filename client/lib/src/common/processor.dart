@@ -75,7 +75,8 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
       // check whether needs update
       if (docUpdated) {
         logInfo('checking for new visa: $sender');
-        await checker.checkDocuments(sender, null, sender: rMsg.sender);
+        List<Document> docs = await checker.database.getDocuments(sender);
+        await checker.checkDocuments(sender, docs, sender: rMsg.sender);
       }
     }
     return docUpdated;

@@ -40,8 +40,8 @@ abstract class EntityChecker with Logging {
   /// each query will be expired after 10 minutes
   static Duration QUERY_EXPIRES = Duration(minutes: 10);
 
-  /// each respond will be expired after 10 minutes
-  static Duration RESPOND_EXPIRES = Duration(minutes: 10);
+  /// each respond will be expired after 5 minutes
+  static Duration RESPOND_EXPIRES = Duration(minutes: 5);
 
   /// query checkers
   final FrequencyChecker<String> _metaQueries    = FrequencyChecker(QUERY_EXPIRES);
@@ -143,11 +143,8 @@ abstract class EntityChecker with Logging {
   /// @param documents  - exist document
   /// @param sender     - message sender
   /// @return true on querying
-  Future<bool> checkDocuments(ID identifier, List<Document>? documents, {ID? sender}) async {
-    DateTime? lastTime;
-    if (documents != null) {
-      lastTime = getLastDocumentTime(identifier, documents);
-    }
+  Future<bool> checkDocuments(ID identifier, List<Document> documents, {ID? sender}) async {
+    DateTime? lastTime = getLastDocumentTime(identifier, documents);
     if (!needsQueryDocuments(identifier, lastTime)) {
       // no need to update documents now
       return false;
@@ -204,14 +201,14 @@ abstract class EntityChecker with Logging {
   /// @param members    - exist members
   /// @param sender     - message sender
   /// @return true on querying
-  Future<bool> checkMembers(ID group, List<ID>? members, {ID? sender}) async {
+  Future<bool> checkMembers(ID group, List<ID> members, {ID? sender}) async {
     DateTime? lastTime = await getLastGroupHistoryTime(group);
     if (!needsQueryMembers(group, members, lastTime)) {
       // no need to update group members now
       return false;
     }
     // send command to [sender, lastMember]
-    List<ID> respondents = [];
+    List<ID> respondents = []; // [Station.ANY];
     if (sender != null) {
       assert(sender != Station.ANY, 'sender error: $sender');
       respondents.add(sender);
@@ -225,11 +222,11 @@ abstract class EntityChecker with Logging {
 
   ///  check whether need to query group members
   // protected
-  bool needsQueryMembers(ID group, List<ID>? members, DateTime? lastTime) {
+  bool needsQueryMembers(ID group, List<ID> members, DateTime? lastTime) {
     if (group.isBroadcast) {
       // broadcast group has no members to query
       return false;
-    } else if (members != null && members.isEmpty) {
+    } else if (members.isEmpty) {
       // members not found, sure to query
       return true;
     }
@@ -292,7 +289,7 @@ abstract class EntityChecker with Logging {
 
   ///  Send documents to recipients
   ///  if document is updated, force to send it again.
-  ///  else only send once every 10 minutes.
+  ///  else only send once every 5 minutes.
   Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool updated = false, required List<ID> recipients});
 
   ///  Send group histories to recipients
