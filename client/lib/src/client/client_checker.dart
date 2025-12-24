@@ -54,81 +54,49 @@ class ClientChecker extends EntityChecker {
       _transceiver = delegate == null ? null : WeakReference(delegate);
 
   @override
-  Future<bool> queryMeta(ID identifier, {required List<ID> respondents}) async {
-    Transmitter? transmitter = messenger;
-    if (transmitter == null) {
-      logWarning('messenger not ready yet, cannot query meta now: $identifier');
-      return false;
-    }
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
+  Future<bool> queryMeta(ID identifier, {
+    required List<ID> respondents
+  }) async {
     Content content = MetaCommand.query(identifier);
     logInfo('querying meta for: $identifier << $respondents');
-    int success = 0;
-    Pair<InstantMessage, ReliableMessage?> pair;
-    for (ID receiver in respondents) {
-      if (receiver == user.identifier) {
-        logWarning('ignore cycled querying: $identifier, receiver: $receiver');
-        continue;
-      } else if (!isMetaQueryExpired(identifier, respondent: receiver)) {
+    // Send content to all respondents if expired
+    int success = await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
+      bool expired = isMetaQueryExpired(identifier, respondent: receiver);
+      if (!expired) {
         logInfo('meta query not expired yet: $identifier');
-        continue;
       }
-      pair = await transmitter.sendContent(content, sender: user.identifier, receiver: receiver, priority: 1);
-      if (pair.second != null) {
-        success += 1;
-      }
+      return expired;
+    });
+    if (success <= 0) {
+      logError('failed to query meta: $identifier => $respondents');
     }
     return success > 0;
   }
 
   @override
-  Future<bool> queryDocuments(ID identifier, DateTime? lastTime, {required List<ID> respondents}) async {
-    Transmitter? transmitter = messenger;
-    if (transmitter == null) {
-      logWarning('messenger not ready yet, cannot query documents now: $identifier');
-      return false;
-    }
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
+  Future<bool> queryDocuments(ID identifier, DateTime? lastTime, {
+    required List<ID> respondents
+  }) async {
     Content content = DocumentCommand.query(identifier, lastTime);
     logInfo('querying documents for: $identifier, last time: $lastTime << $respondents');
-    int success = 0;
-    Pair<InstantMessage, ReliableMessage?> pair;
-    for (ID receiver in respondents) {
-      if (receiver == user.identifier) {
-        logWarning('ignore cycled querying: $identifier, receiver: $receiver');
-        continue;
-      } else if (!isDocumentQueryExpired(identifier, respondent: receiver)) {
+    // Send content to all respondents if expired
+    int success = await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
+      bool expired = isDocumentQueryExpired(identifier, respondent: receiver);
+      if (!expired) {
         logInfo('document query not expired yet: $identifier');
-        continue;
       }
-      pair = await transmitter.sendContent(content, sender: user.identifier, receiver: receiver, priority: 1);
-      if (pair.second != null) {
-        success += 1;
-      }
+      return expired;
+    });
+    if (success <= 0) {
+      logError('failed to query document: $identifier => $respondents');
     }
     return success > 0;
   }
 
   @override
-  Future<bool> queryMembers(ID group, DateTime? lastTime, {required List<ID> respondents}) async {
-    Transmitter? transmitter = messenger;
-    if (transmitter == null) {
-      logWarning('messenger not ready yet, cannot query members now: $group');
-      return false;
-    }
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
+  Future<bool> queryMembers(ID group, DateTime? lastTime, {
+    required List<ID> respondents
+  }) async {
     // add owner, administrators to respondents
     ID? owner = await facebook?.getOwner(group);
     if (owner == null) {
@@ -145,88 +113,112 @@ class ClientChecker extends EntityChecker {
     // TODO: use 'GroupHistory.queryGroupHistory(group, lastTime)' instead
     Content content = QueryCommand.query(group, lastTime);
     logInfo('querying members for group: $group, last time: $lastTime << $respondents');
-    int success = 0;
-    Pair<InstantMessage, ReliableMessage?> pair;
-    for (ID receiver in respondents) {
-      if (receiver == user.identifier) {
-        logWarning('ignore cycled querying: $group, receiver: $receiver');
-        continue;
-      } else if (!isMembersQueryExpired(group, respondent: receiver)) {
+    // Send content to all respondents if expired
+    int success = await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
+      bool expired = isMembersQueryExpired(group, respondent: receiver);
+      if (!expired) {
         logInfo('members query not expired yet: $group');
-        continue;
       }
-      pair = await transmitter.sendContent(content, sender: user.identifier, receiver: receiver, priority: 1);
-      if (pair.second != null) {
-        success += 1;
-      }
+      return expired;
+    });
+    if (success <= 0) {
+      logError('failed to query members: $group => $respondents');
     }
     return success > 0;
   }
 
   @override
-  Future<bool> sendMeta(ID identifier, Meta meta, {required List<ID> recipients}) async {
-    Transmitter? transmitter = messenger;
-    if (transmitter == null) {
-      logWarning('messenger not ready yet, cannot send my visa now.');
-      return false;
-    }
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
-      return false;
-    }
+  Future<bool> sendMeta(ID identifier, Meta meta, {
+    required List<ID> recipients
+  }) async {
     Content content = MetaCommand.response(identifier, meta);
     logDebug('sending meta: $identifier => $recipients');
-    int success = 0;
-    Pair<InstantMessage, ReliableMessage?> pair;
-    for (ID receiver in recipients) {
-      if (receiver == user.identifier) {
-        logWarning('ignore cycled responding: $identifier, receiver: $receiver');
-        continue;
-      } else if (!isMetaResponseExpired(identifier, recipient: receiver)) {
-        // response not expired yet
-        logDebug('meta response not expired yet: $receiver');
-        continue;
+    // Send content to all recipients if expired
+    int success = await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
+      bool expired = isMetaResponseExpired(identifier, recipient: receiver);
+      if (!expired) {
+        logInfo('meta response not expired yet: $receiver');
       }
-      pair = await transmitter.sendContent(content, sender: user.identifier, receiver: receiver, priority: 1);
-      if (pair.second != null) {
-        success += 1;
-      }
+      return expired;
+    });
+    if (success <= 0) {
+      logError('failed to send meta: $identifier => $recipients');
     }
     return success > 0;
   }
 
   @override
-  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool updated = false, required List<ID> recipients}) async {
+  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool updated = false,
+    required List<ID> recipients
+  }) async {
+    Meta? meta = await facebook?.getMeta(identifier);
+    Content content = DocumentCommand.response(identifier, meta, docs);
+    logInfo('sending document: $identifier => $recipients');
+    // Send content to all recipients if expired
+    int success = await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
+      bool expired = isDocsResponseExpired(identifier, recipient: receiver, force: updated);
+      if (!expired) {
+        logInfo('documents response not expired yet: $receiver');
+      }
+      return expired;
+    });
+    if (success <= 0) {
+      logError('failed to send documents: $identifier => $recipients');
+    }
+    return success > 0;
+  }
+
+  @override
+  Future<bool> sendHistories(ID group, List<ReliableMessage> messages, {
+    required List<ID> recipients
+  }) async {
+    Content content = ForwardContent.create(secrets: messages);
+    logInfo('sending group histories: $group => $recipients');
+    // Send content to all recipients if expired
+    int success = await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
+      bool expired = isHisResponseExpired(group, recipient: receiver);
+      if (!expired) {
+        logInfo('group histories response not expired yet: $receiver');
+      }
+      return expired;
+    });
+    if (success <= 0) {
+      logError('failed to send group histories: $group => $recipients');
+    }
+    return success > 0;
+  }
+
+  /// Send content to all recipients if expired
+  Future<int> _sendContentIfExpired(Content content, List<ID> recipients, {
+    required bool Function(ID receiver) isExpired,
+  }) async {
     Transmitter? transmitter = messenger;
     if (transmitter == null) {
-      logWarning('messenger not ready yet, cannot send my visa now.');
-      return false;
+      logWarning('messenger not ready yet');
+      return -1;
     }
     User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
-      return false;
+      return -1;
     }
-    Content content = DocumentCommand.response(identifier, null, docs);
-    logDebug('sending document: $identifier => $recipients');
+    ID me = user.identifier;
     int success = 0;
     Pair<InstantMessage, ReliableMessage?> pair;
     for (ID receiver in recipients) {
-      if (receiver == user.identifier) {
-        logWarning('ignore cycled responding: $identifier, receiver: $receiver');
+      if (receiver == me) {
+        logWarning('ignore cycled responding: $receiver');
         continue;
-      } else if (!isDocsResponseExpired(identifier, recipient: receiver, force: updated)) {
+      } else if (!isExpired(receiver)) {
         // response not expired yet
-        logDebug('document response not expired yet: $receiver');
         continue;
       }
-      pair = await transmitter.sendContent(content, sender: user.identifier, receiver: receiver, priority: 1);
+      pair = await transmitter.sendContent(content, sender: me, receiver: receiver, priority: 1);
       if (pair.second != null) {
         success += 1;
       }
     }
-    return success > 0;
+    return success;
   }
 
 }

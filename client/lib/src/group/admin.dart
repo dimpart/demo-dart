@@ -105,59 +105,32 @@ class AdminManager extends TripletsHelper {
 
   /// Broadcast group document
   Future<bool> broadcastGroupDocument(Bulletin doc) async {
-    assert(facebook != null, 'facebook not ready: $facebook');
-    assert(messenger != null, 'messenger not ready: $messenger');
-
-    //
-    //  0. get current user
-    //
-    User? user = await facebook?.currentUser;
-    if (user == null) {
-      assert(false, 'failed to get current user');
+    var checker = facebook?.entityChecker;
+    if (checker == null) {
+      assert(false, 'failed to get entity checker');
       return false;
     }
-    ID me = user.identifier;
 
-    //
-    //  1. create 'document' command, and send to current station
-    //
+    // send to current station
     ID group = doc.identifier;
-    Meta? meta = await facebook?.getMeta(group);
-    Command content = DocumentCommand.response(group, meta, [doc]);
-    messenger?.sendContent(content, sender: me, receiver: Station.ANY, priority: 1);
-
-    //
-    //  2. check group bots
-    //
+    List<ID> recipients = [Station.ANY];
+    // check group bots
     List<ID> bots = await delegate.getAssistants(group);
     if (bots.isNotEmpty) {
       // group bots exist, let them to deliver to all other members
-      for (ID item in bots) {
-        if (me == item) {
-          assert(false, 'should not be a bot here: $me');
-          continue;
-        }
-        messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
+      recipients.addAll(bots);
+    } else {
+      // broadcast to all members
+      List<ID> members = await delegate.getMembers(group);
+      if (members.isNotEmpty) {
+        recipients.addAll(members);
+      } else {
+        assert(false, 'failed to get group members: $group');
       }
-      return true;
     }
 
-    //
-    //  3. broadcast to all members
-    //
-    List<ID> members = await delegate.getMembers(group);
-    if (members.isEmpty) {
-      assert(false, 'failed to get group members: $group');
-      return false;
-    }
-    for (ID item in members) {
-      if (me == item) {
-        logInfo('skip cycled message: $item, $group');
-        continue;
-      }
-      messenger?.sendContent(content, sender: me, receiver: item, priority: 1);
-    }
-    return true;
+    // forced to send it
+    return await checker.sendDocuments(group, [doc], updated: true, recipients: recipients);
   }
 
 }

@@ -1,3 +1,7 @@
+## 1.2.1
+
+- Check expired for sending group info.
+
 ## 1.2.0
 
 - Broadcast visa after updated.

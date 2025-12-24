@@ -204,9 +204,12 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       logWarning('failed to build history for group: $group');
       return false;
     }
-    Content content = ForwardContent.create(secrets: messages);
-    var pair = await messenger?.sendContent(content, sender: null, receiver: receiver, priority: 1);
-    return pair?.second != null;
+    var checker = facebook?.entityChecker;
+    if (checker == null) {
+      assert(false, 'failed to get entity checker');
+      return false;
+    }
+    return await checker.sendHistories(group, messages, recipients: [receiver]);
   }
 
 }
