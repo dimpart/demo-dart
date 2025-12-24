@@ -200,7 +200,17 @@ abstract class ClientMessagePacker extends CommonPacker {
       assert(false, 'failed to get entity checker');
       return false;
     }
-    return await checker.sendVisa(recipients: [contact]);
+    User? user = await facebook?.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+      return false;
+    }
+    Visa? visa = await user.visa;
+    if (visa == null) {
+      assert(false, 'failed to get visa: $user');
+      return false;
+    }
+    return await checker.sendDocuments(user.identifier, [visa], recipients: [contact]);
   }
 
   // protected

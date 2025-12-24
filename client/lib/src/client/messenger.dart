@@ -238,17 +238,22 @@ class ClientMessenger extends CommonMessenger {
       assert(false, 'current user not found');
       return;
     }
+    Visa? visa = await user.visa;
+    if (visa == null) {
+      assert(false, 'failed to get my visa: $user');
+      return;
+    }
     if (updated) {
       //
       //  send to all contacts
       //
       List<ID> contacts = await user.contacts;
-      await checker.sendVisa(updated: updated, recipients: contacts);
+      await checker.sendDocuments(user.identifier, [visa], updated: updated, recipients: contacts);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await checker.sendVisa(updated: updated, recipients: [ID.EVERYONE]);
+    await checker.sendDocuments(user.identifier, [visa], updated: updated, recipients: [ID.EVERYONE]);
   }
 
   ///  Send login command to keep roaming

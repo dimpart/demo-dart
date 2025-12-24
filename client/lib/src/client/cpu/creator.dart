@@ -117,6 +117,11 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
       case GroupCommand.RESIGN:
         return ResignCommandProcessor(facebook!, messenger!);
 
+      // efficient commands
+      case Command.META:
+        return EfficientMetaCommandProcessor(facebook!, messenger!);
+      case Command.DOCUMENTS:
+        return EfficientDocumentCommandProcessor(facebook!, messenger!);
     }
     // others
     return super.createCommandProcessor(msgType, cmd);

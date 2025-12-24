@@ -338,12 +338,13 @@ class _GroupBotsManager extends Runner with Logging {
     //
     //  2. get visa
     //
+    User? user;
     Visa? visa;
     try {
-      User? me = await facebook?.currentUser;
-      visa = await me?.visa;
+      user = await facebook?.currentUser;
+      visa = await user?.visa;
       if (visa == null) {
-        logError('failed to get visa: $me');
+        logError('failed to get visa: $user');
         return false;
       }
     } catch (e, st) {
@@ -364,7 +365,7 @@ class _GroupBotsManager extends Runner with Logging {
       }
       // no respond yet, try to push visa to the bot
       try {
-        await checker?.sendVisa(recipients: [item]);
+        await checker?.sendDocuments(user!.identifier, [visa], recipients: [item]);
       } catch (e, st) {
         logError('failed to query assistant: $item, $e, $st');
       }

@@ -49,7 +49,8 @@ abstract class EntityChecker with Logging {
   final FrequencyChecker<String> _membersQueries = FrequencyChecker(QUERY_EXPIRES);
 
   /// response checker
-  final FrequencyChecker<ID> _visaResponses  = FrequencyChecker(RESPOND_EXPIRES);
+  final FrequencyChecker<String> _metaResponses  = FrequencyChecker(RESPOND_EXPIRES);
+  final FrequencyChecker<String> _docsResponses  = FrequencyChecker(RESPOND_EXPIRES);
 
   /// recent time checkers
   final RecentTimeChecker<ID> _lastDocumentTimes = RecentTimeChecker();
@@ -71,8 +72,10 @@ abstract class EntityChecker with Logging {
   bool isMembersQueryExpired(ID identifier, {required ID respondent})  =>
       _membersQueries.isExpired('$identifier<<$respondent');
 
-  bool isVisaResponseExpired(ID identifier, bool force) =>
-      _visaResponses.isExpired(identifier, force: force);
+  bool isMetaResponseExpired(ID identifier, {required ID recipient}) =>
+      _metaResponses.isExpired('$identifier<<$recipient');
+  bool isDocsResponseExpired(ID identifier, {required ID recipient, bool force = false}) =>
+      _docsResponses.isExpired('$identifier<<$recipient', force: force);
 
   /// Set last active member for group
   void setLastActiveMember(ID member, {required ID group}) =>
@@ -281,9 +284,12 @@ abstract class EntityChecker with Logging {
 
   // -------- Responding
 
-  ///  Send my visa document to recipients
+  ///  Send meta to recipients
+  Future<bool> sendMeta(ID identifier, Meta meta, {required List<ID> recipients});
+
+  ///  Send documents to recipients
   ///  if document is updated, force to send it again.
   ///  else only send once every 10 minutes.
-  Future<bool> sendVisa({bool updated = false, required List<ID> recipients});
+  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool updated = false, required List<ID> recipients});
 
 }

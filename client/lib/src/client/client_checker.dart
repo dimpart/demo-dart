@@ -163,11 +163,8 @@ class ClientChecker extends EntityChecker {
     return success > 0;
   }
 
-  ///  Send my visa document to recipients
-  ///  if document is updated, force to send it again.
-  ///  else only send once every 10 minutes.
   @override
-  Future<bool> sendVisa({bool updated = false, required List<ID> recipients}) async {
+  Future<bool> sendMeta(ID identifier, Meta meta, {required List<ID> recipients}) async {
     Transmitter? transmitter = messenger;
     if (transmitter == null) {
       logWarning('messenger not ready yet, cannot send my visa now.');
@@ -178,22 +175,50 @@ class ClientChecker extends EntityChecker {
       assert(false, 'failed to get current user');
       return false;
     }
-    Visa? visa = await user.visa;
-    if (visa == null) {
-      assert(false, 'failed to get visa: $user');
-      return false;
-    }
-    Content content = DocumentCommand.response(user.identifier, null, [visa]);
-    logDebug('push visa document: ${user.identifier} => $recipients');
+    Content content = MetaCommand.response(identifier, meta);
+    logDebug('sending meta: $identifier => $recipients');
     int success = 0;
     Pair<InstantMessage, ReliableMessage?> pair;
     for (ID receiver in recipients) {
       if (receiver == user.identifier) {
-        logWarning('ignore cycled responding: ${user.identifier}, receiver: $receiver');
+        logWarning('ignore cycled responding: $identifier, receiver: $receiver');
         continue;
-      } else if (!isVisaResponseExpired(receiver, updated)) {
+      } else if (!isMetaResponseExpired(identifier, recipient: receiver)) {
         // response not expired yet
-        logDebug('visa response not expired yet: $receiver');
+        logDebug('meta response not expired yet: $receiver');
+        continue;
+      }
+      pair = await transmitter.sendContent(content, sender: user.identifier, receiver: receiver, priority: 1);
+      if (pair.second != null) {
+        success += 1;
+      }
+    }
+    return success > 0;
+  }
+
+  @override
+  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool updated = false, required List<ID> recipients}) async {
+    Transmitter? transmitter = messenger;
+    if (transmitter == null) {
+      logWarning('messenger not ready yet, cannot send my visa now.');
+      return false;
+    }
+    User? user = await facebook?.currentUser;
+    if (user == null) {
+      assert(false, 'failed to get current user');
+      return false;
+    }
+    Content content = DocumentCommand.response(identifier, null, docs);
+    logDebug('sending document: $identifier => $recipients');
+    int success = 0;
+    Pair<InstantMessage, ReliableMessage?> pair;
+    for (ID receiver in recipients) {
+      if (receiver == user.identifier) {
+        logWarning('ignore cycled responding: $identifier, receiver: $receiver');
+        continue;
+      } else if (!isDocsResponseExpired(identifier, recipient: receiver, force: updated)) {
+        // response not expired yet
+        logDebug('document response not expired yet: $receiver');
         continue;
       }
       pair = await transmitter.sendContent(content, sender: user.identifier, receiver: receiver, priority: 1);
