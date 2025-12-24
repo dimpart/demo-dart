@@ -60,17 +60,13 @@ class ClientChecker extends EntityChecker {
     Content content = MetaCommand.query(identifier);
     logInfo('querying meta for: $identifier << $respondents');
     // Send content to all respondents if expired
-    int success = await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
+    return await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
       bool expired = isMetaQueryExpired(identifier, respondent: receiver);
       if (!expired) {
-        logInfo('meta query not expired yet: $identifier');
+        logInfo('meta query not expired yet: $identifier << $receiver');
       }
       return expired;
     });
-    if (success <= 0) {
-      logError('failed to query meta: $identifier => $respondents');
-    }
-    return success > 0;
   }
 
   @override
@@ -80,17 +76,13 @@ class ClientChecker extends EntityChecker {
     Content content = DocumentCommand.query(identifier, lastTime);
     logInfo('querying documents for: $identifier, last time: $lastTime << $respondents');
     // Send content to all respondents if expired
-    int success = await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
+    return await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
       bool expired = isDocumentQueryExpired(identifier, respondent: receiver);
       if (!expired) {
-        logInfo('document query not expired yet: $identifier');
+        logInfo('document query not expired yet: $identifier << $receiver');
       }
       return expired;
     });
-    if (success <= 0) {
-      logError('failed to query document: $identifier => $respondents');
-    }
-    return success > 0;
   }
 
   @override
@@ -114,17 +106,13 @@ class ClientChecker extends EntityChecker {
     Content content = QueryCommand.query(group, lastTime);
     logInfo('querying members for group: $group, last time: $lastTime << $respondents');
     // Send content to all respondents if expired
-    int success = await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
+    return await _sendContentIfExpired(content, respondents, isExpired: (receiver) {
       bool expired = isMembersQueryExpired(group, respondent: receiver);
       if (!expired) {
-        logInfo('members query not expired yet: $group');
+        logInfo('members query not expired yet: $group << $receiver');
       }
       return expired;
     });
-    if (success <= 0) {
-      logError('failed to query members: $group => $respondents');
-    }
-    return success > 0;
   }
 
   @override
@@ -134,38 +122,30 @@ class ClientChecker extends EntityChecker {
     Content content = MetaCommand.response(identifier, meta);
     logDebug('sending meta: $identifier => $recipients');
     // Send content to all recipients if expired
-    int success = await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
+    return await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
       bool expired = isMetaResponseExpired(identifier, recipient: receiver);
       if (!expired) {
-        logInfo('meta response not expired yet: $receiver');
+        logInfo('meta response not expired yet: $identifier -> $receiver');
       }
       return expired;
     });
-    if (success <= 0) {
-      logError('failed to send meta: $identifier => $recipients');
-    }
-    return success > 0;
   }
 
   @override
-  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool updated = false,
+  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool force = false,
     required List<ID> recipients
   }) async {
     Meta? meta = await facebook?.getMeta(identifier);
     Content content = DocumentCommand.response(identifier, meta, docs);
     logInfo('sending document: $identifier => $recipients');
     // Send content to all recipients if expired
-    int success = await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
-      bool expired = isDocsResponseExpired(identifier, recipient: receiver, force: updated);
+    return await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
+      bool expired = isDocsResponseExpired(identifier, recipient: receiver, force: force);
       if (!expired) {
-        logInfo('documents response not expired yet: $receiver');
+        logInfo('documents response not expired yet: $identifier -> $receiver');
       }
       return expired;
     });
-    if (success <= 0) {
-      logError('failed to send documents: $identifier => $recipients');
-    }
-    return success > 0;
   }
 
   @override
@@ -175,32 +155,28 @@ class ClientChecker extends EntityChecker {
     Content content = ForwardContent.create(secrets: messages);
     logInfo('sending group histories: $group => $recipients');
     // Send content to all recipients if expired
-    int success = await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
+    return await _sendContentIfExpired(content, recipients, isExpired: (receiver) {
       bool expired = isHisResponseExpired(group, recipient: receiver);
       if (!expired) {
-        logInfo('group histories response not expired yet: $receiver');
+        logInfo('group histories response not expired yet: $group -> $receiver');
       }
       return expired;
     });
-    if (success <= 0) {
-      logError('failed to send group histories: $group => $recipients');
-    }
-    return success > 0;
   }
 
   /// Send content to all recipients if expired
-  Future<int> _sendContentIfExpired(Content content, List<ID> recipients, {
+  Future<bool> _sendContentIfExpired(Content content, List<ID> recipients, {
     required bool Function(ID receiver) isExpired,
   }) async {
     Transmitter? transmitter = messenger;
     if (transmitter == null) {
       logWarning('messenger not ready yet');
-      return -1;
+      return false;
     }
     User? user = await facebook?.currentUser;
     if (user == null) {
       assert(false, 'failed to get current user');
-      return -1;
+      return false;
     }
     ID me = user.identifier;
     int success = 0;
@@ -218,7 +194,7 @@ class ClientChecker extends EntityChecker {
         success += 1;
       }
     }
-    return success;
+    return success > 0;
   }
 
 }

@@ -1,3 +1,7 @@
+## 1.2.2
+
+- Simplify entity checker.
+
 ## 1.2.1
 
 - Check expired for sending group info.

@@ -248,12 +248,12 @@ class ClientMessenger extends CommonMessenger {
       //  send to all contacts
       //
       List<ID> contacts = await user.contacts;
-      await checker.sendDocuments(user.identifier, [visa], updated: updated, recipients: contacts);
+      await checker.sendDocuments(user.identifier, [visa], force: true, recipients: contacts);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await checker.sendDocuments(user.identifier, [visa], updated: updated, recipients: [ID.EVERYONE]);
+    await checker.sendDocuments(user.identifier, [visa], force: true, recipients: [ID.EVERYONE]);
   }
 
   ///  Send login command to keep roaming

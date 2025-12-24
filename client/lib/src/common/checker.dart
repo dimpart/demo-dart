@@ -74,11 +74,11 @@ abstract class EntityChecker with Logging {
       _membersQueries.isExpired('$identifier<<$respondent');
 
   bool isMetaResponseExpired(ID identifier, {required ID recipient}) =>
-      _metaResponses.isExpired('$identifier<<$recipient');
+      _metaResponses.isExpired('$identifier>>$recipient');
   bool isDocsResponseExpired(ID identifier, {required ID recipient, bool force = false}) =>
-      _docsResponses.isExpired('$identifier<<$recipient', force: force);
+      _docsResponses.isExpired('$identifier>>$recipient', force: force);
   bool isHisResponseExpired(ID group, {required ID recipient}) =>
-      _hisResponses.isExpired('$group<<$recipient');
+      _hisResponses.isExpired('$group>>$recipient');
 
   /// Set last active member for group
   void setLastActiveMember(ID member, {required ID group}) =>
@@ -290,7 +290,7 @@ abstract class EntityChecker with Logging {
   ///  Send documents to recipients
   ///  if document is updated, force to send it again.
   ///  else only send once every 5 minutes.
-  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool updated = false, required List<ID> recipients});
+  Future<bool> sendDocuments(ID identifier, List<Document> docs, {bool force = false, required List<ID> recipients});
 
   ///  Send group histories to recipients
   Future<bool> sendHistories(ID group, List<ReliableMessage> messages, {required List<ID> recipients});

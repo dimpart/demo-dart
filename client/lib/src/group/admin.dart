@@ -130,7 +130,7 @@ class AdminManager extends TripletsHelper {
     }
 
     // forced to send it
-    return await checker.sendDocuments(group, [doc], updated: true, recipients: recipients);
+    return await checker.sendDocuments(group, [doc], force: true, recipients: recipients);
   }
 
 }
