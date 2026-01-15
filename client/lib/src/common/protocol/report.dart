@@ -61,7 +61,7 @@ abstract interface class ReportCommand implements Command {
 class BaseReportCommand extends BaseCommand implements ReportCommand {
   BaseReportCommand(super.dict);
 
-  BaseReportCommand.fromTitle(String text) : super.fromName(ReportCommand.REPORT) {
+  BaseReportCommand.fromTitle(String text) : super.fromCmd(ReportCommand.REPORT) {
     title = text;
   }
 

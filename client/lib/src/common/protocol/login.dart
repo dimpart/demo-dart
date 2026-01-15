@@ -30,6 +30,9 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../mkm/provider.dart';
+import '../mkm/station.dart';
+
 
 ///  Login command: {
 ///      type : 0x88,
@@ -93,7 +96,7 @@ abstract interface class LoginCommand implements Command {
 class BaseLoginCommand extends BaseCommand implements LoginCommand{
   BaseLoginCommand(super.dict);
 
-  BaseLoginCommand.fromID(ID identifier) : super.fromName(LoginCommand.LOGIN) {
+  BaseLoginCommand.fromID(ID identifier) : super.fromCmd(LoginCommand.LOGIN) {
     setString('did', identifier);
   }
 

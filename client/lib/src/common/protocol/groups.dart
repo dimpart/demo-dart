@@ -67,7 +67,7 @@ class QueryGroupCommand extends BaseGroupCommand implements QueryCommand {
   DateTime? get lastTime => getDateTime('last_time');
 
   QueryGroupCommand.from(ID group, [DateTime? lastTime])
-      : super.from(QueryCommand.QUERY, group) {
+      : super.fromCmd(QueryCommand.QUERY, group) {
     if (lastTime != null) {
       setDateTime('last_time', lastTime);
     }

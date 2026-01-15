@@ -30,12 +30,12 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/stargate.dart';
 import 'package:stargate/startrek.dart';
 
 import '../../common/dbi/session.dart';
+import '../../common/mkm/station.dart';
 import '../../network/session.dart';
 
 import 'state.dart';

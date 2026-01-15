@@ -1,3 +1,7 @@
+## 1.2.3
+
+- Document without ID.
+
 ## 1.2.2
 
 - Simplify entity checker.

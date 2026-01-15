@@ -32,10 +32,11 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:stargate/skywalker.dart';
 
+import '../common/dbi/account.dart';
+import '../common/mkm/utils.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 import '../common/session.dart';
-import '../common/dbi/account.dart';
 
 
 class GroupDelegate extends TwinsHelper implements GroupDataSource {
@@ -85,8 +86,8 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   Future<Bulletin?> getBulletin(ID group) async =>
       await facebook?.getBulletin(group);
 
-  Future<bool> saveDocument(Document doc) async =>
-      await archivist!.saveDocument(doc);
+  Future<bool> saveDocument(Document doc, ID did) async =>
+      await archivist!.saveDocument(doc, did);
 
   //
   //  Group DataSource
@@ -111,7 +112,6 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   //  Group Assistants
   //
 
-  @override
   Future<List<ID>> getAssistants(ID group) async =>
       await _GroupBotsManager().getAssistants(group);
 
@@ -338,13 +338,17 @@ class _GroupBotsManager extends Runner with Logging {
     //
     //  2. get visa
     //
-    User? user;
+    ID me;
     Visa? visa;
     try {
-      user = await facebook?.currentUser;
-      visa = await user?.visa;
+      User? user = await facebook?.currentUser;
+      if (user == null) {
+        return false;
+      }
+      me = user.identifier;
+      visa = DocumentUtils.lastVisa(await user.documents);
       if (visa == null) {
-        logError('failed to get visa: $user');
+        logError('failed to get visa: $me');
         return false;
       }
     } catch (e, st) {
@@ -365,7 +369,7 @@ class _GroupBotsManager extends Runner with Logging {
       }
       // no respond yet, try to push visa to the bot
       try {
-        await checker?.sendDocuments(user!.identifier, [visa], recipients: [item]);
+        await checker?.sendDocuments(me, [visa], recipients: [item]);
       } catch (e, st) {
         logError('failed to query assistant: $item, $e, $st');
       }

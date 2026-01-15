@@ -92,7 +92,8 @@ class Account {
     //
     //  Step 4: generate visa with ID and sign with private key
     //
-    Visa visa = BaseVisa.from(identifier);
+    Visa visa = BaseVisa.fromData();
+    visa.setString('did', identifier);
     visa.name = name.trim();
     visa.avatar = PortableNetworkFile.parse(avatar);
     visa.publicKey = msgKey.publicKey as EncryptKey;

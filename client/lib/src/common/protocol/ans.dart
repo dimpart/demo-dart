@@ -66,7 +66,7 @@ class BaseAnsCommand extends BaseCommand implements AnsCommand {
   BaseAnsCommand(super.dict);
 
   BaseAnsCommand.from(String names, Map<String, String>? records) :
-        super.fromName(AnsCommand.ANS) {
+        super.fromCmd(AnsCommand.ANS) {
     assert(names.isNotEmpty, 'query names should not empty');
     this['names'] = names;
     if (records != null) {

@@ -47,16 +47,15 @@ class ClientArchivist extends CommonArchivist {
   }
 
   @override
-  Future<bool> saveDocument(Document doc) async {
-    bool ok = await super.saveDocument(doc);
+  Future<bool> saveDocument(Document doc, ID identifier) async {
+    bool ok = await super.saveDocument(doc, identifier);
     if (ok && doc is Bulletin) {
       // check administrators
       Object? array = doc.getProperty('administrators');
       if (array is List) {
-        ID group = doc.identifier;
-        assert(group.isGroup, 'group ID error: $group');
+        assert(identifier.isGroup, 'group ID error: $identifier');
         List<ID> admins = ID.convert(array);
-        ok = await database.saveAdministrators(admins, group: group);
+        ok = await database.saveAdministrators(admins, group: identifier);
       }
     }
     return ok;
@@ -144,7 +143,7 @@ class ClientFacebook extends CommonFacebook {
       return [];
     }
     // check local storage
-    var members = await database.getMembers(group: group);
+    List<ID> members = await database.getMembers(group: group);
     /*await */entityChecker?.checkMembers(group, members);
     return members.isEmpty ? [owner] : members;
   }
@@ -159,13 +158,26 @@ class ClientFacebook extends CommonFacebook {
       return [];
     }
     // check local storage
-    var bots = await database.getAssistants(group: group);
+    List<ID> bots = await database.getAssistants(group: group);
     if (bots.isNotEmpty) {
       // got from local storage
       return bots;
     }
     // get from bulletin document
-    return doc.assistants ?? [];
+    var array = doc.getProperty('assistants');
+    if (array is List) {
+      bots = ID.convert(array);
+    } else {
+      assert(!array, 'group bots error: $array');
+      // get from 'assistant'
+      ID? single = ID.parse(doc.getProperty('assistant'));
+      if (single != null) {
+        bots = [single];
+      } else {
+        bots = [];
+      }
+    }
+    return bots;
   }
 
   //

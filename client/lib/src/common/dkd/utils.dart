@@ -1,10 +1,10 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
- *                               Written in 2023 by Moky <albert.moky@gmail.com>
+ *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
- * =============================================================================
+ * ==============================================================================
  * The MIT License (MIT)
  *
  * Copyright (c) 2023 Albert Moky
@@ -26,44 +26,39 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * =============================================================================
+ * ==============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
 
 
-/// Block Protocol
-/// ~~~~~~~~~~~~~~
-/// Ignore all messages in this conversation,
-/// which ID(user/group) contains in 'list'.
-/// If value of 'list' is None, means querying block-list from station
-///
-///  Command message: {
-///      type : 0x88,
-///      sn   : 123,
-///
-///      command : "block",
-///      list    : []       // block-list
-///  }
-class BlockCommand extends BaseCommand {
-  BlockCommand(super.dict);
+/// 1. [Meta Protocol]
+/// 2. [Visa Protocol]
+abstract interface class MessageUtils {
 
-  // ignore: constant_identifier_names
-  static const String BLOCK  = 'block';
+  ///  Sender's Meta
+  ///  ~~~~~~~~~~~~~
+  ///  Extends for the first message package of 'Handshake' protocol.
 
-  BlockCommand.fromList(List<ID> contacts) : super.fromCmd(BLOCK) {
-    list = contacts;
-  }
+  static Meta? getMeta(Message msg) =>
+      Meta.parse(msg['meta']);
 
-  List<ID> get list {
-    List<ID>? array = this['list'];
-    if (array == null) {
-      return [];
+  static void setMeta(Meta? meta, Message msg) =>
+      msg.setMap('meta', meta);
+
+  ///  Sender's Visa
+  ///  ~~~~~~~~~~~~~
+  ///  Extends for the first message package of 'Handshake' protocol.
+
+  static Visa? getVisa(Message msg) {
+    Document? doc = Document.parse(msg['visa']);
+    if (doc is Visa) {
+      return doc;
     }
-    return ID.convert(array);
+    assert(doc == null, 'visa document error: $doc');
+    return null;
   }
 
-  set list(List<ID> contacts) {
-    this['list'] = ID.revert(contacts);
-  }
+  static void setVisa(Visa? visa, Message msg) =>
+      msg.setMap('visa', visa);
 
 }

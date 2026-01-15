@@ -31,6 +31,7 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../../common/protocol/group_admins.dart';
 import '../group.dart';
 
 ///  Resign Group Admin Command Processor

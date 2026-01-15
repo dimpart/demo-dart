@@ -24,7 +24,15 @@ export 'src/common/protocol/login.dart';
 export 'src/common/protocol/mute.dart';
 export 'src/common/protocol/report.dart';
 export 'src/common/protocol/groups.dart';
+export 'src/common/protocol/group_admins.dart';
 export 'src/common/protocol/password.dart';
+
+export 'src/common/mkm/provider.dart';
+export 'src/common/mkm/station.dart';
+export 'src/common/mkm/bot.dart';
+export 'src/common/mkm/utils.dart';
+
+export 'src/common/dkd/utils.dart';
 
 export 'src/common/dbi/account.dart';
 export 'src/common/dbi/message.dart';

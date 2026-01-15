@@ -46,7 +46,7 @@ class ThanosCache<K, V> implements MemoryCache<K, V> {
   final Map<K, V> _caches = {};
 
   @override
-  V? get(K key) => _caches[K];
+  V? get(K key) => _caches[key];
 
   @override
   void put(K key, V? value) => value == null

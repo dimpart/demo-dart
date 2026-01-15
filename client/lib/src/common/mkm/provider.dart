@@ -30,40 +30,68 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import 'station.dart';
+import 'utils.dart';
 
-/// Block Protocol
-/// ~~~~~~~~~~~~~~
-/// Ignore all messages in this conversation,
-/// which ID(user/group) contains in 'list'.
-/// If value of 'list' is None, means querying block-list from station
-///
-///  Command message: {
-///      type : 0x88,
-///      sn   : 123,
-///
-///      command : "block",
-///      list    : []       // block-list
-///  }
-class BlockCommand extends BaseCommand {
-  BlockCommand(super.dict);
 
-  // ignore: constant_identifier_names
-  static const String BLOCK  = 'block';
-
-  BlockCommand.fromList(List<ID> contacts) : super.fromCmd(BLOCK) {
-    list = contacts;
+///  DIM Station Owner
+class ServiceProvider extends BaseGroup {
+  ServiceProvider(super.id) {
+    assert(identifier.type == EntityType.ISP, 'SP ID error: $identifier');
   }
 
-  List<ID> get list {
-    List<ID>? array = this['list'];
-    if (array == null) {
-      return [];
+  /// Provider Document
+  Future<Document?> get profile async =>
+      DocumentUtils.lastDocument(await documents, '*');
+
+  Future<List> get stations async {
+    Document? doc = await profile;
+    if (doc != null) {
+      var stations = doc.getProperty('stations');
+      if (stations is List) {
+        return stations;
+      }
     }
-    return ID.convert(array);
+    // TODO: load from local storage
+    return [];
   }
 
-  set list(List<ID> contacts) {
-    this['list'] = ID.revert(contacts);
+  //
+  //  Comparison
+  //
+
+  static bool sameStation(Station a, Station b) {
+    if (identical(a, b)) {
+      // same object
+      return true;
+    }
+    return _checkIdentifiers(a.identifier, b.identifier)
+        && _checkHosts(a.host, b.host)
+        && _checkPorts(a.port, b.port);
   }
 
+}
+
+bool _checkIdentifiers(ID a, ID b) {
+  if (identical(a, b)) {
+    // same object
+    return true;
+  } else if (a.isBroadcast || b.isBroadcast) {
+    return true;
+  }
+  return a == b;
+}
+bool _checkHosts(String? a, String? b) {
+  if (a == null || b == null) {
+    return true;
+  } else if (a.isEmpty || b.isEmpty) {
+    return true;
+  }
+  return a == b;
+}
+bool _checkPorts(int a, int b) {
+  if (a == 0 || b == 0) {
+    return true;
+  }
+  return a == b;
 }

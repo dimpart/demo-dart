@@ -50,7 +50,7 @@ class MuteCommand extends BaseCommand {
   // ignore: constant_identifier_names
   static const String MUTE  = 'mute';
 
-  MuteCommand.fromList(List<ID> contacts) : super.fromName(MUTE) {
+  MuteCommand.fromList(List<ID> contacts) : super.fromCmd(MUTE) {
     list = contacts;
   }
 

@@ -84,9 +84,9 @@ abstract class CommonMessenger extends Messenger with Logging
     if (data.length <= 8) {
       // message data error
       return null;
-      // } else if (data.first != '{'.codeUnitAt(0) || data.last != '}'.codeUnitAt(0)) {
-      //   // only support JsON format now
-      //   return null;
+    // } else if (data.first != '{'.codeUnitAt(0) || data.last != '}'.codeUnitAt(0)) {
+    //   // only support JsON format now
+    //   return null;
     }
     ReliableMessage? rMsg = await super.deserializeMessage(data);
     if (rMsg != null) {
@@ -99,7 +99,7 @@ abstract class CommonMessenger extends Messenger with Logging
   //-------- InstantMessageDelegate
 
   @override
-  Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
+  Future<EncryptedBundle?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
     try {
       return await super.encryptKey(key, receiver, iMsg);
     } catch (e, st) {
@@ -108,6 +108,16 @@ abstract class CommonMessenger extends Messenger with Logging
       logDebug('failed to encrypt key for receiver: $receiver, error: $e, $st');
       return null;
     }
+  }
+
+  @override
+  Future<Map<String, Object>> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
+    Map<String, Object> keys = await super.encodeKey(bundle, receiver, iMsg);
+    if (keys.isNotEmpty) {
+      // TODO: check for wildcard
+      // CompatibleOutgoing.fixEncodeKeys(keys, receiver, facebook);
+    }
+    return keys;
   }
 
   @override

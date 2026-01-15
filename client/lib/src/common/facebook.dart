@@ -32,6 +32,7 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
 import 'dbi/account.dart';
+import 'mkm/utils.dart';
 
 import 'archivist.dart';
 import 'anonymous.dart';
@@ -145,7 +146,7 @@ abstract class CommonFacebook extends Facebook with Logging {
     // get name from document
     Document? doc = await getDocument(identifier, type);
     if (doc != null) {
-      String? name = doc.name;
+      String? name = doc.getProperty('name');
       if (name != null && name.isNotEmpty) {
         return name;
       }
@@ -165,14 +166,14 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   @override
   Future<Meta?> getMeta(ID identifier) async {
-    var meta = await database.getMeta(identifier);
+    Meta? meta = await database.getMeta(identifier);
     /*await */entityChecker?.checkMeta(identifier, meta);
     return meta;
   }
 
   @override
   Future<List<Document>> getDocuments(ID identifier) async {
-    var docs = await database.getDocuments(identifier);
+    List<Document> docs = await database.getDocuments(identifier);
     /*await */entityChecker?.checkDocuments(identifier, docs);
     return docs;
   }
@@ -203,6 +204,8 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   Future<List<ID>> getAdministrators(ID group);
   Future<bool> saveAdministrators(List<ID> admins, ID group);
+
+  Future<List<ID>> getAssistants(ID group);
 
   Future<bool> saveMembers(List<ID> newMembers, ID group);
 

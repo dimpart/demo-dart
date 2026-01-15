@@ -32,6 +32,8 @@ import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/dbi/account.dart';
+import '../common/mkm/utils.dart';
+import '../common/protocol/group_admins.dart';
 
 import 'delegate.dart';
 
@@ -120,7 +122,7 @@ class GroupCommandHelper extends TripletsHelper {
     if (members == null) {
       members = [];
       // get from 'member'
-      ID? single = content.member;
+      ID? single = ID.parse(content['member']);
       if (single != null) {
         members.add(single);
       }

@@ -94,7 +94,7 @@ class BaseHandshakeCommand extends BaseCommand implements HandshakeCommand {
   BaseHandshakeCommand(super.dict);
 
   BaseHandshakeCommand.from(String title, {String? sessionKey})
-      : super.fromName(HandshakeCommand.HANDSHAKE) {
+      : super.fromCmd(HandshakeCommand.HANDSHAKE) {
     // text message
     this['title'] = title;
     // session key

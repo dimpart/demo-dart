@@ -129,7 +129,6 @@ class SharedGroupManager implements GroupDataSource {
   @override
   Future<ID?> getOwner(ID group) async => await delegate.getOwner(group);
 
-  @override
   Future<List<ID>> getAssistants(ID group) async =>
       await delegate.getAssistants(group);
 
@@ -142,8 +141,8 @@ class SharedGroupManager implements GroupDataSource {
   Future<bool> isOwner(ID user, {required ID group}) async =>
       await delegate.isOwner(user, group: group);
 
-  Future<bool> broadcastGroupDocument(Bulletin doc) async =>
-      await adminManager.broadcastGroupDocument(doc);
+  Future<bool> broadcastGroupDocument(Bulletin doc, ID group) async =>
+      await adminManager.broadcastGroupDocument(doc, group);
 
   //
   //  Group Manage

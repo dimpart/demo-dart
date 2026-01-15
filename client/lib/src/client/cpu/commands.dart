@@ -111,36 +111,10 @@ class EfficientMetaCommandProcessor extends MetaCommandProcessor {
   CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    assert(content is MetaCommand, 'meta command error: $content');
-    MetaCommand command = content as MetaCommand;
-    Meta? meta = command.meta;
-    ID identifier = command.identifier;
-    if (meta == null) {
-      // query meta for ID
-      return await respondMeta(identifier, content: command, envelope: rMsg.envelope);
-    }
-    return await super.processContent(content, rMsg);
-  }
-
-  // protected
-  Future<List<Content>> respondMeta(ID identifier, {
-    required MetaCommand content, required Envelope envelope
-  }) async {
-    Meta? meta = await facebook?.getMeta(identifier);
-    if (meta == null) {
-      String text = 'Meta not found.';
-      return respondReceipt(text, content: content, envelope: envelope, extra: {
-        'template': 'Meta not found: \${did}.',
-        'replacements': {
-          'did': identifier.toString(),
-        },
-      });
-    }
-    // meta got
+  Future<List<Content>> respondMeta(ID identifier, Meta meta, {required ID receiver}) async {
     var checker = facebook?.entityChecker;
     if (checker != null) {
-      await checker.sendMeta(identifier, meta, recipients: [envelope.sender]);
+      await checker.sendMeta(identifier, meta, recipients: [receiver]);
     }
     return [];
   }
@@ -155,57 +129,10 @@ class EfficientDocumentCommandProcessor extends DocumentCommandProcessor {
   CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    assert(content is DocumentCommand, 'document command error: $content');
-    DocumentCommand command = content as DocumentCommand;
-    ID identifier = command.identifier;
-    List<Document>? documents = command.documents;
-    if (documents == null) {
-      // query entity documents for ID
-      return await respondDocuments(identifier, content: command, envelope: rMsg.envelope);
-    }
-    return await super.processContent(content, rMsg);
-  }
-
-  // protected
-  Future<List<Content>> respondDocuments(ID identifier, {
-    required DocumentCommand content, required Envelope envelope
-  }) async {
-    List<Document>? documents = await facebook?.getDocuments(identifier);
-    if (documents == null || documents.isEmpty) {
-      String text = 'Document not found.';
-      return respondReceipt(text, content: content, envelope: envelope, extra: {
-        'template': 'Document not found: \${did}.',
-        'replacements': {
-          'did': identifier.toString(),
-        },
-      });
-    }
-    // documents got
-    DateTime? queryTime = content.lastTime;
-    if (queryTime != null) {
-      // check last document time
-      Document? last = DocumentUtils.lastDocument(documents);
-      assert(last != null, 'should not happen');
-      DateTime? lastTime = last?.time;
-      if (lastTime == null) {
-        assert(false, 'document error: $last');
-      } else if (!lastTime.isAfter(queryTime)) {
-        // document not updated
-        String text = 'Document not updated.';
-        return respondReceipt(text, content: content, envelope: envelope, extra: {
-          'template': 'Document not updated: \${did}, last time: \${time}.',
-          'replacements': {
-            'did': identifier.toString(),
-            'time': lastTime.millisecondsSinceEpoch / 1000.0,
-          },
-        });
-      }
-    }
-    // documents got
+  Future<List<Content>> respondDocuments(ID identifier, List<Document> docs, {required ID receiver}) async {
     var checker = facebook?.entityChecker;
     if (checker != null) {
-      await checker.sendDocuments(identifier, documents, recipients: [envelope.sender]);
+      await checker.sendDocuments(identifier, docs, recipients: [receiver]);
     }
     return [];
   }

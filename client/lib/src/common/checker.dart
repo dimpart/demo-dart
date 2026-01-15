@@ -32,6 +32,8 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
 import 'dbi/account.dart';
+import 'mkm/station.dart';
+import 'mkm/utils.dart';
 import 'utils/checkers.dart';
 
 abstract class EntityChecker with Logging {
@@ -179,7 +181,7 @@ abstract class EntityChecker with Logging {
     DateTime? lastTime;
     DateTime? docTime;
     for (Document doc in documents) {
-      assert(doc.identifier == identifier, 'document not match: $identifier, $doc');
+      assert(identifier == doc['did'], 'document not match: $identifier, $doc');
       docTime = doc.time;
       if (docTime == null) {
         // assert(false, 'document error: $doc');

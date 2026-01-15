@@ -31,6 +31,9 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
+import 'dkd/utils.dart';
+import 'mkm/utils.dart';
+
 
 abstract class CommonPacker extends MessagePacker with Logging {
   CommonPacker(super.facebook, super.messenger);
@@ -55,8 +58,25 @@ abstract class CommonPacker extends MessagePacker with Logging {
 
   /// for checking whether user's ready
   // protected
-  Future<EncryptKey?> getMessageKey(ID user) async =>
-      await facebook?.getPublicKeyForEncryption(user);
+  Future<EncryptKey?> getVisaKey(ID user) async {
+    List<Document>? docs = await facebook?.getDocuments(user);
+    if (docs == null || docs.isEmpty) {
+      assert(false, 'failed to get visa document: $user');
+      return null;
+    }
+    Visa? visa = DocumentUtils.lastVisa(docs);
+    if (visa != null/* && visa.isValid*/) {
+      return visa.publicKey;
+    }
+    Meta? meta = await facebook?.getMeta(user);
+    if (meta != null/* && meta.isValid*/) {
+      VerifyKey metaKey = meta.publicKey;
+      if (metaKey is EncryptKey) {
+        return metaKey as EncryptKey;
+      }
+    }
+    return null;
+  }
 
   ///  Check sender before verifying received message
   ///
@@ -70,11 +90,17 @@ abstract class CommonPacker extends MessagePacker with Logging {
     Visa? visa = MessageUtils.getVisa(rMsg);
     if (visa != null) {
       // first handshake?
-      bool matched = visa.identifier == sender;
+      ID? did = ID.parse(visa['did']);
+      if (did == null) {
+        assert(false, 'visa error: $visa');
+      } else if (sender == did) {
+        return true;
+      } else {
+        assert(false, 'visa ID not match: $sender, $did');
+      }
       //assert Meta.matches(sender, rMsg.getMeta()) : "meta error: " + rMsg;
-      assert(matched, 'visa ID not match: $sender');
-      return matched;
-    } else if (await getMessageKey(sender) != null) {
+      return false;
+    } else if (await getVisaKey(sender) != null) {
       // sender is OK
       return true;
     }
@@ -104,7 +130,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
       //         that should be sent to a group bot first,
       //         and the bot will split it for all members.
       return false;
-    } else if (await getMessageKey(receiver) != null) {
+    } else if (await getVisaKey(receiver) != null) {
       // receiver is OK
       return true;
     }

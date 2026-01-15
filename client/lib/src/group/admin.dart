@@ -30,6 +30,8 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/mkm/station.dart';
+
 import 'delegate.dart';
 
 
@@ -90,7 +92,7 @@ class AdminManager extends TripletsHelper {
     if (signature == null) {
       assert(false, 'failed to sign document for group: $group, owner: $me');
       return false;
-    } else if (await delegate.saveDocument(bulletin)) {
+    } else if (await delegate.saveDocument(bulletin, group)) {
       logInfo('group document updated: $group');
     } else {
       assert(false, 'failed to save document for group: $group');
@@ -100,11 +102,11 @@ class AdminManager extends TripletsHelper {
     //
     //  3. broadcast bulletin document
     //
-    return broadcastGroupDocument(bulletin);
+    return broadcastGroupDocument(bulletin, group);
   }
 
   /// Broadcast group document
-  Future<bool> broadcastGroupDocument(Bulletin doc) async {
+  Future<bool> broadcastGroupDocument(Bulletin doc, ID group) async {
     var checker = facebook?.entityChecker;
     if (checker == null) {
       assert(false, 'failed to get entity checker');
@@ -112,7 +114,6 @@ class AdminManager extends TripletsHelper {
     }
 
     // send to current station
-    ID group = doc.identifier;
     List<ID> recipients = [Station.ANY];
     // check group bots
     List<ID> bots = await delegate.getAssistants(group);

@@ -30,6 +30,7 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../mkm/utils.dart';
 import '../protocol/login.dart';
 import '../protocol/version.dart';
 
@@ -172,7 +173,6 @@ abstract interface class CompatibleIncoming {
     //  get command name
     //
     String? cmd = Converter.getString(content['command']);
-    // cmd = Converter.getString(cmd);
     if (cmd == null || cmd.isEmpty) {
       return;
     }

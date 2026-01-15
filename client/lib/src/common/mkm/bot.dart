@@ -30,40 +30,24 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import 'utils.dart';
 
-/// Block Protocol
-/// ~~~~~~~~~~~~~~
-/// Ignore all messages in this conversation,
-/// which ID(user/group) contains in 'list'.
-/// If value of 'list' is None, means querying block-list from station
-///
-///  Command message: {
-///      type : 0x88,
-///      sn   : 123,
-///
-///      command : "block",
-///      list    : []       // block-list
-///  }
-class BlockCommand extends BaseCommand {
-  BlockCommand(super.dict);
 
-  // ignore: constant_identifier_names
-  static const String BLOCK  = 'block';
-
-  BlockCommand.fromList(List<ID> contacts) : super.fromCmd(BLOCK) {
-    list = contacts;
+///  Bot User
+class Bot extends BaseUser {
+  Bot(super.id) {
+    assert(identifier.type == EntityType.BOT, 'Bot ID error: $identifier');
   }
 
-  List<ID> get list {
-    List<ID>? array = this['list'];
-    if (array == null) {
-      return [];
-    }
-    return ID.convert(array);
-  }
+  /// Bot Document
+  Future<Document?> get profile async => DocumentUtils.lastVisa(await documents);
 
-  set list(List<ID> contacts) {
-    this['list'] = ID.revert(contacts);
+  ///  Get provider ID
+  ///
+  /// @return ICP ID, bot group
+  Future<ID?> get provider async {
+    Document? doc = await profile;
+    return ID.parse(doc?.getProperty('provider'));
   }
 
 }

@@ -30,6 +30,7 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/mkm/station.dart';
 import '../common/register.dart';
 import '../common/messenger.dart';
 

@@ -36,6 +36,7 @@ import 'package:stargate/startrek.dart';
 import '../common/dbi/session.dart';
 import '../common/facebook.dart';
 
+import '../common/mkm/station.dart';
 import 'messenger.dart';
 import 'network/session.dart';
 import 'network/state.dart';

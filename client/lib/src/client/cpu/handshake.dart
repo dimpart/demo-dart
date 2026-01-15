@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
+import '../../common/mkm/station.dart';
 import '../../common/protocol/handshake.dart';
 
 import '../network/session.dart';
@@ -55,7 +56,8 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
       station.identifier = sender;
       logInfo('update station ID: $oid => $sender');
     } else {
-      assert(oid == sender, 'station ID not match: $oid, $sender');
+      // FIXME: check station changed
+      assert(oid == sender, 'station ID not match: $sender, $station');
     }
     // handle handshake command with title & session key
     String title = command.title;

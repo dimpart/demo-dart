@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/facebook.dart';
+import '../common/mkm/utils.dart';
 import '../common/packer.dart';
 
 
@@ -73,7 +74,7 @@ abstract class ClientMessagePacker extends CommonPacker {
     //
     List<ID> waiting = [];
     for (ID item in members) {
-      if (await getMessageKey(item) == null) {
+      if (await getVisaKey(item) == null) {
         // member not ready
         waiting.add(item);
       }
@@ -205,7 +206,7 @@ abstract class ClientMessagePacker extends CommonPacker {
       assert(false, 'failed to get current user');
       return false;
     }
-    Visa? visa = await user.visa;
+    Visa? visa = DocumentUtils.lastVisa(await user.documents);
     if (visa == null) {
       assert(false, 'failed to get visa: $user');
       return false;
