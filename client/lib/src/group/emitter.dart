@@ -102,7 +102,7 @@ class GroupEmitter extends TripletsHelper {
 
   Future<ReliableMessage?> sendInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
     //
-    //  0. check group
+    //  1. check group
     //
     Content content = iMsg.content;
     ID? group = content.group;
@@ -117,22 +117,11 @@ class GroupEmitter extends TripletsHelper {
       bool ok = await attachGroupTimes(group, iMsg);
       assert(ok || content is GroupCommand, 'failed to attach group times: $group => $content');
     }
-    assert(iMsg.receiver == group, 'group message error: $iMsg');
 
     /// TODO: if it's a file message
     ///       please upload the file data first
     ///       before calling this
     assert(content is! FileContent || content.data == null, 'content error: $content');
-
-    //
-    //  1. check group bots
-    //
-    ID? prime = await delegate.getFastestAssistant(group);
-    if (prime != null) {
-      // group bots found, forward this message to any bot to let it split for me;
-      // this can reduce my jobs.
-      return await _forwardMessage(iMsg, prime, group: group, priority: priority);
-    }
 
     //
     //  2. check group members
@@ -158,6 +147,7 @@ class GroupEmitter extends TripletsHelper {
     }
   }
 
+  /*
   /// Encrypt & sign message, then forward to the bot
   Future<ReliableMessage?> _forwardMessage(InstantMessage iMsg, ID bot, {required ID group, int priority = 0}) async {
     assert(bot.isUser && group.isGroup, 'ID error: $bot, $group');
@@ -203,6 +193,7 @@ class GroupEmitter extends TripletsHelper {
     // OK, return the forwarding message
     return rMsg;
   }
+  */
 
   /// Encrypt & sign message, then disperse to all members
   Future<ReliableMessage?> _disperseMessage(InstantMessage iMsg, List<ID> members, {required ID group, int priority = 0}) async {

@@ -205,8 +205,6 @@ abstract class CommonFacebook extends Facebook with Logging {
   Future<List<ID>> getAdministrators(ID group);
   Future<bool> saveAdministrators(List<ID> admins, ID group);
 
-  Future<List<ID>> getAssistants(ID group);
-
   Future<bool> saveMembers(List<ID> newMembers, ID group);
 
 }

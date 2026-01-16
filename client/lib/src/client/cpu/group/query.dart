@@ -65,12 +65,10 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     String text;
 
     ID sender = rMsg.sender;
-    List<ID> bots = await getAssistants(group);
     bool isMember = members.contains(sender);
-    bool isBot = bots.contains(sender);
 
     // 2. check permission
-    bool canQuery = isMember || isBot;
+    bool canQuery = isMember; // || isBot;
     if (!canQuery) {
       text = 'Permission denied.';
       return respondReceipt(text, content: command, envelope: rMsg.envelope, extra: {

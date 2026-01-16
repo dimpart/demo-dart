@@ -87,10 +87,6 @@ class GroupCommandProcessor extends HistoryCommandProcessor {
       await delegate.getOwner(group);
 
   // protected
-  Future<List<ID>> getAssistants(ID group) async =>
-      await delegate.getAssistants(group);
-
-  // protected
   Future<List<ID>> getAdministrators(ID group) async =>
       await delegate.getAdministrators(group);
   // protected

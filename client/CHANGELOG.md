@@ -1,6 +1,6 @@
 ## 1.2.3
 
-- Document without ID.
+- Remove group assistants.
 
 ## 1.2.2
 

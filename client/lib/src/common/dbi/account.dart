@@ -187,12 +187,6 @@ abstract interface class GroupDBI {
   Future<bool> saveMembers(List<ID> members, {required ID group});
 
   //
-  //  bots for group
-  //
-  Future<List<ID>> getAssistants({required ID group});
-  Future<bool> saveAssistants(List<ID> bots, {required ID group});
-
-  //
   //  group admins
   //
   Future<List<ID>> getAdministrators({required ID group});

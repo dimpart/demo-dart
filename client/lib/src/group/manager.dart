@@ -180,14 +180,13 @@ class GroupManager extends TripletsHelper {
     //
     bool isOwner = me == first;
     bool isAdmin = await delegate.isAdministrator(me, group: group);
-    bool isBot = await delegate.isAssistant(me, group: group);
     bool canReset = isOwner || isAdmin;
     if (!canReset) {
       assert(false, 'cannot reset members of group: $group');
       return false;
     }
-    // only the owner or admin can reset group members
-    assert(!isBot, 'group bot cannot reset members: $group, $me');
+    // // only the owner or admin can reset group members
+    // assert(!isBot, 'group bot cannot reset members: $group, $me');
 
     //
     //  2. build 'reset' command
@@ -219,17 +218,9 @@ class GroupManager extends TripletsHelper {
     List<ReliableMessage> messages = await builder.buildGroupHistories(group);
     ForwardContent forward = ForwardContent.create(secrets: messages);
 
-    List<ID> bots = await delegate.getAssistants(group);
-    if (bots.isNotEmpty) {
-      // let the group bots know the newest member ID list,
-      // so they can split group message correctly for us.
-      return await _sendCommand(forward, members: bots);      // to all assistants
-    } else {
-      // group bots not exist,
-      // send the command to all members
-      await _sendCommand(forward, members: newMembers);       // to new members
-      await _sendCommand(forward, members: expelList);        // to removed members
-    }
+    // send the command to all members
+    await _sendCommand(forward, members: newMembers);       // to new members
+    await _sendCommand(forward, members: expelList);        // to removed members
 
     return true;
   }
@@ -292,16 +283,6 @@ class GroupManager extends TripletsHelper {
     }
     ForwardContent forward = ForwardContent.create(forward: rMsg);
 
-    //
-    //  3. forward group command(s)
-    //
-    List<ID> bots = await delegate.getAssistants(group);
-    if (bots.isNotEmpty) {
-      // let the group bots know the newest member ID list,
-      // so they can split group message correctly for us.
-      return await _sendCommand(forward, members: bots);      // to all assistants
-    }
-
     // forward 'invite' to old members
     await _sendCommand(forward, members: oldMembers);         // to old members
 
@@ -337,7 +318,6 @@ class GroupManager extends TripletsHelper {
 
     bool isOwner = await delegate.isOwner(me, group: group);
     bool isAdmin = await delegate.isAdministrator(me, group: group);
-    bool isBot = await delegate.isAssistant(me, group: group);
     bool isMember = members.contains(me);
 
     //
@@ -350,7 +330,7 @@ class GroupManager extends TripletsHelper {
       assert(false, 'administrator cannot quit from group: $group');
       return false;
     }
-    assert(!isBot, 'group bot cannot quit: $group, $me');
+    // assert(!isBot, 'group bot cannot quit: $group, $me');
 
     //
     //  2. update local storage
@@ -379,16 +359,7 @@ class GroupManager extends TripletsHelper {
     //
     //  4. forward 'quit' command
     //
-    List<ID> bots = await delegate.getAssistants(group);
-    if (bots.isNotEmpty) {
-      // let the group bots know the newest member ID list,
-      // so they can split group message correctly for us.
-      return await _sendCommand(forward, members: bots);      // to group bots
-    } else {
-      // group bots not exist,
-      // send the command to all members directly
-      return await _sendCommand(forward, members: members);   // to all members
-    }
+    return await _sendCommand(forward, members: members);   // to all members
   }
 
   Future<bool> _sendCommand(Content content, {ID? receiver, List<ID>? members}) async {

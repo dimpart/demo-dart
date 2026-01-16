@@ -37,7 +37,7 @@ import '../group.dart';
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ///
 ///      1. reset group members
-///      2. only group owner or assistant can reset group members
+///      2. only group owner or administrators can reset group members
 class ResetCommandProcessor extends GroupCommandProcessor {
   ResetCommandProcessor(super.facebook, super.messenger);
 

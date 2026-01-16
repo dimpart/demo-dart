@@ -115,20 +115,10 @@ class AdminManager extends TripletsHelper {
 
     // send to current station
     List<ID> recipients = [Station.ANY];
-    // check group bots
-    List<ID> bots = await delegate.getAssistants(group);
-    if (bots.isNotEmpty) {
-      // group bots exist, let them to deliver to all other members
-      recipients.addAll(bots);
-    } else {
-      // broadcast to all members
-      List<ID> members = await delegate.getMembers(group);
-      if (members.isNotEmpty) {
-        recipients.addAll(members);
-      } else {
-        assert(false, 'failed to get group members: $group');
-      }
-    }
+    // broadcast to all members
+    List<ID> members = await delegate.getMembers(group);
+    assert(members.isNotEmpty, 'failed to get group members: $group');
+    recipients.addAll(members);
 
     // forced to send it
     return await checker.sendDocuments(group, [doc], force: true, recipients: recipients);

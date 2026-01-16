@@ -31,17 +31,13 @@
 import 'package:dimsdk/dimsdk.dart';
 
 
-//  Administrators, Assistants
+//  Administrators
 
 abstract interface class HireCommand implements GroupCommand {
 
   /// Administrators
   List<ID>? get administrators;
   set administrators(List<ID>? members);
-
-  /// Assistants (Bots)
-  List<ID>? get assistants;
-  set assistants(List<ID>? bots);
 
 }
 
@@ -50,10 +46,6 @@ abstract interface class FireCommand implements GroupCommand {
   /// Administrators
   List<ID>? get administrators;
   set administrators(List<ID>? members);
-
-  /// Assistants (Bots)
-  List<ID>? get assistants;
-  set assistants(List<ID>? bots);
 
 }
 
@@ -67,13 +59,10 @@ abstract interface class ResignCommand implements GroupCommand {
 class HireGroupCommand extends BaseGroupCommand implements HireCommand {
   HireGroupCommand([super.dict]);
 
-  HireGroupCommand.from(ID group, {List<ID>? administrators, List<ID>? assistants})
+  HireGroupCommand.from(ID group, {List<ID>? administrators})
       : super.fromCmd(GroupCommand.HIRE, group) {
     if (administrators != null) {
       this['administrators'] = ID.revert(administrators);
-    }
-    if (assistants != null) {
-      this['assistants'] = ID.revert(assistants);
     }
   }
 
@@ -94,26 +83,6 @@ class HireGroupCommand extends BaseGroupCommand implements HireCommand {
       remove('administrators');
     } else {
       this['administrators'] = ID.revert(members);
-    }
-  }
-
-  @override
-  List<ID>? get assistants {
-    var array = this['assistants'];
-    if (array is List) {
-      // convert all items to ID objects
-      return ID.convert(array);
-    }
-    assert(array == null, 'ID list error: $array');
-    return null;
-  }
-
-  @override
-  set assistants(List<ID>? bots) {
-    if (bots == null) {
-      remove('assistants');
-    } else {
-      this['assistants'] = ID.revert(bots);
     }
   }
 
@@ -126,13 +95,10 @@ class HireGroupCommand extends BaseGroupCommand implements HireCommand {
 class FireGroupCommand extends BaseGroupCommand implements FireCommand {
   FireGroupCommand([super.dict]);
 
-  FireGroupCommand.from(ID group, {List<ID>? administrators, List<ID>? assistants})
+  FireGroupCommand.from(ID group, {List<ID>? administrators})
       : super.fromCmd(GroupCommand.FIRE, group) {
     if (administrators != null) {
       this['administrators'] = ID.revert(administrators);
-    }
-    if (assistants != null) {
-      this['assistants'] = ID.revert(assistants);
     }
   }
 
@@ -153,26 +119,6 @@ class FireGroupCommand extends BaseGroupCommand implements FireCommand {
       remove('administrators');
     } else {
       this['administrators'] = ID.revert(members);
-    }
-  }
-
-  @override
-  List<ID>? get assistants {
-    var array = this['assistants'];
-    if (array is List) {
-      // convert all items to ID objects
-      return ID.convert(array);
-    }
-    assert(array == null, 'ID list error: $array');
-    return null;
-  }
-
-  @override
-  set assistants(List<ID>? bots) {
-    if (bots == null) {
-      remove('assistants');
-    } else {
-      this['assistants'] = ID.revert(bots);
     }
   }
 

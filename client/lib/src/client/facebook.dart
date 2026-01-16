@@ -148,38 +148,6 @@ class ClientFacebook extends CommonFacebook {
     return members.isEmpty ? [owner] : members;
   }
 
-  @override
-  Future<List<ID>> getAssistants(ID group) async {
-    assert(group.isGroup, 'group ID error: $group');
-    // check bulletin document
-    Bulletin? doc = await getBulletin(group);
-    if (doc == null) {
-      // the owner(founder) should be set in the bulletin document of group
-      return [];
-    }
-    // check local storage
-    List<ID> bots = await database.getAssistants(group: group);
-    if (bots.isNotEmpty) {
-      // got from local storage
-      return bots;
-    }
-    // get from bulletin document
-    var array = doc.getProperty('assistants');
-    if (array is List) {
-      bots = ID.convert(array);
-    } else {
-      assert(!array, 'group bots error: $array');
-      // get from 'assistant'
-      ID? single = ID.parse(doc.getProperty('assistant'));
-      if (single != null) {
-        bots = [single];
-      } else {
-        bots = [];
-      }
-    }
-    return bots;
-  }
-
   //
   //  Organizational Structure
   //

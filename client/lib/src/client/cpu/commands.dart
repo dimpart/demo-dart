@@ -35,7 +35,6 @@ import '../../common/dbi/session.dart';
 import '../../common/protocol/ans.dart';
 import '../../common/protocol/login.dart';
 import '../../common/facebook.dart';
-import '../../group/shared.dart';
 import '../facebook.dart';
 import '../messenger.dart';
 
@@ -95,9 +94,6 @@ class ReceiptCommandProcessor extends BaseCommandProcessor {
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ReceiptCommand, 'receipt command error: $content');
-    if (content is ReceiptCommand) {
-      SharedGroupManager().delegate.updateRespondTime(content, rMsg.envelope);
-    }
     // no need to response receipt command
     return [];
   }
