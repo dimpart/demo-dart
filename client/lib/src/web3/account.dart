@@ -106,7 +106,7 @@ class Account {
     await database.saveMeta(meta, identifier);
     await database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier, decrypt: 0);
     await database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier, decrypt: 1);
-    await database.saveDocument(visa);
+    await database.saveDocument(visa, identifier);
     // OK
     return identifier;
   }

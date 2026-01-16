@@ -166,7 +166,7 @@ class CommonArchivist with Logging implements Archivist, Barrack {
     //
     //  3. save into database
     //
-    return await database.saveDocument(doc);
+    return await database.saveDocument(doc, identifier);
   }
 
   // protected

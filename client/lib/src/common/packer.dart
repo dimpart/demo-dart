@@ -38,6 +38,9 @@ import 'mkm/utils.dart';
 abstract class CommonPacker extends MessagePacker with Logging {
   CommonPacker(super.facebook, super.messenger);
 
+  // protected
+  Archivist? get archivist => facebook?.archivist;
+
   ///  Add income message in a queue for waiting sender's visa
   ///
   /// @param rMsg - incoming message
@@ -186,6 +189,35 @@ abstract class CommonPacker extends MessagePacker with Logging {
     return await super.encryptMessage(iMsg);
   }
 
+  ///  Check meta & visa
+  ///
+  /// @param rMsg - received message
+  /// @return false on error
+  // protected
+  Future<bool> checkAttachments(ReliableMessage rMsg) async {
+    if (archivist == null) {
+      assert(false, 'archivist not ready');
+      return false;
+    }
+    ID sender = rMsg.sender;
+    // [Meta Protocol]
+    Meta? meta = MessageUtils.getMeta(rMsg);
+    if (meta != null) {
+      await archivist?.saveMeta(meta, sender);
+    }
+    // [Visa Protocol]
+    Visa? visa = MessageUtils.getVisa(rMsg);
+    if (visa != null) {
+      await archivist?.saveDocument(visa, sender);
+    }
+    //
+    //  TODO: check [Visa Protocol] before calling this
+    //        make sure the sender's meta(visa) exists
+    //        (do it by application)
+    //
+    return true;
+  }
+
   @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
     // 1. check receiver/group with local user
@@ -194,6 +226,10 @@ abstract class CommonPacker extends MessagePacker with Logging {
       // sender is ready
     } else {
       logWarning('sender not ready: ${rMsg.sender}');
+      return null;
+    }
+    // make sure sender's meta exists before verifying message
+    if (await checkAttachments(rMsg)) {} else {
       return null;
     }
     return await super.verifyMessage(rMsg);

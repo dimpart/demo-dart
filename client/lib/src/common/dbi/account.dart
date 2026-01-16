@@ -144,7 +144,7 @@ abstract interface class MetaDBI {
 ///  ~~~~~~~~~~~
 abstract interface class DocumentDBI {
 
-  Future<bool> saveDocument(Document doc);
+  Future<bool> saveDocument(Document doc, ID entity);
 
   Future<List<Document>> getDocuments(ID entity);
 

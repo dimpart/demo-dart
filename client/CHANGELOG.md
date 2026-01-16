@@ -1,3 +1,7 @@
+## 1.3.0
+
+- Save document with ID.
+
 ## 1.2.3
 
 - Remove group assistants.

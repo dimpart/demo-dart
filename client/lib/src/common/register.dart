@@ -70,7 +70,7 @@ class Register {
     await database.savePrivateKey(idKey, PrivateKeyDBI.kMeta, identifier, decrypt: 0);
     await database.savePrivateKey(msgKey, PrivateKeyDBI.kVisa, identifier, decrypt: 1);
     await database.saveMeta(meta, identifier);
-    await database.saveDocument(visa);
+    await database.saveDocument(visa, identifier);
     // OK
     return identifier;
   }
@@ -107,7 +107,7 @@ class Register {
     //  Step 5: save meta & bulletin in local storage
     //
     await database.saveMeta(meta, identifier);
-    await database.saveDocument(doc);
+    await database.saveDocument(doc, identifier);
     //
     //  Step 6: add founder as first member
     //
