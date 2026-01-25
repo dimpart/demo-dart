@@ -179,35 +179,21 @@ class _RSAPrivateKeyFactory extends RSAPrivateKeyFactory {
 
   @override
   PrivateKey generatePrivateKey() {
-    Map key = {'algorithm': AsymmetricAlgorithms.RSA};
-    return _RSAPrivateKey(key);
+    PrivateKey sKey = super.generatePrivateKey();
+    PublicKey pKey = sKey.publicKey;
+    // set created time
+    _setCreatedTime(sKey);
+    _setCreatedTime(pKey);
+    // OK
+    return sKey;
   }
 
-  @override
-  PrivateKey? parsePrivateKey(Map key) {
-    return _RSAPrivateKey(key);
-  }
-
-}
-
-/// RSA key with created time
-class _RSAPrivateKey extends RSAPrivateKey {
-  _RSAPrivateKey(super.dict) {
-    DateTime? time = getDateTime('time');
+  void _setCreatedTime(AsymmetricKey key) {
+    DateTime? time = key.getDateTime('time');
     if (time == null) {
       time = DateTime.now();
-      setDateTime('time', time);
-    }
-  }
-
-  @override
-  PublicKey get publicKey {
-    PublicKey key = super.publicKey;
-    DateTime? time = getDateTime('time');
-    if (time != null) {
       key.setDateTime('time', time);
     }
-    return key;
   }
 
 }
