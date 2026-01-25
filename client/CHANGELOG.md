@@ -1,3 +1,7 @@
+## 1.3.1
+
+- Check porter delegate before calling it.
+
 ## 1.3.0
 
 - Save document with ID.

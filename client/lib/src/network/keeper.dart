@@ -34,6 +34,7 @@ import 'package:stargate/skywalker.dart';
 import 'package:stargate/startrek.dart';
 import 'package:stargate/websocket.dart';
 
+import '../common/session.dart';
 import 'gate.dart';
 
 
@@ -128,6 +129,10 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
   Future<void> onPorterStatusChanged(PorterStatus previous, PorterStatus current, Porter porter) async {
     logInfo('onPorterStatusChanged: ${porter.remoteAddress}, $previous -> $current, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
+      if (!checkListener(delegate, porter)) {
+        logWarning('session not matched: ${porter.remoteAddress}, ignore this listener: $delegate');
+        continue;
+      }
       try {
         await delegate.onPorterStatusChanged(previous, current, porter);
       } catch (e, st) {
@@ -138,8 +143,12 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
 
   @override
   Future<void> onPorterReceived(Arrival ship, Porter porter) async {
-    logInfo('onPorterReceived: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
+    logDebug('onPorterReceived: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
+      if (!checkListener(delegate, porter)) {
+        logWarning('session not matched: ${porter.remoteAddress}, ignore this listener: $delegate');
+        continue;
+      }
       try {
         await delegate.onPorterReceived(ship, porter);
       } catch (e, st) {
@@ -152,6 +161,10 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
   Future<void> onPorterSent(Departure ship, Porter porter) async {
     logDebug('onPorterSent: ${porter.remoteAddress}, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
+      if (!checkListener(delegate, porter)) {
+        logWarning('session not matched: ${porter.remoteAddress}, ignore this listener: $delegate');
+        continue;
+      }
       try {
         await delegate.onPorterSent(ship, porter);
       } catch (e, st) {
@@ -164,6 +177,10 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
   Future<void> onPorterFailed(IOError error, Departure ship, Porter porter) async {
     logWarning('onPorterFailed: ${porter.remoteAddress}, $error, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
+      if (!checkListener(delegate, porter)) {
+        logWarning('session not matched: ${porter.remoteAddress}, ignore this listener: $delegate');
+        continue;
+      }
       try {
         await delegate.onPorterFailed(error, ship, porter);
       } catch (e, st) {
@@ -176,12 +193,26 @@ class GateKeeper with Logging implements Processor, PorterDelegate {
   Future<void> onPorterError(IOError error, Departure ship, Porter porter) async {
     logError('onPorterError: ${porter.remoteAddress}, $error, calling ${_listeners.length} listener(s)');
     for (var delegate in _listeners) {
+      if (!checkListener(delegate, porter)) {
+        logWarning('session not matched: ${porter.remoteAddress}, ignore this listener: $delegate');
+        continue;
+      }
       try {
         await delegate.onPorterError(error, ship, porter);
       } catch (e, st) {
         logError('onPorterError error: $e, ${porter.remoteAddress} -> $delegate, $st');
       }
     }
+  }
+
+  // protected
+  bool checkListener(PorterDelegate delegate, Porter porter) {
+    if (delegate is Session) {
+      Session session = delegate as Session;
+      return session.remoteAddress == porter.remoteAddress;
+    }
+    assert(false, 'session error: $delegate');
+    return false;
   }
 
 }
