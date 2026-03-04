@@ -45,7 +45,7 @@ class Register {
   /// @param nickname  - user name
   /// @param avatarUrl - photo URL
   /// @return user ID
-  Future<ID> createUser({required String name, PortableNetworkFile? avatar}) async {
+  Future<ID> createUser({required String name, TransportableFile? avatar}) async {
     //
     //  Step 1: generate private key (with asymmetric algorithm)
     //
@@ -119,9 +119,9 @@ class Register {
 
   // create user document
   static Visa createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
-      {required String name, PortableNetworkFile? avatar}) {
+      {required String name, TransportableFile? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
-    Visa doc = BaseVisa.fromData();
+    Visa doc = BaseVisa.empty();
     doc.setString('did', identifier);
     // App ID
     doc.setProperty('app_id', 'chat.dim.tarsier');
@@ -142,7 +142,7 @@ class Register {
   static Bulletin createBulletin(ID identifier, SignKey privateKey,
       {required String name, required ID founder}) {
     assert(identifier.isGroup, 'group ID error: $identifier');
-    Bulletin doc = BaseBulletin.fromData();
+    Bulletin doc = BaseBulletin.empty();
     doc.setString('did', identifier);
     // App ID
     doc.setProperty('app_id', 'chat.dim.tarsier');

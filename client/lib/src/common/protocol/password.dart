@@ -76,10 +76,10 @@ class Password {
 
   /// Get key digest
   static String digest(SymmetricKey password) {
-    Uint8List key = password.data;      // 32 bytes
-    Uint8List dig = MD5.digest(key);    // 16 bytes
-    Uint8List pre = dig.sublist(0, 6);  //  6 bytes
-    return Base64.encode(pre);          //  8 chars
+    Uint8List key = password.data.bytes!;  // 32 bytes
+    Uint8List dig = MD5.digest(key);       // 16 bytes
+    Uint8List pre = dig.sublist(0, 6);     //  6 bytes
+    return Base64.encode(pre);             //  8 chars
   }
 
   /// Plain Key

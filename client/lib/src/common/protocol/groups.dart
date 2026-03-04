@@ -30,6 +30,8 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import 'app.dart';
+
 
 // ignore_for_file: constant_identifier_names
 

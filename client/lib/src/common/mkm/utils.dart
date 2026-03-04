@@ -77,7 +77,7 @@ abstract interface class MetaUtils {
       //         just compare the key.data to check matching
       return false;
     }
-    Uint8List? fingerprint = meta.fingerprint;
+    Uint8List? fingerprint = meta.fingerprint?.bytes;
     if (fingerprint == null || fingerprint.isEmpty) {
       // fingerprint should not be empty here
       return false;

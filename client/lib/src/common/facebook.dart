@@ -155,7 +155,7 @@ abstract class CommonFacebook extends Facebook with Logging {
     return Anonymous.getName(identifier);
   }
 
-  Future<PortableNetworkFile?> getAvatar(ID user) async {
+  Future<TransportableFile?> getAvatar(ID user) async {
     Visa? doc = await getVisa(user);
     return doc?.avatar;
   }

@@ -142,7 +142,7 @@ class Keychain {
     if (publicKey == null) {
       return null;
     }
-    Uint8List data = publicKey.data;
+    Uint8List data = publicKey.data.bytes!;
     const int network = 0x00;  // kBTCMain
     return BTCAddress.generate(data, network).toString();
   }
@@ -153,7 +153,7 @@ class Keychain {
     if (publicKey == null) {
       return null;
     }
-    Uint8List data = publicKey.data;
+    Uint8List data = publicKey.data.bytes!;
     return ETHAddress.generate(data).toString();
   }
 

@@ -92,10 +92,10 @@ class Account {
     //
     //  Step 4: generate visa with ID and sign with private key
     //
-    Visa visa = BaseVisa.fromData();
+    Visa visa = BaseVisa.empty();
     visa.setString('did', identifier);
     visa.name = name.trim();
-    visa.avatar = PortableNetworkFile.parse(avatar);
+    visa.avatar = TransportableFile.parse(avatar);
     visa.publicKey = msgKey.publicKey as EncryptKey;
     Uint8List? sig = visa.sign(idKey);
     assert(sig != null, 'failed to sign visa: $identifier');

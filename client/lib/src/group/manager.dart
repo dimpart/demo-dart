@@ -281,7 +281,7 @@ class GroupManager extends TripletsHelper {
       assert(false, 'failed to save "invite" command for group: $group');
       return false;
     }
-    ForwardContent forward = ForwardContent.create(forward: rMsg);
+    ForwardContent forward = ForwardContent.create(secrets: [rMsg]);
 
     // forward 'invite' to old members
     await _sendCommand(forward, members: oldMembers);         // to old members
@@ -354,7 +354,7 @@ class GroupManager extends TripletsHelper {
       assert(false, 'failed to pack group message: $group');
       return false;
     }
-    ForwardContent forward = ForwardContent.create(forward: rMsg);
+    ForwardContent forward = ForwardContent.create(secrets: [rMsg]);
 
     //
     //  4. forward 'quit' command

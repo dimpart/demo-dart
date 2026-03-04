@@ -30,7 +30,10 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../common/protocol/app.dart';
 import '../../common/protocol/groups.dart';
+
+import 'app.dart';
 
 
 /*  Command Transform:
@@ -59,7 +62,7 @@ class GroupHistoryHandler extends BaseCustomizedHandler {
       String text = 'Group command error.';
       return respondReceipt(text, envelope: rMsg.envelope, content: content);
     } else if (GroupHistory.ACT_QUERY == act) {
-      assert(GroupHistory.APP == content.application);
+      // assert(GroupHistory.APP == content.application);
       assert(GroupHistory.MOD == content.module);
       return await transformQueryCommand(content, rMsg);
     }

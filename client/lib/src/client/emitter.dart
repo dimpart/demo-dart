@@ -120,7 +120,7 @@ abstract class Emitter with Logging {
     required ID receiver
   }) async {
     assert(mp4.isNotEmpty, 'voice data should not empty');
-    TransportableData ted = TransportableData.create(mp4);
+    TransportableData ted = EmbedData.audio(mp4);
     // create audio content
     AudioContent content = FileContent.audio(
       data: ted,
@@ -144,12 +144,12 @@ abstract class Emitter with Logging {
   /// @param extra
   /// @param receiver  - receiver ID
   Future<Pair<InstantMessage?, ReliableMessage?>> sendPicture(Uint8List jpeg, {
-    required String filename, required PortableNetworkFile? thumbnail,
+    required String filename, required TransportableFile? thumbnail,
     Map<String, Object>? extra,
     required ID receiver
   }) async {
     assert(jpeg.isNotEmpty, 'image data should not empty');
-    TransportableData ted = TransportableData.create(jpeg);
+    TransportableData ted = EmbedData.image(jpeg);
     // create image content
     ImageContent content = FileContent.image(
       data: ted,
@@ -176,7 +176,7 @@ abstract class Emitter with Logging {
   /// @param extra
   /// @param receiver - receiver ID
   Future<Pair<InstantMessage?, ReliableMessage?>> sendMovie(Uri url, {
-    required PortableNetworkFile? snapshot, required String? title,
+    required TransportableFile? snapshot, required String? title,
     String? filename, Map<String, Object>? extra,
     required ID receiver
   }) async {

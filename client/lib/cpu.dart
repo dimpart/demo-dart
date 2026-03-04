@@ -10,5 +10,6 @@ export 'src/client/cpu/group/resign.dart';
 export 'src/client/cpu/group.dart';
 export 'src/client/cpu/handshake.dart';
 export 'src/client/cpu/commands.dart';
+export 'src/client/cpu/app.dart';
 export 'src/client/cpu/customized.dart';
 export 'src/client/cpu/creator.dart';

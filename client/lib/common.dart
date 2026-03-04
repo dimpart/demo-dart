@@ -18,6 +18,7 @@ export 'src/common/protocol/version.dart';
 export 'src/common/protocol/utils.dart';
 
 export 'src/common/protocol/ans.dart';
+export 'src/common/protocol/app.dart';
 export 'src/common/protocol/block.dart';
 export 'src/common/protocol/handshake.dart';
 export 'src/common/protocol/login.dart';
@@ -32,6 +33,7 @@ export 'src/common/mkm/station.dart';
 export 'src/common/mkm/bot.dart';
 export 'src/common/mkm/utils.dart';
 
+export 'src/common/dkd/app.dart';
 export 'src/common/dkd/utils.dart';
 
 export 'src/common/dbi/account.dart';

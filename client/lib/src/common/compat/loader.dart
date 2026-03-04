@@ -35,6 +35,7 @@ import 'package:dim_plugins/crypto.dart';
 import 'package:dim_plugins/loader.dart';
 import 'package:lnc/log.dart';
 
+import '../dkd/app.dart';
 import '../protocol/ans.dart';
 import '../protocol/block.dart';
 import '../protocol/groups.dart';
@@ -52,15 +53,79 @@ import 'meta.dart';
 /// ~~~~~~~~~~~~~~~~~
 class CommonExtensionLoader extends ExtensionLoader {
 
-  /// Customized content factories
+  // private
+  void copyContentFactory(String type, String alias) {
+    ContentFactory? factory = Content.getFactory(type);
+    if (factory == null) {
+      assert(false, 'content factory not exists: $type');
+      return;
+    }
+    Content.setFactory(alias, factory);
+  }
+
   @override
+  void registerContentFactories() {
+    super.registerContentFactories();
+
+    // Text
+    copyContentFactory(ContentType.TEXT, "text");
+
+    // File
+    copyContentFactory(ContentType.FILE, "file");
+    // Image
+    copyContentFactory(ContentType.IMAGE, "image");
+    // Audio
+    copyContentFactory(ContentType.AUDIO, "audio");
+    // Video
+    copyContentFactory(ContentType.VIDEO, "video");
+
+    // Web Page
+    copyContentFactory(ContentType.PAGE, "page");
+
+    // Name Card
+    copyContentFactory(ContentType.NAME_CARD, "card");
+
+    // Quote
+    copyContentFactory(ContentType.QUOTE, "quote");
+
+    // Money
+    copyContentFactory(ContentType.MONEY, "money");
+    copyContentFactory(ContentType.TRANSFER, "transfer");
+    // ...
+
+    // Command
+    copyContentFactory(ContentType.COMMAND, "command");
+
+    // History Command
+    copyContentFactory(ContentType.HISTORY, "history");
+
+    // Content Array
+    copyContentFactory(ContentType.ARRAY, "array");
+
+    // Combine and Forward
+    copyContentFactory(ContentType.COMBINE_FORWARD, "combine");
+
+    // Top-Secret
+    copyContentFactory(ContentType.FORWARD, "forward");
+
+    // unknown content type
+    copyContentFactory(ContentType.ANY, "*");
+
+    registerCustomizedFactories();
+
+  }
+
+  /// Customized content factories
   void registerCustomizedFactories() {
 
     // Application Customized
-    setContentFactory(ContentType.CUSTOMIZED, 'customized', creator: (dict) => AppCustomizedContent(dict));
-    setContentFactory(ContentType.APPLICATION, 'application', creator: (dict) => AppCustomizedContent(dict));
+    ContentFactory factory = ContentParser((dict) => AppCustomizedContent(dict));
 
-    // super.registerCustomizedFactories();
+    setContentFactory(ContentType.APPLICATION, factory: factory);
+    setContentFactory(ContentType.CUSTOMIZED, factory: factory);
+    setContentFactory('application', factory: factory);
+    setContentFactory('customized', factory: factory);
+
   }
 
   @override
@@ -132,10 +197,19 @@ class CommonPluginLoader extends PluginLoader {
   }
 
   @override
-  void registerBase64Coder() {
+  void registerCoders() {
+    super.registerCoders();
+
     /// Base64 coding
     Base64.coder = _Base64Coder();
+
   }
+
+  // @override
+  // void registerBase64Coder() {
+  //   /// Base64 coding
+  //   Base64.coder = _Base64Coder();
+  // }
 
   @override
   void registerRSAKeyFactories() {
