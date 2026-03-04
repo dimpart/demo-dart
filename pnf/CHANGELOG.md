@@ -1,3 +1,7 @@
+## 1.4.0
+
+- TransportableFile.
+
 ## 1.3.3
 
 - MD5 digester.

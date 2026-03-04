@@ -159,7 +159,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
     Uri? downloadURL = pnf.url;
     if (downloadURL != null) {
       // data already uploaded
-      Uint8List? data = pnf.data;
+      Uint8List? data = pnf.data?.bytes;
       if (data != null) {
         pnf.data = null;
       }
@@ -289,7 +289,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
     //
     pnf.url = downloadURL;
     Map? extra = pnf['enigma'];
-    Uint8List? data = pnf.data;
+    Uint8List? data = pnf.data?.bytes;
     if (data != null) {
       pnf.data = null;
     }

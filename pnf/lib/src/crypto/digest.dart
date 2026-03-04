@@ -30,7 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:pointycastle/export.dart';
+import 'package:pointycastle/api.dart';
+import 'package:pointycastle/digests/md5.dart';
 
 import 'package:mkm/digest.dart';
 

@@ -84,7 +84,7 @@ String _runtimeType(Object object, String className) {
 abstract class PortableNetworkWrapper {
   PortableNetworkWrapper(this.pnf);
 
-  final PortableNetworkFile pnf;
+  final TransportableFile pnf;
 
   String get className => _runtimeType(this, 'PortableNetworkWrapper');
 
@@ -96,7 +96,7 @@ abstract class PortableNetworkWrapper {
       return '<$clazz URL="$url" />';
     }
     String? filename = pnf.filename;
-    Uint8List? data = pnf.data;
+    TransportableData? data = pnf.data;
     return '<$clazz filename="$filename" length="${data?.length}" />';
   }
 
@@ -158,7 +158,7 @@ mixin DownloadMixin on PortableNetworkWrapper {
 
   @override
   Future<Uint8List?> get fileData async {
-    Uint8List? data = pnf.data;
+    Uint8List? data = pnf.data?.bytes;
     if (data == null || data.isEmpty) {
       // get from local storage
       String? path = await cacheFilePath;
@@ -215,7 +215,7 @@ mixin UploadMixin on PortableNetworkWrapper {
   @override
   Future<Uint8List?> get fileData async {
     String? path = await cacheFilePath;
-    Uint8List? data = pnf.data;
+    Uint8List? data = pnf.data?.bytes;
     if (data == null || data.isEmpty) {
       // get from local storage
       if (path != null && await Paths.exists(path)) {
