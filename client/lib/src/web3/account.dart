@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimsdk/dimp.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
 import '../common/dbi/account.dart';

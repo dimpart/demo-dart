@@ -184,7 +184,7 @@ class GroupEmitter extends TripletsHelper {
     //
     //  2. forward the group message to any bot
     //
-    Content content = ForwardContent.create(forward: rMsg);
+    Content content = ForwardContent.create([rMsg]);
     var pair = await transceiver?.sendContent(content, sender: null, receiver: bot, priority: priority);
     if (pair == null || pair.second == null) {
       assert(false, 'failed to forward message for group: $group, bot: $bot');

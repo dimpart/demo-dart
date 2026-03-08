@@ -33,8 +33,7 @@ import 'dart:typed_data';
 import 'package:bip32/bip32.dart';
 import 'package:bip39/bip39.dart';
 
-import 'package:dimsdk/dimp.dart';
-import 'package:dim_plugins/mkm.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
 import '../common/dbi/account.dart';

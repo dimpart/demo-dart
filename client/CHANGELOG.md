@@ -1,3 +1,7 @@
+## 1.4.0
+
+- Filter for customized handler.
+
 ## 1.3.3
 
 - Transportable File.

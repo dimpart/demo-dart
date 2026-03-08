@@ -152,7 +152,7 @@ class ClientChecker extends EntityChecker {
   Future<bool> sendHistories(ID group, List<ReliableMessage> messages, {
     required List<ID> recipients
   }) async {
-    Content content = ForwardContent.create(secrets: messages);
+    Content content = ForwardContent.create(messages);
     logInfo('sending group histories: $group => $recipients');
     // Send content to all recipients if expired
     return await _sendContentIfExpired(content, recipients, isExpired: (receiver) {

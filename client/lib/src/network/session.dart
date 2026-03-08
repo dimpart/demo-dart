@@ -106,6 +106,12 @@ abstract class BaseSession extends Runner with Logging implements Session, Porte
     return true;
   }
 
+  @override
+  String toString() {
+    String clazz = className;
+    return '<$clazz id="$identifier" remote="$remoteAddress" active=$isActive />';
+  }
+
   CommonMessenger? get messenger => _transceiver?.target;
   set messenger(CommonMessenger? transceiver) =>
       _transceiver = transceiver == null ? null : WeakReference(transceiver);

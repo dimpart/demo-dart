@@ -28,8 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/mkm.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 
 
 class CompatibleMetaFactory extends BaseMetaFactory {
@@ -38,8 +37,8 @@ class CompatibleMetaFactory extends BaseMetaFactory {
   @override
   Meta? parseMeta(Map meta) {
     Meta out;
-    var ext = SharedAccountExtensions();
-    String? version = ext.helper!.getMetaType(meta);
+    var helper = sharedAccountExtensions.helper;
+    String? version = helper?.getMetaType(meta);
     switch (version) {
 
       case 'MKM':

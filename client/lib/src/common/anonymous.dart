@@ -30,8 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/mkm.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 
 class Anonymous {
 

@@ -28,8 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/loader.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 
 import '../../common/compat/entity.dart';
 import '../../common/compat/loader.dart';

@@ -216,7 +216,7 @@ class GroupManager extends TripletsHelper {
     //  4. forward all group history
     //
     List<ReliableMessage> messages = await builder.buildGroupHistories(group);
-    ForwardContent forward = ForwardContent.create(secrets: messages);
+    ForwardContent forward = ForwardContent.create(messages);
 
     // send the command to all members
     await _sendCommand(forward, members: newMembers);       // to new members
@@ -281,14 +281,14 @@ class GroupManager extends TripletsHelper {
       assert(false, 'failed to save "invite" command for group: $group');
       return false;
     }
-    ForwardContent forward = ForwardContent.create(secrets: [rMsg]);
+    ForwardContent forward = ForwardContent.create([rMsg]);
 
     // forward 'invite' to old members
     await _sendCommand(forward, members: oldMembers);         // to old members
 
     // forward all group history to new members
     List<ReliableMessage> messages = await builder.buildGroupHistories(group);
-    forward = ForwardContent.create(secrets: messages);
+    forward = ForwardContent.create(messages);
 
     // TODO: remove that members already exist before sending?
     await _sendCommand(forward, members: newMembers);         // to new members
@@ -354,7 +354,7 @@ class GroupManager extends TripletsHelper {
       assert(false, 'failed to pack group message: $group');
       return false;
     }
-    ForwardContent forward = ForwardContent.create(secrets: [rMsg]);
+    ForwardContent forward = ForwardContent.create([rMsg]);
 
     //
     //  4. forward 'quit' command

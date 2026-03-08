@@ -93,8 +93,8 @@ abstract interface class MetaUtils {
 abstract interface class DocumentUtils {
 
   static String? getDocumentType(Document document) {
-    var ext = SharedAccountExtensions();
-    return ext.helper?.getDocumentType(document.toMap());
+    var helper = sharedAccountExtensions.helper;
+    return helper?.getDocumentType(document.toMap());
   }
 
   /// Check whether this time is before old time

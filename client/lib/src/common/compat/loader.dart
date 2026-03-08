@@ -30,9 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/crypto.dart';
-import 'package:dim_plugins/loader.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
 import '../dkd/app.dart';
@@ -53,7 +51,7 @@ import 'meta.dart';
 /// ~~~~~~~~~~~~~~~~~
 class CommonExtensionLoader extends ExtensionLoader {
 
-  // private
+  // protected
   void copyContentFactory(String type, String alias) {
     ContentFactory? factory = Content.getFactory(type);
     if (factory == null) {

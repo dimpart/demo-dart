@@ -28,8 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/mkm.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 
 import '../utils/cache.dart';
 

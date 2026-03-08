@@ -36,15 +36,15 @@ environment:
 dependencies:
   object_key:  ^1.1.1
   lnc:         ^1.2.2
-  pnf:         ^1.3.3
-#  startrek:    ^1.1.2
-  stargate:    ^1.1.1
-#  mkm:         ^2.2.1
-#  dkd:         ^2.2.1
-#  dimp:        ^2.2.1
-  dimsdk:      ^2.2.0
-  dim_plugins: ^2.2.0
+  pnf:         ^1.4.1
+#  startrek:    ^1.2.0
+  stargate:    ^1.2.0
+#  mkm:         ^2.3.3
+#  dkd:         ^2.3.3
+#  dimp:        ^2.3.3
+  dimsdk:      ^2.3.1
+  dim_plugins: ^2.3.1
 ```
 
-Copyright &copy; 2023-2025 Albert Moky
+Copyright &copy; 2023-2026 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)
