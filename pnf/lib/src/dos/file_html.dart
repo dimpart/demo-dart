@@ -171,7 +171,7 @@ class File extends FileSystemEntity {
 
   /// Creates the file.
   Future<File> create({bool recursive = false, bool exclusive = false}) async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot create file', path);
     }
@@ -193,7 +193,7 @@ class File extends FileSystemEntity {
 
   /// Reads the entire file contents as a list of bytes.
   Future<Uint8List> readAsBytes() async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot read file', path);
     }
@@ -213,7 +213,7 @@ class File extends FileSystemEntity {
   /// Writes a list of bytes to a file.
   Future<File> writeAsBytes(List<int> bytes,
       {FileMode mode = FileMode.write, bool flush = false}) async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot write file', path);
     }
@@ -230,7 +230,7 @@ class File extends FileSystemEntity {
 
   @override
   Future<bool> exists() async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot check file', path);
     }
@@ -239,7 +239,7 @@ class File extends FileSystemEntity {
 
   @override
   Future<FileSystemEntity> delete({bool recursive = false}) async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot remove file', path);
     }
@@ -258,7 +258,7 @@ class Directory extends FileSystemEntity {
 
   /// Creates the directory if it doesn't exist.
   Future<Directory> create({bool recursive = false}) async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot create directory', path);
     }
@@ -268,7 +268,7 @@ class Directory extends FileSystemEntity {
   /// Lists the sub-directories and files of this [Directory].
   Stream<FileSystemEntity> list(
       {bool recursive = false, bool followLinks = true}) {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot read directory', path);
     }
@@ -277,7 +277,7 @@ class Directory extends FileSystemEntity {
 
   @override
   Future<bool> exists() async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot check directory', path);
     }
@@ -286,7 +286,7 @@ class Directory extends FileSystemEntity {
 
   @override
   Future<FileSystemEntity> delete({bool recursive = false}) async {
-    var dos = FileSystem().delegate;
+    var dos = sharedFileSystem.delegate;
     if (dos == null) {
       throw FileSystemException('Cannot remove directory', path);
     }
@@ -400,6 +400,8 @@ class _FileCache implements FileSystemDelegate {
 }
 
 /// Shared File System
+final sharedFileSystem = FileSystem();
+
 class FileSystem {
   factory FileSystem() => _instance;
   static final FileSystem _instance = FileSystem._internal();

@@ -432,6 +432,8 @@ abstract interface class FileSystemDelegate {
 }
 
 /// Shared File System
+final sharedFileSystem = FileSystem();
+
 class FileSystem {
   factory FileSystem() => _instance;
   static final FileSystem _instance = FileSystem._internal();

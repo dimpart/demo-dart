@@ -33,7 +33,7 @@ import 'dart:typed_data';
 import 'package:pointycastle/api.dart';
 import 'package:pointycastle/digests/md5.dart';
 
-import 'package:mkm/digest.dart';
+import 'package:dimp/dimp.dart';
 
 
 class MD5 {

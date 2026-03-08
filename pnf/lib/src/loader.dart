@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:mkm/crypto.dart';
+import 'package:dimp/dimp.dart';
 
 import 'dos/paths.dart';
 import 'http/tasks.dart';

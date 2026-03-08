@@ -32,7 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-import 'package:mkm/type.dart';
+import 'package:dimp/dimp.dart';
 
 
 /// Simple HTTP Client for upload/download files

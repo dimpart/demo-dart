@@ -32,7 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-import 'package:mkm/format.dart';
+import 'package:dimp/dimp.dart';
 
 import 'dos/paths.dart';
 import 'http/client.dart';

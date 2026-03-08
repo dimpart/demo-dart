@@ -31,8 +31,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:mkm/format.dart';
-import 'package:mkm/protocol.dart';
+import 'package:dimp/dimp.dart';
 import 'package:object_key/object_key.dart';
 
 import 'digest.dart';

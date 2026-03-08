@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:mkm/format.dart';
+import 'package:dimp/dimp.dart';
 
 import 'dos/files.dart';
 import 'dos/storage.dart';

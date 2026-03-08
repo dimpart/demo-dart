@@ -1,6 +1,6 @@
 name: pnf
 description: Portable Network File.
-version: 1.4.0
+version: 1.4.1
 homepage: https://github.com/dimpart/demo-dart
 repository: https://github.com/dimpart/demo-dart
 issue_tracker: https://github.com/dimpart/demo-dart/issues
@@ -15,7 +15,7 @@ dependencies:
    pointycastle: ^3.7.2
    object_key: ^1.1.1
    startrek: ^1.2.0
-   mkm: ^2.3.1
+   dimp: ^2.3.3
 
 dev_dependencies:
   lints: ^2.0.0
