@@ -34,12 +34,15 @@ import 'package:dim_plugins/loader.dart';
 import '../../common/compat/entity.dart';
 import '../../common/compat/loader.dart';
 
+import '../../common/protocol/groups.dart';
+import '../cpu/app/filter.dart';
+import '../cpu/app/group.dart';
 import '../facebook.dart';
 
 
 class LibraryLoader {
   LibraryLoader({ExtensionLoader? extensionLoader, PluginLoader? pluginLoader}) {
-    this.extensionLoader = extensionLoader ?? CommonExtensionLoader();
+    this.extensionLoader = extensionLoader ?? ClientExtensionLoader();
     this.pluginLoader = pluginLoader ?? ClientPluginLoader();
   }
 
@@ -64,6 +67,35 @@ class LibraryLoader {
   void load() {
     extensionLoader.load();
     pluginLoader.load();
+  }
+
+}
+
+
+class ClientExtensionLoader extends CommonExtensionLoader {
+
+  @override
+  void load() {
+    super.load();
+
+    registerCustomizedHandlers();
+
+  }
+
+  // protected
+  void registerCustomizedHandlers() {
+
+    var filter = AppCustomizedFilter();
+
+    // 'chat.dim.group:history'
+    filter.setContentHandler(
+      app: GroupHistory.APP,
+      mod: GroupHistory.MOD,
+      handler: GroupHistoryHandler(),
+    );
+
+    sharedMessageExtensions.customizedFilter = filter;
+
   }
 
 }

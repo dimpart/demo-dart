@@ -31,94 +31,25 @@
 import 'package:dimsdk/dimsdk.dart';
 
 import '../../common/protocol/app.dart';
-import '../../common/protocol/groups.dart';
-
-import 'app.dart';
-
-
-/*  Command Transform:
-
-    +===============================+===============================+
-    |      Customized Content       |      Group Query Command      |
-    +-------------------------------+-------------------------------+
-    |   "type" : i2s(0xCC)          |   "type" : i2s(0x88)          |
-    |   "sn"   : 123                |   "sn"   : 123                |
-    |   "time" : 123.456            |   "time" : 123.456            |
-    |   "app"  : "chat.dim.group"   |                               |
-    |   "mod"  : "history"          |                               |
-    |   "act"  : "query"            |                               |
-    |                               |   "command"   : "query"       |
-    |   "group"     : "{GROUP_ID}"  |   "group"     : "{GROUP_ID}"  |
-    |   "last_time" : 0             |   "last_time" : 0             |
-    +===============================+===============================+
- */
-class GroupHistoryHandler extends BaseCustomizedHandler {
-  GroupHistoryHandler(super.facebook, super.messenger);
-
-  @override
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) async {
-    if (content.group == null) {
-      assert(false, 'group command error: $content, sender: $sender');
-      String text = 'Group command error.';
-      return respondReceipt(text, envelope: rMsg.envelope, content: content);
-    } else if (GroupHistory.ACT_QUERY == act) {
-      // assert(GroupHistory.APP == content.application);
-      assert(GroupHistory.MOD == content.module);
-      return await transformQueryCommand(content, rMsg);
-    }
-    assert(false, 'unknown action: $act, $content, sender: $sender');
-    return await super.handleAction(act, sender, content, rMsg);
-  }
-
-  // private
-  Future<List<Content>> transformQueryCommand(CustomizedContent content, ReliableMessage rMsg) async {
-    var transceiver = messenger;
-    if (transceiver == null) {
-      assert(false, 'messenger lost');
-      return [];
-    }
-    Map info = content.copyMap(false);
-    info['type'] = ContentType.COMMAND;
-    info['command'] = QueryCommand.QUERY;
-    Content? query = Content.parse(info);
-    if (query is QueryCommand) {
-      return await transceiver.processContent(query, rMsg);
-    }
-    assert(false, 'query command error: $query, $content, sender: ${rMsg.sender}');
-    String text = 'Query command error.';
-    return respondReceipt(text, envelope: rMsg.envelope, content: content);
-  }
-
-}
+import 'app/filter.dart';
+import 'app/handler.dart';
 
 
 ///  Customized Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ///  Handle content for application customized
-class AppCustomizedProcessor extends CustomizedContentProcessor {
-  AppCustomizedProcessor(super.facebook, super.messenger);
+class CustomizedContentProcessor extends BaseContentProcessor {
+  CustomizedContentProcessor(super.facebook, super.messenger);
 
-  final Map<String, CustomizedContentHandler> _handlers = {};
-
-  void setHandler({
-    required String app, required String mod,
-    required CustomizedContentHandler handler
-  }) => _handlers['$app:$mod'] = handler;
-
-  // protected
-  CustomizedContentHandler? getHandler({
-    required String app, required String mod,
-  }) => _handlers['$app:$mod'];
-
-  /// override for your modules
   @override
-  CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
-    CustomizedContentHandler? handler = getHandler(app: app, mod: mod);
-    if (handler != null) {
-      return handler;
-    }
-    // default handler
-    return super.filter(app, mod, content, rMsg);
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+    assert(content is CustomizedContent, 'customized content error: $content');
+    CustomizedContent customized = content as CustomizedContent;
+    var filter = sharedMessageExtensions.customizedFilter;
+    // get handler for 'app' & 'mod'
+    CustomizedContentHandler handler = filter.filterContent(content, rMsg);
+    // handle the action
+    return await handler.handleAction(customized, rMsg, messenger!);
   }
 
 }

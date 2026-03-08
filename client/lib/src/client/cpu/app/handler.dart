@@ -30,7 +30,7 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import '../../common/protocol/app.dart';
+import '../../../common/protocol/app.dart';
 
 
 ///  Handler for Customized Content
@@ -39,27 +39,24 @@ abstract interface class CustomizedContentHandler {
 
   ///  Do your job
   ///
-  /// @param act     - action
-  /// @param sender  - user ID
-  /// @param content - customized content
-  /// @param rMsg    - network message
+  /// @param content   - customized content
+  /// @param rMsg      - network message
+  /// @param messenger - message transceiver
   /// @return responses
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
-      ReliableMessage rMsg);
+  Future<List<Content>> handleAction(CustomizedContent content, ReliableMessage rMsg, Messenger messenger);
 
 }
 
 /// Default Handler
 /// ~~~~~~~~~~~~~~~
-class BaseCustomizedHandler extends TwinsHelper implements CustomizedContentHandler {
-  BaseCustomizedHandler(super.facebook, super.messenger);
+class BaseCustomizedContentHandler implements CustomizedContentHandler {
 
   @override
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
-      ReliableMessage rMsg) async {
+  Future<List<Content>> handleAction(CustomizedContent content, ReliableMessage rMsg, Messenger messenger) async {
     // String app = content.application;
     String app = content.getString('app') ?? '';
     String mod = content.module;
+    String act = content.action;
     String text = 'Content not support.';
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'Customized content (app: \${app}, mod: \${mod}, act: \${act}) not support yet!',
@@ -82,46 +79,5 @@ class BaseCustomizedHandler extends TwinsHelper implements CustomizedContentHand
     // create base receipt command with text & original envelope
     BaseContentProcessor.createReceipt(text, envelope: envelope, content: content, extra: extra)
   ];
-
-}
-
-
-///  Customized Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-///  Handle content for application customized
-class CustomizedContentProcessor extends BaseContentProcessor {
-  CustomizedContentProcessor(Facebook facebook, Messenger messenger) : super(facebook, messenger) {
-    defaultHandler = createDefaultHandler(facebook, messenger);
-  }
-
-  // protected
-  CustomizedContentHandler createDefaultHandler(Facebook facebook, Messenger messenger) =>
-      BaseCustomizedHandler(facebook, messenger);
-
-  // protected
-  late final CustomizedContentHandler defaultHandler;
-
-  @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    assert(content is CustomizedContent, 'customized content error: $content');
-    CustomizedContent customized = content as CustomizedContent;
-    // get handler for 'app' & 'mod'
-    String app = content.getString('app') ?? '';
-    // String app = customized.application;
-    String mod = customized.module;
-    CustomizedContentHandler handler = filter(app, mod, customized, rMsg);
-    // handle the action
-    String act = customized.action;
-    ID sender = rMsg.sender;
-    return await handler.handleAction(act, sender, customized, rMsg);
-  }
-
-  /// override for your modules
-  // protected
-  CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
-    // if the application has too many modules, I suggest you to
-    // use different handler to do the jobs for each module.
-    return defaultHandler;
-  }
 
 }
