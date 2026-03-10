@@ -1,3 +1,7 @@
+## 1.4.1
+
+- Select local user.
+
 ## 1.4.0
 
 - Filter for customized handler.

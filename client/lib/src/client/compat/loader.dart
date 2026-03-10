@@ -84,7 +84,11 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   // protected
   void registerCustomizedHandlers() {
 
-    var filter = AppCustomizedFilter();
+    var filter = sharedMessageExtensions.customizedFilter;
+    if (filter is! AppCustomizedFilter) {
+      filter = AppCustomizedFilter();
+      sharedMessageExtensions.customizedFilter = filter;
+    }
 
     // 'chat.dim.group:history'
     filter.setContentHandler(
@@ -92,8 +96,6 @@ class ClientExtensionLoader extends CommonExtensionLoader {
       mod: GroupHistory.MOD,
       handler: GroupHistoryHandler(),
     );
-
-    sharedMessageExtensions.customizedFilter = filter;
 
   }
 

@@ -39,6 +39,8 @@ import 'emitter.dart';
 import 'manager.dart';
 
 
+final sharedGroupManager = SharedGroupManager();
+
 class SharedGroupManager implements GroupDataSource {
   factory SharedGroupManager() => _instance;
   static final SharedGroupManager _instance = SharedGroupManager._internal();

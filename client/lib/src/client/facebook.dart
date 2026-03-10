@@ -42,7 +42,7 @@ class ClientArchivist extends CommonArchivist {
 
   @override
   void cacheGroup(Group group) {
-    group.dataSource = SharedGroupManager();
+    group.dataSource = sharedGroupManager;
     super.cacheGroup(group);
   }
 

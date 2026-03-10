@@ -82,7 +82,7 @@ abstract class CommonFacebook extends Facebook with Logging {
   }
 
   @override
-  Future<ID?> selectLocalUser(ID receiver) async {
+  Future<ID?> selectUser(ID receiver) async {
     User? user = _currentUser;
     if (user != null) {
       ID current = user.identifier;
@@ -90,24 +90,28 @@ abstract class CommonFacebook extends Facebook with Logging {
         // broadcast message can be decrypted by anyone, so
         // just return current user here
         return current;
-      } else if (receiver.isGroup) {
-        // group message (recipient not designated)
-        //
-        // the messenger will check group info before decrypting message,
-        // so we can trust that the group's meta & members MUST exist here.
-        List<ID> members = await getMembers(receiver);
-        if (members.isEmpty) {
-          assert(false, 'members not found: $receiver');
-          return null;
-        } else if (members.contains(current)) {
-          return current;
-        }
-      } else if (receiver == current) {
+      } else if (current == receiver) {
         return current;
       }
     }
     // check local users
-    return await super.selectLocalUser(receiver);
+    return await super.selectUser(receiver);
+  }
+
+  @override
+  Future<ID?> selectMember(List<ID> members) async {
+    assert(members.isNotEmpty, 'group members not found');
+    User? user = _currentUser;
+    if (user != null) {
+      ID current = user.identifier;
+      // the messenger will check group info before decrypting message,
+      // so we can trust that the group's meta & members MUST exist here.
+      if (members.contains(current)) {
+        return current;
+      }
+    }
+    // check local users
+    return await super.selectMember(members);
   }
 
   //

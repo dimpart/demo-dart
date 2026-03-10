@@ -117,7 +117,7 @@ class ClientMessageProcessor extends CommonProcessor {
     }
     ID sender = rMsg.sender;
     ID receiver = rMsg.receiver;
-    ID? user = await facebook.selectLocalUser(receiver);
+    User? user = await selectLocalUser(receiver);
     if (user == null) {
       assert(false, "receiver error: $receiver");
       return responses;
@@ -137,7 +137,7 @@ class ClientMessageProcessor extends CommonProcessor {
         }
       }
       // normal response
-      await messenger.sendContent(res, sender: user, receiver: sender, priority: 1);
+      await messenger.sendContent(res, sender: user.identifier, receiver: sender, priority: 1);
     }
     // DON'T respond to station directly
     return [];

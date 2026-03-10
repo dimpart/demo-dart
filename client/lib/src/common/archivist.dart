@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
 import 'dbi/account.dart';
@@ -36,7 +37,6 @@ import 'mkm/bot.dart';
 import 'mkm/provider.dart';
 import 'mkm/station.dart';
 import 'mkm/utils.dart';
-import 'utils/cache.dart';
 
 class CommonArchivist with Logging implements Archivist, Barrack {
   CommonArchivist(Facebook facebook, this.database) : _facebook = WeakReference(facebook);

@@ -256,8 +256,7 @@ abstract class Emitter with Logging {
       return await messenger?.sendInstantMessage(iMsg, priority: priority);
     }
     // send by group manager
-    SharedGroupManager manager = SharedGroupManager();
-    return await manager.sendInstantMessage(iMsg, priority: priority);
+    return await sharedGroupManager.sendInstantMessage(iMsg, priority: priority);
   }
 
   //  Send file content asynchronously

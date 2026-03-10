@@ -88,6 +88,8 @@ class SigPool {
 
 
 /// Check for duplicate messages
+final sharedCheckpoint = Checkpoint();
+
 class Checkpoint {
   factory Checkpoint() => _instance;
   static final Checkpoint _instance = Checkpoint._internal();

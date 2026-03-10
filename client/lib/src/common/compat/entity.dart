@@ -30,7 +30,6 @@
  */
 import 'package:dim_plugins/dim_plugins.dart';
 
-import '../utils/cache.dart';
 import 'network.dart';
 
 
@@ -41,9 +40,7 @@ class EntityIDFactory extends IdentifierFactory {
   ///
   /// @return number of survivors
   int reduceMemory() {
-    int finger = 0;
-    finger = thanos(identifiers, finger);
-    return finger >> 1;
+    return sharedAccountExtensions.idCache.reduceMemory();
   }
 
   @override // protected

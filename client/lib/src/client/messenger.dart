@@ -63,10 +63,9 @@ class ClientMessenger extends CommonMessenger {
 
   // protected
   bool checkMessageDuplicated(ReliableMessage msg) {
-    var cp = Checkpoint();
-    bool duplicated = cp.duplicated(msg);
+    bool duplicated = sharedCheckpoint.duplicated(msg);
     if (duplicated) {
-      String? sig = cp.getSig(msg);
+      String? sig = sharedCheckpoint.getSig(msg);
       logWarning('drop duplicated message ($sig): ${msg.sender} -> ${msg.receiver}');
     }
     return duplicated;

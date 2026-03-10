@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
 import 'dkd/utils.dart';
@@ -93,7 +94,8 @@ abstract class CommonPacker extends MessagePacker with Logging {
     Visa? visa = MessageUtils.getVisa(rMsg);
     if (visa != null) {
       // first handshake?
-      ID? did = ID.parse(visa['did']);
+      var helper = sharedAccountExtensions.helper;
+      ID? did = helper?.getDocumentID(visa.toMap());
       if (did == null) {
         assert(false, 'visa error: $visa');
       } else if (sender == did) {
