@@ -51,6 +51,35 @@ import 'meta.dart';
 /// ~~~~~~~~~~~~~~~~~
 class CommonExtensionLoader extends ExtensionLoader {
 
+  @override
+  void registerIDFactory() {
+    ID.setFactory(EntityIDFactory());
+  }
+
+  @override
+  void registerAddressFactory() {
+    Address.setFactory(CompatibleAddressFactory());
+  }
+
+  @override
+  void registerMetaFactories() {
+    var mkm = CompatibleMetaFactory(MetaType.MKM);
+    var btc = CompatibleMetaFactory(MetaType.BTC);
+    var eth = CompatibleMetaFactory(MetaType.ETH);
+
+    Meta.setFactory('1', mkm);
+    Meta.setFactory('2', btc);
+    Meta.setFactory('4', eth);
+
+    Meta.setFactory('mkm', mkm);
+    Meta.setFactory('btc', btc);
+    Meta.setFactory('eth', eth);
+
+    Meta.setFactory('MKM', mkm);
+    Meta.setFactory('BTC', btc);
+    Meta.setFactory('ETH', eth);
+  }
+
   // protected
   void copyContentFactory(String type, String alias) {
     ContentFactory? factory = Content.getFactory(type);
@@ -166,37 +195,8 @@ class CommonPluginLoader extends PluginLoader {
   }
 
   @override
-  void registerIDFactory() {
-    ID.setFactory(EntityIDFactory());
-  }
-
-  @override
-  void registerAddressFactory() {
-    Address.setFactory(CompatibleAddressFactory());
-  }
-
-  @override
-  void registerMetaFactories() {
-    var mkm = CompatibleMetaFactory(MetaType.MKM);
-    var btc = CompatibleMetaFactory(MetaType.BTC);
-    var eth = CompatibleMetaFactory(MetaType.ETH);
-
-    Meta.setFactory('1', mkm);
-    Meta.setFactory('2', btc);
-    Meta.setFactory('4', eth);
-
-    Meta.setFactory('mkm', mkm);
-    Meta.setFactory('btc', btc);
-    Meta.setFactory('eth', eth);
-
-    Meta.setFactory('MKM', mkm);
-    Meta.setFactory('BTC', btc);
-    Meta.setFactory('ETH', eth);
-  }
-
-  @override
-  void registerCoders() {
-    super.registerCoders();
+  void loadCoders() {
+    super.loadCoders();
 
     /// Base64 coding
     Base64.coder = _Base64Coder();

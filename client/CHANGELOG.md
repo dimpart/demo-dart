@@ -1,3 +1,7 @@
+## 1.4.2
+
+- Entity Extensions.
+
 ## 1.4.1
 
 - Select local user.

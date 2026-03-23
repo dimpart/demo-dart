@@ -81,6 +81,11 @@ class ClientExtensionLoader extends CommonExtensionLoader {
 
   }
 
+  @override
+  void registerIDFactory() {
+    ID.setFactory(_IdentifierFactory());
+  }
+
   // protected
   void registerCustomizedHandlers() {
 
@@ -99,15 +104,14 @@ class ClientExtensionLoader extends CommonExtensionLoader {
 
   }
 
+  // TODO: other extensions
+
 }
 
 
 class ClientPluginLoader extends CommonPluginLoader {
 
-  @override
-  void registerIDFactory() {
-    ID.setFactory(_IdentifierFactory());
-  }
+  // TODO: other plugins
 
 }
 

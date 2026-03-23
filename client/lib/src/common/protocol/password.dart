@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dim_plugins/crypto.dart';
+import 'package:dim_plugins/dim_plugins.dart';
 import 'package:pnf/digest.dart';
 
 

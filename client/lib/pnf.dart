@@ -1,5 +1,7 @@
 library dim_client;
 
+// export 'package:pnf/pnf.dart';
+
 export 'package:pnf/digest.dart';
 
 export 'package:pnf/enigma.dart';

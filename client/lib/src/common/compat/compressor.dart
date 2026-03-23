@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimsdk/core.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import 'compatible.dart';
 

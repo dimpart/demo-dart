@@ -107,10 +107,10 @@ class EfficientMetaCommandProcessor extends MetaCommandProcessor {
   CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
   @override
-  Future<List<Content>> respondMeta(ID identifier, Meta meta, {required ID receiver}) async {
+  Future<List<Content>> respondMeta(Meta meta, ID did, {required ID receiver}) async {
     var checker = facebook?.entityChecker;
     if (checker != null) {
-      await checker.sendMeta(identifier, meta, recipients: [receiver]);
+      await checker.sendMeta(did, meta, recipients: [receiver]);
     }
     return [];
   }
@@ -125,10 +125,10 @@ class EfficientDocumentCommandProcessor extends DocumentCommandProcessor {
   CommonFacebook? get facebook => super.facebook as CommonFacebook?;
 
   @override
-  Future<List<Content>> respondDocuments(ID identifier, List<Document> docs, {required ID receiver}) async {
+  Future<List<Content>> respondDocuments(List<Document> docs, ID did, {required ID receiver}) async {
     var checker = facebook?.entityChecker;
     if (checker != null) {
-      await checker.sendDocuments(identifier, docs, recipients: [receiver]);
+      await checker.sendDocuments(did, docs, recipients: [receiver]);
     }
     return [];
   }

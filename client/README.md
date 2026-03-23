@@ -42,8 +42,8 @@ dependencies:
 #  mkm:         ^2.3.3
 #  dkd:         ^2.3.3
 #  dimp:        ^2.3.3
-  dimsdk:      ^2.3.1
-  dim_plugins: ^2.3.1
+  dimsdk:      ^2.3.3
+  dim_plugins: ^2.3.3
 ```
 
 Copyright &copy; 2023-2026 Albert Moky
