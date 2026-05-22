@@ -105,7 +105,7 @@ abstract interface class Statement {
   /// 'DELETE FROM t_user WHERE id = "moky@anywhere"'
   Future<int> executeDelete(String sql);
 
-  void close();
+  Future<void> close();
 
 }
 
@@ -113,7 +113,7 @@ abstract interface class DBConnection {
 
   Statement createStatement();
 
-  void close();
+  Future<void> close();
 
 }
 

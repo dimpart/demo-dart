@@ -1,3 +1,7 @@
+## 1.4.3
+
+- Create unique index for table.
+
 ## 1.4.2
 
 - Entity Extensions.

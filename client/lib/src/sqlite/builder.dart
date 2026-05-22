@@ -30,123 +30,103 @@
  */
 import 'conditions.dart';
 import 'values.dart';
+import 'buffer.dart';
 
-class SQLBuilder {
-  SQLBuilder(String command) : _sb = StringBuffer(command);
 
-  final StringBuffer _sb;
+// ignore_for_file: constant_identifier_names
+class SQLBuilder extends SQLStringBuffer {
+  SQLBuilder(super.command);
 
-  static const String create = "CREATE";
-  static const String alter  = "ALTER";
+  static const String CREATE = "CREATE";
+  static const String ALTER  = "ALTER";
+  static const String DROP   = "DROP";
 
-  static const String insert = "INSERT";
-  static const String select = "SELECT";
-  static const String update = "UPDATE";
-  static const String delete = "DELETE";
-
-  @override
-  String toString() => _sb.toString();
-
-  void _append(String sub) {
-    _sb.write(sub);
-  }
-  void _appendStringList(List<String> array) {
-    SQLValues.appendStringList(_sb, array);
-  }
-  void _appendEscapeValueList(List array) {
-    SQLValues.appendEscapeValueList(_sb, array);
-  }
-  void _appendValues(SQLValues values) {
-    values.appendValues(_sb);
-  }
-
-  //  SELECT *       ...
-  //  SELECT columns ...
-  void _appendColumns(List<String> columns) {
-    if (columns.isEmpty) {
-      _append(' *');
-    } else {
-      _append(' ');
-      _appendStringList(columns);
-    }
-  }
-  void _appendClause(String name, String? clause) {
-    if (clause == null || clause.isEmpty) {
-      return;
-    }
-    _append(name);
-    _append(clause);
-  }
-  void _appendWhere(SQLConditions? conditions) {
-    if (conditions == null) {
-      return;
-    }
-    _append(' WHERE ');
-    conditions.appendEscapeValue(_sb);
-  }
+  static const String INSERT = "INSERT";
+  static const String SELECT = "SELECT";
+  static const String UPDATE = "UPDATE";
+  static const String DELETE = "DELETE";
 
   ///
   ///  CREATE TABLE IF NOT EXISTS table (field type, ...);
   ///
   static String buildCreateTable(String table, {required List<String> fields}) {
-    SQLBuilder builder = SQLBuilder(create);
-    builder._append(' TABLE IF NOT EXISTS ');
-    builder._append(table);
-    builder._append('(');
-    builder._appendStringList(fields);
-    builder._append(')');
+    SQLBuilder builder = SQLBuilder(CREATE);
+    builder.appendString(' TABLE IF NOT EXISTS ').appendString(table);
+    builder.appendString(' (').appendStringList(fields).appendString(')');
     return builder.toString();
   }
 
   ///
-  ///  CREATE INDEX IF NOT EXISTS name ON table (fields);
+  ///  CREATE INDEX IF NOT EXISTS name ON table (columns);
   ///
-  static String buildCreateIndex(String table,
-      {required String name, required List<String> fields}) {
-    SQLBuilder builder = SQLBuilder(create);
-    builder._append(' INDEX IF NOT EXISTS ');
-    builder._append(name);
-    builder._append(' ON ');
-    builder._append(table);
-    builder._append('(');
-    builder._appendStringList(fields);
-    builder._append(')');
+  static String buildCreateIndex(String table, {bool unique = false,
+    required String name, required List<String> columns,
+  }) {
+    SQLBuilder builder = SQLBuilder(CREATE);
+    if (unique) {
+      builder.appendString(' UNIQUE INDEX IF NOT EXISTS ').appendString(name);
+    } else {
+      builder.appendString(' INDEX IF NOT EXISTS ').appendString(name);
+    }
+    builder.appendString(' ON ').appendString(table);
+    builder.appendString(' (').appendStringList(columns).appendString(')');
+    return builder.toString();
+  }
+
+  ///
+  ///  ALTER TABLE old_table RENAME TO new_table;
+  ///
+  static String buildRenameTable(String table, {required String fromTable}) {
+    SQLBuilder builder = SQLBuilder(ALTER);
+    builder.appendString(' TABLE ').appendString(fromTable);
+    builder.appendString(' RENAME TO ').appendString(table);
+    return builder.toString();
+  }
+
+  ///
+  ///  DROP TABLE IF EXISTS table;
+  ///
+  static String buildDropTable(String table) {
+    SQLBuilder builder = SQLBuilder(DROP);
+    builder.appendString(' TABLE IF EXISTS ').appendString(table);
     return builder.toString();
   }
 
   ///
   ///  ALTER TABLE table ADD COLUMN IF NOT EXISTS name type;
   ///
-  static String buildAddColumn(String table,
-      {required String name, required String type}) {
-    SQLBuilder builder = SQLBuilder(alter);
-    builder._append(' TABLE ');
-    builder._append(table);
-    // builder._append(' ADD COLUMN IF NOT EXISTS ');
-    builder._append(' ADD COLUMN ');
-    builder._append(name);
-    builder._append(' ');
-    builder._append(type);
+  static String buildAddColumn(String table, {
+    required String name, required String type,
+  }) {
+    SQLBuilder builder = SQLBuilder(ALTER);
+    builder.appendString(' TABLE ').appendString(table);
+    // builder.appendString(' ADD COLUMN IF NOT EXISTS ');
+    builder.appendString(' ADD COLUMN ');
+    builder.appendString(name).appendString(' ').appendString(type);
     return builder.toString();
   }
 
-  //
-  //  DROP TABLE IF EXISTS table;
-  //
-
   ///
   ///  INSERT INTO table (columns) VALUES (values);
+  ///  INSERT INTO table (columns) SELECT old_columns FROM old_table ...;
   ///
-  static String buildInsert(String table,
-      {required List<String> columns, required List values}) {
-    SQLBuilder builder = SQLBuilder(insert);
-    builder._append(' INTO ');
-    builder._append(table);
-    builder._append('(');
-    builder._appendStringList(columns);
-    builder._append(') VALUES (');
-    builder._appendEscapeValueList(values);
-    builder._append(')');
+  static String buildInsert(String table, {required List<String> columns,
+    List? values,
+    String? selectClause,
+  }) {
+    SQLBuilder builder = SQLBuilder(INSERT);
+    builder.appendString(' INTO ').appendString(table);
+    builder.appendString(' (').appendStringList(columns).appendString(')');
+    if (values != null) {
+      builder.appendString(' VALUES (');
+      builder.appendEscapeValueList(values);
+      builder.appendString(')');
+    } else if (selectClause != null) {
+      builder.appendString(' ');
+      builder.appendString(selectClause);
+    } else {
+      assert(false, 'SQL error: ${builder.toString()}');
+    }
     return builder.toString();
   }
 
@@ -157,50 +137,55 @@ class SQLBuilder {
   ///          ORDER BY ...
   ///          LIMIT count OFFSET start;
   ///
-  static String buildSelect(String table,
-      {bool distinct = false,
-        required List<String> columns, required SQLConditions conditions,
-        String? groupBy, String? having, String? orderBy,
-        int offset = 0, int? limit}) {
-    SQLBuilder builder = SQLBuilder(select);
+  static String buildSelect(String table, {bool distinct = false,
+    required List<String> columns,
+    SQLConditions? conditions,
+    String? groupBy, String? having, String? orderBy,
+    int? limit, int offset = 0,
+  }) {
+    SQLBuilder builder = SQLBuilder(SELECT);
     if (distinct) {
-      builder._append(' DISTINCT');
+      builder.appendString(' DISTINCT');
     }
-    builder._appendColumns(columns);
-    builder._append(' FROM ');
-    builder._append(table);
-    builder._appendWhere(conditions);
-    builder._appendClause(' GROUP BY ', groupBy);
-    builder._appendClause(' HAVING ', having);
-    builder._appendClause(' ORDER BY ', orderBy);
-    if (limit != null) {
-      builder._append(' LIMIT $limit OFFSET $offset');
+    if (columns.isEmpty) {
+      builder.appendString(' *');
+    } else {
+      builder.appendString(' ').appendStringList(columns);
     }
+    builder.appendString(' FROM ').appendString(table);
+    // WHERE ...
+    builder.appendWhereClause(conditions,
+      groupBy: groupBy, having: having, orderBy: orderBy,
+      limit: limit, offset: offset,
+    );
     return builder.toString();
   }
 
   ///
   ///  UPDATE table SET name=value WHERE conditions
   ///
-  static String buildUpdate(String table,
-      {required Map<String, dynamic> values, required SQLConditions conditions}) {
-    SQLBuilder builder = SQLBuilder(update);
-    builder._append(' ');
-    builder._append(table);
-    builder._append(' SET ');
-    builder._appendValues(SQLValues.from(values));
-    builder._appendWhere(conditions);
+  static String buildUpdate(String table, {
+    required Map<String, dynamic> values,
+    SQLConditions? conditions,
+  }) {
+    SQLBuilder builder = SQLBuilder(UPDATE);
+    builder.appendString(' ').appendString(table);
+    builder.appendString(' SET ').appendValues(SQLValues.from(values));
+    // WHERE ...
+    builder.appendWhereClause(conditions);
     return builder.toString();
   }
 
   ///
   ///  DELETE FROM table WHERE conditions
   ///
-  static String buildDelete(String table, {required SQLConditions conditions}) {
-    SQLBuilder builder = SQLBuilder(delete);
-    builder._append(' FROM ');
-    builder._append(table);
-    builder._appendWhere(conditions);
+  static String buildDelete(String table, {
+    SQLConditions? conditions
+  }) {
+    SQLBuilder builder = SQLBuilder(DELETE);
+    builder.appendString(' FROM ').appendString(table);
+    // WHERE ...
+    builder.appendWhereClause(conditions);
     return builder.toString();
   }
 
