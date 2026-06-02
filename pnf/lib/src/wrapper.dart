@@ -284,25 +284,26 @@ mixin UploadMixin on PortableNetworkWrapper {
       assert(false, 'upload info error: $pnf');
       return null;
     }
+    List<String>? keys = extra['keys'];
+    if (keys == null || keys.isEmpty) {
+      assert(false, 'enigma keys not found: $pnf');
+      return null;
+    }
     //
     //  2. fet secret key
     //
-    var pair = enigma.fetch(api);
-    String? prefix = pair?.first;
-    Uint8List? secret = pair?.second;
-    if (prefix == null || secret == null) {
-      assert(false, 'failed to fetch enigma: $api, $enigma');
+    var item = enigma.lookup(keys);
+    if (item == null/* || item.isEmpty*/) {
+      assert(false, 'failed to fetch enigma: $api, $keys');
       return null;
-    } else if (prefix.isEmpty || secret.isEmpty) {
-      assert(false, 'enigma error: $api, $enigma');
+    } else if (item.isEmpty) {
+      assert(false, 'enigma error: $api, $item');
       return null;
     }
     //
     //  3. build upload URL
     //
-    url = enigma.build(api,
-      sender, data: data, secret: secret, enigma: prefix,
-    );
+    url = enigma.build(api, item, sender: sender, data: data);
     Uri? remote = HTTPClient.parseURL(url);
     if (remote != null) {
       extra['URL'] = url;
@@ -318,7 +319,7 @@ mixin UploadMixin on PortableNetworkWrapper {
       return pwd;
     }
     // generate new key
-    pwd = SymmetricKey.generate('AES');  // SymmetricAlgorithms.AES
+    pwd = SymmetricKey.generate(SymmetricAlgorithms.AES);
     pnf.password = pwd;
     return pwd;
   }

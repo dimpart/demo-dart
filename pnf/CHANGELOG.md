@@ -1,3 +1,7 @@
+## 1.4.2
+
+- Enigma Items.
+
 ## 1.4.1
 
 - Shared FileSystem.
