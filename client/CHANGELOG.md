@@ -1,3 +1,7 @@
+## 1.4.4
+
+- Hex data encoding.
+
 ## 1.4.3
 
 - Create unique index for table.

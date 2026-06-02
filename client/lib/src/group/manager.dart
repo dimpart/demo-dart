@@ -284,15 +284,13 @@ class GroupManager extends TripletsHelper {
     ForwardContent forward = ForwardContent.create([rMsg]);
 
     // forward 'invite' to old members
-    await _sendCommand(forward, members: oldMembers);         // to old members
+    bool ok = await _sendCommand(forward, members: oldMembers);  // to old members
 
-    // forward all group history to new members
-    List<ReliableMessage> messages = await builder.buildGroupHistories(group);
-    forward = ForwardContent.create(messages);
-
-    // TODO: remove that members already exist before sending?
-    await _sendCommand(forward, members: newMembers);         // to new members
-    return true;
+    // // forward all group history to new members
+    // List<ReliableMessage> messages = await builder.buildGroupHistories(group);
+    // forward = ForwardContent.create(messages);
+    // await _sendCommand(forward, members: newMembers);         // to new members
+    return ok;
   }
 
   ///  Quit from this group

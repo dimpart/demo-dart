@@ -38,6 +38,8 @@ import '../cpu/app/filter.dart';
 import '../cpu/app/group.dart';
 import '../facebook.dart';
 
+import 'hex.dart';
+
 
 class LibraryLoader {
   LibraryLoader({ExtensionLoader? extensionLoader, PluginLoader? pluginLoader}) {
@@ -69,6 +71,11 @@ class LibraryLoader {
   }
 
 }
+
+
+///
+///  Extensions Loader
+///
 
 
 class ClientExtensionLoader extends CommonExtensionLoader {
@@ -108,13 +115,6 @@ class ClientExtensionLoader extends CommonExtensionLoader {
 
 }
 
-
-class ClientPluginLoader extends CommonPluginLoader {
-
-  // TODO: other plugins
-
-}
-
 IDFactory _identifierFactory = EntityIDFactory();
 
 class _IdentifierFactory implements IDFactory {
@@ -138,6 +138,46 @@ class _IdentifierFactory implements IDFactory {
     }
     // parse by original factory
     return _identifierFactory.parseID(identifier);
+  }
+
+}
+
+
+///
+///  Plugins Loader
+///
+
+
+class ClientPluginLoader extends CommonPluginLoader {
+
+  @override
+  void registerTEDFactory() {
+
+    var ted = _NetworkDataFactory();
+    TransportableData.setFactory(ted);
+
+  }
+
+  // TODO: other plugins
+
+}
+
+class _NetworkDataFactory extends BaseNetworkDataFactory {
+
+  @override
+  TransportableData? parseTransportableData(String ted) {
+    if (ted.startsWith('base64,')) {
+      // "base64,..."
+      return Base64Data.createWithString(ted.substring(7));
+    } else if (ted.startsWith('hex,')) {
+      // "hex,..."
+      return HexData.createWithString(ted.substring(4));
+    } else if (ted.startsWith('0x')) {
+      // "0x..."
+      return HexData.createWithString(ted.substring(2));
+    }
+    // default
+    return super.parseTransportableData(ted);
   }
 
 }
