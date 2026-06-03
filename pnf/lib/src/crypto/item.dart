@@ -35,9 +35,9 @@ import 'package:object_key/object_key.dart';
 
 
 class EnigmaItem {
-  EnigmaItem(this.key, this.secret);
+  EnigmaItem(this.index, this.secret);
 
-  final String key;
+  final String index;
   final Uint8List secret;
 
   bool get isEmpty => secret.isEmpty;
@@ -48,7 +48,7 @@ class EnigmaItem {
   @override
   String toString() {
     String clazz = className;
-    return '<$clazz key="$key" length=${secret.length} />';
+    return '<$clazz index="$index" length=${secret.length} />';
   }
 
   //
@@ -85,7 +85,7 @@ class EnigmaItem {
     }
     var ted = TransportableData.parse(pair.second);
     Uint8List? secret = ted?.bytes;
-    if (secret == null/* || secret.isEmpty*/) {
+    if (secret == null || secret.isEmpty) {
       assert(false, 'enigma value error: $enigma');
       return null;
     }
@@ -127,13 +127,13 @@ class EnigmaItem {
   }
 
   static Pair<String, Object>? _fetchFromMap(Map item) {
-    var key = item['key'];
-    var value = item['value'];
-    if (value == null) {
+    var index = item['index'];
+    var secret = item['secret'];
+    if (secret == null) {
       assert(false, 'enigma item value error: $item');
       return null;
-    } else if (key is String && key.isNotEmpty) {
-      return Pair(key, value);
+    } else if (index is String && index.isNotEmpty) {
+      return Pair(index, secret);
     } else {
       assert(false, 'enigma item error: $item');
       return null;

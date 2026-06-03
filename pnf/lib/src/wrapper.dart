@@ -276,17 +276,15 @@ mixin UploadMixin on PortableNetworkWrapper {
     //  1. get extra info for enigma
     //
     String? api = extra['API'];
-    ID? sender = ID.parse(extra['sender']);
-    if (api == null || sender == null) {
-      assert(false, 'upload info error: $pnf');
-      return null;
-    } else if (api.isEmpty || data.isEmpty) {
-      assert(false, 'upload info error: $pnf');
-      return null;
-    }
-    List<String>? keys = extra['keys'];
+    List? keys = extra['keys'];
     if (keys == null || keys.isEmpty) {
       assert(false, 'enigma keys not found: $pnf');
+      return null;
+    } else if (api == null || !api.contains('://')) {
+      assert(false, 'upload info error: $pnf');
+      return null;
+    } else if (data.isEmpty) {
+      assert(false, 'upload info error: $pnf');
       return null;
     }
     //
@@ -303,7 +301,7 @@ mixin UploadMixin on PortableNetworkWrapper {
     //
     //  3. build upload URL
     //
-    url = enigma.build(api, item, sender: sender, data: data);
+    url = enigma.build(api, item, data);
     Uri? remote = HTTPClient.parseURL(url);
     if (remote != null) {
       extra['URL'] = url;

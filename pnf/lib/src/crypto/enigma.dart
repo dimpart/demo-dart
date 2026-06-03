@@ -82,18 +82,18 @@ class Enigma {
   void update(Iterable secrets) {
     var array = EnigmaItem.convert(secrets);
     for (var item in array) {
-      _table[item.key] = item;
+      _table[item.index] = item;
     }
   }
 
   /// Search secret with keys
-  EnigmaItem? lookup(Iterable<String> keys) {
+  EnigmaItem? lookup(Iterable keys) {
     if (keys.length == 1 && keys.first == '*') {
       return any;
     }
     // check keys one by one
     EnigmaItem? item;
-    for (String prefix in keys) {
+    for (var prefix in keys) {
       item = _table[prefix];
       if (item != null) {
         return item;
@@ -106,20 +106,16 @@ class Enigma {
   /// Build upload URL
   /// ~~~~~~~~~~~~~~~~
   /// hash algorithm: md5(md5(data) + secret + salt)
-  String build(String api, EnigmaItem enigma, {
-    required ID sender, required Uint8List data,
-  }) {
+  String build(String api, EnigmaItem enigma, Uint8List data) {
     assert(data.isNotEmpty && enigma.isNotEmpty, 'enigma params error: ${data.length}, $enigma');
-    // build URL string with sender
-    String urlString = api;
-    urlString = Template.replace(urlString, 'ID', sender.address.toString());
     // hash: md5(md5(data) + secret + salt)
     Uint8List salt = _EnigmaHelper.random(16);
     Uint8List temp = _EnigmaHelper.concat(MD5.digest(data), enigma.secret, salt);
     Uint8List hash = MD5.digest(temp);
-    urlString = Template.replace(urlString, 'MD5', Hex.encode(hash));
-    urlString = Template.replace(urlString, 'SALT', Hex.encode(salt));
-    return _EnigmaHelper.replaceEnigma(urlString, enigma.key);
+    // replace tags
+    api = Template.replace(api, 'MD5', Hex.encode(hash));
+    api = Template.replace(api, 'SALT', Hex.encode(salt));
+    return _EnigmaHelper.replaceEnigma(api, enigma.index);
   }
 
 }
@@ -128,7 +124,7 @@ class Enigma {
 /// Enigma secret formats:
 ///   1. base64,{BASE64_ENCODE}
 ///   2. hex,{HEX_ENCODE}
-///   3. {HEX_ENCODE}
+///   3. 0x{HEX_ENCODE}
 abstract class _EnigmaHelper {
 
   //

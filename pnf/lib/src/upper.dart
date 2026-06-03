@@ -55,7 +55,7 @@ import 'wrapper.dart';
 ///
 ///         enigma   : {                  // remove after uploaded
 ///             API      : "http://...",
-///             sender   : "{user}",      // user ID
+///             keys     : [...],         // enigma secrets
 ///             filename : "{md5}.ext"    // hex_encode(md5(ciphertext))
 ///         }
 ///     }
