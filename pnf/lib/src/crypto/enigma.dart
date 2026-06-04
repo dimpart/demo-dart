@@ -28,30 +28,38 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:math';
-import 'dart:typed_data';
-
-import 'package:dimp/dimp.dart';
-
-import 'digest.dart';
-import 'template.dart';
-import 'item.dart';
+import 'enigma_item.dart';
 
 
 /// Enigma for MD5 secrets
-class Enigma {
+class Enigma with ClassNameMixIn {
 
   final Map<String, EnigmaItem> _table = {};
 
-  String get className => 'Enigma';
+  String get className => getClassName('Enigma');
 
   @override
   String toString() {
     String clazz = className;
-    String keys = _table.keys.toString();
-    return '<$clazz>\r\n'
-        '    keys: $keys\r\n'
-        '</$clazz>';
+    String text = '\r\n';
+    _table.forEach((key, item) {
+      text += '\t$key: $item\r\n';
+    });
+    return '<$clazz count=$length>$text</$clazz>';
+  }
+
+  Iterable<String> get keys => _table.keys.cast();
+  Iterable<EnigmaItem> get items => _table.values;
+
+  int get length => _table.length;
+
+  bool get isEmpty => _table.isEmpty;
+  bool get isNotEmpty => _table.isNotEmpty;
+
+  EnigmaItem? operator [](Object? key) => _table[key];
+  void operator []=(String key, EnigmaItem item) {
+    assert(item.isNotEmpty, 'enigma item should not be empty: $key => $item');
+    _table[key] = item;
   }
 
   /// Take all items
@@ -59,11 +67,25 @@ class Enigma {
 
   /// Take any item
   EnigmaItem? get any {
+    var array = _table.values;
+    for (var item in array) {
+      if (item.isNotEmpty) {
+        // got first item not empty
+        return item;
+      }
+    }
+    assert(_table.isNotEmpty, 'enigma items not found');
+    // NOTICE: the first item may be empty
+    return first;
+  }
+
+  /// Take first item
+  EnigmaItem? get first {
     if (_table.isEmpty) {
-      assert(false, 'enigma secrets not found');
+      assert(false, 'enigma items not found');
       return null;
     }
-    return _table.entries.first.value;
+    return _table.values.first;
   }
 
   /// Remove all secrets
@@ -79,9 +101,9 @@ class Enigma {
   }
 
   /// Update secrets
-  void update(Iterable secrets) {
-    var array = EnigmaItem.convert(secrets);
-    for (var item in array) {
+  void update(Iterable<EnigmaItem> secrets) {
+    for (var item in secrets) {
+      assert(item.isNotEmpty, 'enigma item should not be empty: $item');
       _table[item.index] = item;
     }
   }
@@ -91,69 +113,25 @@ class Enigma {
     if (keys.length == 1 && keys.first == '*') {
       return any;
     }
+    EnigmaItem? found;
     // check keys one by one
     EnigmaItem? item;
     for (var prefix in keys) {
       item = _table[prefix];
-      if (item != null) {
-        return item;
+      if (item == null) {
+        // item not exists
+        continue;
       }
+      found = item;
+      if (found.isNotEmpty) {
+        // got first item not empty
+        break;
+      }
+      assert(false, 'enigma item empty: $item');
+      // continue;
     }
-    // secret not found
-    return null;
-  }
-
-  /// Build upload URL
-  /// ~~~~~~~~~~~~~~~~
-  /// hash algorithm: md5(md5(data) + secret + salt)
-  String build(String api, EnigmaItem enigma, Uint8List data) {
-    assert(data.isNotEmpty && enigma.isNotEmpty, 'enigma params error: ${data.length}, $enigma');
-    // hash: md5(md5(data) + secret + salt)
-    Uint8List salt = _EnigmaHelper.random(16);
-    Uint8List temp = _EnigmaHelper.concat(MD5.digest(data), enigma.secret, salt);
-    Uint8List hash = MD5.digest(temp);
-    // replace tags
-    api = Template.replace(api, 'MD5', Hex.encode(hash));
-    api = Template.replace(api, 'SALT', Hex.encode(salt));
-    return _EnigmaHelper.replaceEnigma(api, enigma.index);
-  }
-
-}
-
-
-/// Enigma secret formats:
-///   1. base64,{BASE64_ENCODE}
-///   2. hex,{HEX_ENCODE}
-///   3. 0x{HEX_ENCODE}
-abstract class _EnigmaHelper {
-
-  //
-  //  URL: "https://tfs.dim.chat/{ID}/upload?md5={MD5}&salt={SALT}&enigma={ENIGMA}"
-  //
-
-  /// Set enigma key into URL
-  /// replace the tag 'enigma' with new key
-  static String replaceEnigma(String url, String enigma) {
-    if (url.contains('{ENIGMA}')) {
-      return Template.replace(url, 'ENIGMA', enigma);
-    }
-    return Template.replaceQueryParam(url, 'enigma', enigma);
-  }
-
-  //
-  //  Bytes
-  //
-
-  static Uint8List concat(Uint8List a, Uint8List b, Uint8List c) =>
-      Uint8List.fromList(a + b + c);
-
-  static Uint8List random(int size) {
-    Uint8List data = Uint8List(size);
-    Random r = Random();
-    for (int i = 0; i < size; ++i) {
-      data[i] = r.nextInt(256);
-    }
-    return data;
+    // NOTICE: the chosen item may be empty
+    return found;
   }
 
 }

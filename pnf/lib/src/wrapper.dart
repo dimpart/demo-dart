@@ -33,6 +33,8 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import 'crypto/enigma.dart';
+import 'crypto/enigma_builder.dart';
+import 'crypto/enigma_item.dart';
 import 'dos/paths.dart';
 import 'http/client.dart';
 
@@ -73,20 +75,13 @@ enum PortableNetworkStatus {
   error,        //    -    |    -
 }
 
-String _runtimeType(Object object, String className) {
-  assert(() {
-    className = object.runtimeType.toString();
-    return true;
-  }());
-  return className;
-}
 
-abstract class PortableNetworkWrapper {
+abstract class PortableNetworkWrapper with ClassNameMixIn {
   PortableNetworkWrapper(this.pnf);
 
   final TransportableFile pnf;
 
-  String get className => _runtimeType(this, 'PortableNetworkWrapper');
+  String get className => getClassName('PortableNetworkWrapper');
 
   @override
   String toString() {
@@ -209,6 +204,9 @@ mixin UploadMixin on PortableNetworkWrapper {
   // protected
   Enigma get enigma;
 
+  // protected
+  URLBuilder get builder => UploadURLBuilder();
+
   @override
   String? get filename => pnf.filename;
 
@@ -291,17 +289,24 @@ mixin UploadMixin on PortableNetworkWrapper {
     //  2. fet secret key
     //
     var item = enigma.lookup(keys);
+    var secret = item?.secret;
     if (item == null/* || item.isEmpty*/) {
       assert(false, 'failed to fetch enigma: $api, $keys');
       return null;
     } else if (item.isEmpty) {
       assert(false, 'enigma error: $api, $item');
       return null;
+    } else if (secret == null || secret.isEmpty) {
+      assert(false, 'enigma error: $item');
+      return null;
     }
     //
     //  3. build upload URL
     //
-    url = enigma.build(api, item, data);
+    url = builder.buildURL(api,
+      enigma: item.index, secret: secret,
+      data: data, extra: extra,
+    );
     Uri? remote = HTTPClient.parseURL(url);
     if (remote != null) {
       extra['URL'] = url;

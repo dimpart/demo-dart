@@ -31,24 +31,62 @@
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
-import 'package:object_key/object_key.dart';
 
 
-class EnigmaItem {
-  EnigmaItem(this.index, this.secret);
+mixin ClassNameMixIn {
 
-  final String index;
-  final Uint8List secret;
+  String getClassName(String className) {
+    assert(() {
+      className = runtimeType.toString();
+      return true;
+    }());
+    return className;
+  }
 
-  bool get isEmpty => secret.isEmpty;
-  bool get isNotEmpty => secret.isNotEmpty;
+}
 
-  String get className => 'Enigma';
+
+class EnigmaItem extends Dictionary with ClassNameMixIn {
+  EnigmaItem(Map item) : super(item);
+
+  /// Enigma secret formats:
+  ///   0. {BASE64_ENCODE}
+  ///   1. base64,{BASE64_ENCODE}
+  ///   2. hex,{HEX_ENCODE}
+  ///   3. 0x{HEX_ENCODE}
+  TransportableData? _data;
+
+  // protected
+  TransportableData? get data {
+    var ted = _data;
+    if (ted == null) {
+      var txt = this['secret'] ?? this['value'] ?? this['data'];
+      ted = TransportableData.parse(txt);
+      _data = ted;
+    }
+    return ted;
+  }
+
+  /// enigma key
+  String get index =>
+      Converter.getString(this['index'] ?? this['key'] ?? this['name']) ?? '';
+
+  /// enigma value
+  Uint8List? get secret => data?.bytes;
+
+  @override
+  bool get isEmpty => secret?.isEmpty != false;
+
+  @override
+  bool get isNotEmpty => secret?.isNotEmpty == true;
+
+  String get className => getClassName('EnigmaItem');
 
   @override
   String toString() {
     String clazz = className;
-    return '<$clazz index="$index" length=${secret.length} />';
+    var size = data?.lengthInBytes;
+    return '<$clazz index="$index" length=$size />';
   }
 
   //
@@ -68,8 +106,16 @@ class EnigmaItem {
     return items;
   }
 
+  static List<Map> revert(Iterable<EnigmaItem> items) {
+    List<Map> array = [];
+    for (EnigmaItem enigma in items) {
+      array.add(enigma.toMap());
+    }
+    return array;
+  }
+
   //
-  //  Factory methods
+  //  Factory method
   //
 
   static EnigmaItem? parse(Object? enigma) {
@@ -78,66 +124,18 @@ class EnigmaItem {
     } else if (enigma is EnigmaItem) {
       return enigma;
     }
-    var pair = _fetchEnigmaItem(enigma);
-    if (pair == null) {
-      assert(false, 'enigma error: $enigma');
-      return null;
-    }
-    var ted = TransportableData.parse(pair.second);
-    Uint8List? secret = ted?.bytes;
-    if (secret == null || secret.isEmpty) {
-      assert(false, 'enigma value error: $enigma');
-      return null;
-    }
-    return EnigmaItem(pair.first, secret);
-  }
-
-  static Pair<String, Object>? _fetchEnigmaItem(Object item) {
-    if (item is Map) {
-      // parse from map info
-      return _fetchFromMap(item);
-    } else if (item is String) {
-      // parse from Hex string
-      return _fetchFromString(item);
+    Map info;
+    if (enigma is Mapper) {
+      info = enigma.toMap();
+    } else if (enigma is Map) {
+      info = enigma;
     } else {
-      assert(false, 'enigma item error: $item');
+      assert(false, 'enigma item error: $enigma');
       return null;
     }
-  }
-
-  static Pair<String, Object>? _fetchFromString(String item) {
-    String body;
-    int pos = item.indexOf(',');
-    if (pos > 0) {
-      // "base64,..."
-      // "hex,..."
-      body = item.substring(pos + 1);
-    } else if (item.startsWith('0x')) {
-      // "0x..."
-      body = item.substring(2);
-    } else {
-      body = item;
-    }
-    if (body.length < 8) {
-      assert(false, 'enigma item error: $item');
-      return null;
-    }
-    String key = body.substring(0, 6);
-    return Pair(key, item);
-  }
-
-  static Pair<String, Object>? _fetchFromMap(Map item) {
-    var index = item['index'];
-    var secret = item['secret'];
-    if (secret == null) {
-      assert(false, 'enigma item value error: $item');
-      return null;
-    } else if (index is String && index.isNotEmpty) {
-      return Pair(index, secret);
-    } else {
-      assert(false, 'enigma item error: $item');
-      return null;
-    }
+    assert(info.containsKey('index') || info.containsKey('key'), 'enigma key not found: $enigma');
+    assert(info.containsKey('secret') || info.containsKey('value'), 'enigma value not found: $enigma');
+    return EnigmaItem(info);
   }
 
 }
