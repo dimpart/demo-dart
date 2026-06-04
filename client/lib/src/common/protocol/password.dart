@@ -31,7 +31,6 @@
 import 'dart:typed_data';
 
 import 'package:dim_plugins/dim_plugins.dart';
-import 'package:pnf/digest.dart';
 
 
 /// SymmetricKey
@@ -76,7 +75,7 @@ class Password {
   /// Get key digest
   static String digest(SymmetricKey password) {
     Uint8List key = password.data.bytes!;  // 32 bytes
-    Uint8List dig = MD5.digest(key);       // 16 bytes
+    Uint8List dig = SHA256.digest(key);    // 32 bytes
     Uint8List pre = dig.sublist(0, 6);     //  6 bytes
     return Base64.encode(pre);             //  8 chars
   }

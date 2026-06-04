@@ -1,3 +1,7 @@
+## 1.4.5
+
+- Password digest.
+
 ## 1.4.4
 
 - Hex data encoding.
