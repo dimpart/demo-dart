@@ -172,9 +172,9 @@ class _NetworkDataFactory extends BaseNetworkDataFactory {
     } else if (ted.startsWith('hex,')) {
       // "hex,..."
       return HexData.createWithString(ted.substring(4));
-    } else if (ted.startsWith('0x')) {
-      // "0x..."
-      return HexData.createWithString(ted.substring(2));
+    // } else if (ted.startsWith('0x')) {
+    //   // "0x..."
+    //   return HexData.createWithString(ted.substring(2));
     }
     // default
     return super.parseTransportableData(ted);

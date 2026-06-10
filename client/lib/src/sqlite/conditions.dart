@@ -28,103 +28,63 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'predicate.dart';
 import 'values.dart';
 
-class SQLConditions {
-  SQLConditions({required String left, required String comparison, required dynamic right})
-      : _condition = _CompareCondition(left, comparison, right);
 
-  _Condition _condition;
+// ignore_for_file: non_constant_identifier_names
+abstract interface class SQLConditions {
 
   // const
-  static final SQLConditions kTrue = SQLConditions(left: '1', comparison: '<>', right: 0);
-  static final SQLConditions kFalse = SQLConditions(left: '1', comparison: '=', right: 0);
+  static final Predicate TRUE  = SinglePredicate('1=1');
+  static final Predicate FALSE = SinglePredicate('1=0');
 
-  // Relation
-  static const String kAnd = ' AND ';
-  static const String kOr  = ' OR ';
+  // creator
+  static Predicate create(String name, String op, dynamic value) =>
+      ComparePredicate(name, op, value);
 
-  void appendEscapeValue(StringBuffer sb) => _condition.appendEscapeValue(sb);
+}
 
-  void addCondition(String relation,
-      {required String left, required String comparison, required dynamic right}) {
-    _Condition cond = _CompareCondition(left, comparison, right);
-    _condition = _RelatedCondition(_condition, relation, cond);
-  }
+
+class SinglePredicate extends Predicate {
+  SinglePredicate(this.expression);
+
+  final String expression;
 
   @override
-  String toString() {
-    StringBuffer sb = StringBuffer();
-    appendEscapeValue(sb);
-    return sb.toString();
+  void appendPredicate(StringBuffer sb) {
+    sb.write(expression);
+  }
+}
+
+
+class ComparePredicate extends Predicate {
+  ComparePredicate(this.name, this.operator, this.value);
+
+  final String name;
+  final String operator;
+  final dynamic value;
+
+  @override
+  void appendPredicate(StringBuffer sb) {
+    sb.write(name);
+    sb.write(operator);
+    SQLValues.appendEscapeValue(sb, value);
   }
 
 }
 
-//
-//  Conditions
-//
 
-abstract interface class _Condition {
+// ignore_for_file: constant_identifier_names
+abstract interface class Comparisons {
 
-  void appendEscapeValue(StringBuffer sb);
+  static const String EQ = '=';   // Equal
+  static const String NE = '<>';  // Not Equal
 
-}
+  static const String LT = '<';   // Less Than
+  static const String LE = '<=';  // Less than or Equal to
 
-class _CompareCondition implements _Condition {
-  _CompareCondition(this._left, this._op, this._right);
-
-  final String _left;
-  final String _op;
-  final dynamic _right;
-
-  @override
-  void appendEscapeValue(StringBuffer sb) {
-    sb.write(_left);
-    sb.write(_op);
-    SQLValues.appendEscapeValue(sb, _right);
-  }
-
-  @override
-  String toString() {
-    StringBuffer sb = StringBuffer();
-    appendEscapeValue(sb);
-    return sb.toString();
-  }
-
-}
-
-class _RelatedCondition implements _Condition {
-  _RelatedCondition(this._left, this._relation, this._right);
-
-  final _Condition _left;
-  final String _relation;
-  final _Condition _right;
-
-  static void _appendEscapeValue(StringBuffer sb, _Condition cond) {
-    if (cond is _RelatedCondition) {
-      sb.write('(');
-      cond.appendEscapeValue(sb);
-      sb.write(')');
-    } else {
-      cond.appendEscapeValue(sb);
-    }
-  }
-
-  @override
-  void appendEscapeValue(StringBuffer sb) {
-    _appendEscapeValue(sb, _left);
-    assert(_relation == SQLConditions.kAnd
-        || _relation == SQLConditions.kOr, 'relation error: $_relation');
-    sb.write(_relation);
-    _appendEscapeValue(sb, _right);
-  }
-
-  @override
-  String toString() {
-    StringBuffer sb = StringBuffer();
-    appendEscapeValue(sb);
-    return sb.toString();
-  }
+  static const String GT = '>';   // Greater than
+  static const String GE = '>=';  // Greater than or Equal to
 
 }

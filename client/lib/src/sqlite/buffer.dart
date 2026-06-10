@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'conditions.dart';
+import 'predicate.dart';
 import 'values.dart';
 
 
@@ -65,8 +65,8 @@ class SQLStringBuffer {
   }
 
   // protected
-  SQLStringBuffer appendConditions(SQLConditions conditions) {
-    conditions.appendEscapeValue(_sb);
+  SQLStringBuffer appendConditions(Predicate conditions) {
+    conditions.appendPredicate(_sb);
     return this;
   }
 
@@ -99,7 +99,7 @@ class SQLStringBuffer {
   //     appendString(' SET ').appendValues(SQLValues.from(values));
 
   // protected
-  SQLStringBuffer appendWhereClause(SQLConditions? conditions, {
+  SQLStringBuffer appendWhereClause(Predicate? conditions, {
     String? groupBy, String? having, String? orderBy,
     int? limit, int offset = 0,
   }) {

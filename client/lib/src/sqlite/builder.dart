@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'conditions.dart';
+import 'predicate.dart';
 import 'values.dart';
 import 'buffer.dart';
 
@@ -139,7 +139,7 @@ class SQLBuilder extends SQLStringBuffer {
   ///
   static String buildSelect(String table, {bool distinct = false,
     required List<String> columns,
-    SQLConditions? conditions,
+    Predicate? conditions,
     String? groupBy, String? having, String? orderBy,
     int? limit, int offset = 0,
   }) {
@@ -166,7 +166,7 @@ class SQLBuilder extends SQLStringBuffer {
   ///
   static String buildUpdate(String table, {
     required Map<String, dynamic> values,
-    SQLConditions? conditions,
+    Predicate? conditions,
   }) {
     SQLBuilder builder = SQLBuilder(UPDATE);
     builder.appendString(' ').appendString(table);
@@ -180,7 +180,7 @@ class SQLBuilder extends SQLStringBuffer {
   ///  DELETE FROM table WHERE conditions
   ///
   static String buildDelete(String table, {
-    SQLConditions? conditions
+    Predicate? conditions
   }) {
     SQLBuilder builder = SQLBuilder(DELETE);
     builder.appendString(' FROM ').appendString(table);

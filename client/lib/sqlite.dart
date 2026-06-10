@@ -1,5 +1,6 @@
 library dim_client;
 
+export 'src/sqlite/predicate.dart';
 export 'src/sqlite/base.dart';
 export 'src/sqlite/buffer.dart';
 export 'src/sqlite/builder.dart';

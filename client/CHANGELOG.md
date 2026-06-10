@@ -1,3 +1,7 @@
+## 1.4.6
+
+- SQL Predicate.
+
 ## 1.4.5
 
 - Password digest.
