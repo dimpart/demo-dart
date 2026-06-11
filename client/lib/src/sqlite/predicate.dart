@@ -30,68 +30,129 @@
  */
 
 
-// ignore_for_file: constant_identifier_names
-abstract interface class Relations {
+/// Predicates Relation
+class Relation {
+  Relation(this._op);
 
-  static const String AND = 'AND';
-  static const String OR  = 'OR';
-  static const String NOT = 'NOT';
+  final String _op;
+
+  void appendRelationString(StringBuffer sb) => sb.write(_op);
+
+  @override
+  String toString() => _op;
+
+  // ignore_for_file: non_constant_identifier_names
+  static final Relation AND = Relation('AND');
+  static final Relation OR  = Relation('OR');
+  static final Relation NOT = Relation('NOT');
 
 }
 
 
-/// SQL Condition
+/// Search Condition
 abstract class Predicate {
 
   /// Append to the buffer (with escaped value)
-  void appendPredicate(StringBuffer sb);
+  void appendPredicateString(StringBuffer sb);
 
   @override
   String toString() {
     StringBuffer sb = StringBuffer();
-    appendPredicate(sb);
+    appendPredicateString(sb);
     return sb.toString();
   }
 
-  Predicate and(Predicate other) => CompoundPredicate(this, Relations.AND, other);
+  /// Create new predicate: "{this} AND {other}"
+  Predicate and(Predicate other) => CompoundPredicate(this, Relation.AND, other);
 
-  Predicate or(Predicate other) => CompoundPredicate(this, Relations.OR, other);
+  /// Create new predicate: "{this} OR {other}"
+  Predicate or(Predicate other) => CompoundPredicate(this, Relation.OR, other);
 
-  // Predicate not();  // TODO:
+  /// Create new predicate: "NOT {this}"
+  Predicate not() => InversePredicate(this);
+
+  /// Create new predicate: "({this})"
+  Predicate enclose() => EnclosedPredicate(this);
 
 }
 
 
+/// Compound Predicate
+///
+///     {left_predicate} AND {right_predicate}
+///     {left_predicate} OR {right_predicate}
 class CompoundPredicate extends Predicate {
   CompoundPredicate(this.left, this.relation, this.right);
 
   final Predicate left;
-  final String relation;
+  final Relation relation;
   final Predicate right;
 
   @override
-  void appendPredicate(StringBuffer sb) {
-    // append left
-    if (left is CompoundPredicate) {
-      sb.write('(');
-      left.appendPredicate(sb);
-      sb.write(') ');
-    } else {
-      left.appendPredicate(sb);
-      sb.write(' ');
-    }
+  void appendPredicateString(StringBuffer sb) {
+    left.appendPredicateString(sb);
+    sb.write(' ');
+    relation.appendRelationString(sb);
+    sb.write(' ');
+    right.appendPredicateString(sb);
+  }
 
-    // append middle
-    sb.write(relation);
+}
 
-    // append right
-    if (right is CompoundPredicate) {
+
+/// Inverse Predicate
+///
+///     NOT {predicate}
+class InversePredicate extends Predicate {
+  InversePredicate(this.predicate);
+
+  final Predicate predicate;
+
+  @override
+  void appendPredicateString(StringBuffer sb) {
+    var child = predicate;
+    if (child is InversePredicate) {
+      assert(false, 'double negative: "$child"');
+      // reverse sub predicate
+      child.predicate.appendPredicateString(sb);
+    } else if (child is CompoundPredicate) {
+      // 1. "NOT ({predicate} AND {predicate})"
+      // 2. "NOT ({predicate} OR {predicate})"
+      Relation.NOT.appendRelationString(sb);
       sb.write(' (');
-      right.appendPredicate(sb);
+      child.appendPredicateString(sb);
       sb.write(')');
+    // } else if (child is EnclosedPredicate) {
+    //   // 3. "NOT ({predicate})"
+    //   Relation.NOT.appendRelationString(sb);
+    //   sb.write(' ');
+    //   child.appendPredicateString(sb);
     } else {
+      // 3. "NOT {predicate}"
+      Relation.NOT.appendRelationString(sb);
       sb.write(' ');
-      right.appendPredicate(sb);
+      child.appendPredicateString(sb);
+    }
+  }
+
+}
+
+
+class EnclosedPredicate extends Predicate {
+  EnclosedPredicate(this.predicate);
+
+  final Predicate predicate;
+
+  @override
+  void appendPredicateString(StringBuffer sb) {
+    if (predicate is EnclosedPredicate) {
+      assert(false, 'duplicated brackets: "$predicate"');
+      // no need to add more brackets
+      predicate.appendPredicateString(sb);
+    } else {
+      sb.write('(');
+      predicate.appendPredicateString(sb);
+      sb.write(')');
     }
   }
 

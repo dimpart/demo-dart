@@ -32,29 +32,128 @@ import 'predicate.dart';
 import 'values.dart';
 
 
-// ignore_for_file: non_constant_identifier_names
-abstract interface class SQLConditions {
+/// Search Condition
+class SQLConditions {
+  SQLConditions(this.predicate);
 
-  // const
-  static final Predicate TRUE  = SinglePredicate('1=1');
-  static final Predicate FALSE = SinglePredicate('1=0');
+  Predicate predicate;
 
-  // creator
-  static Predicate create(String name, String op, dynamic value) =>
-      ComparePredicate(name, op, value);
+  /// Append predicate string to the buffer
+  void appendConditionString(StringBuffer sb) =>
+      predicate.appendPredicateString(sb);
+
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    appendConditionString(sb);
+    return sb.toString();
+  }
+
+  /// Create new condition: "{this_cond} AND {other_cond}"
+  SQLConditions and(SQLConditions other) {
+    // this condition
+    Predicate thisCond = predicate;
+    if (thisCond is CompoundPredicate) {
+      if (thisCond.relation != Relation.AND) {
+        assert(thisCond.relation == Relation.OR, 'compound predicate error: $thisCond');
+        thisCond = thisCond.enclose();
+      }
+    } else if (thisCond is InversePredicate) {
+      thisCond = thisCond.enclose();
+    }
+    // other condition
+    Predicate otherCond = other.predicate;
+    if (otherCond is CompoundPredicate) {
+      if (otherCond.relation != Relation.AND) {
+        assert(otherCond.relation == Relation.OR, 'compound predicate error: $otherCond');
+        otherCond = otherCond.enclose();
+      }
+    } else if (otherCond is InversePredicate) {
+      otherCond = otherCond.enclose();
+    }
+    // OK
+    return SQLConditions(thisCond.and(otherCond));
+  }
+
+  /// Create new condition: "{this_cond} OR {other_cond}"
+  SQLConditions or(SQLConditions other) {
+    // this condition
+    Predicate thisCond = predicate;
+    if (thisCond is CompoundPredicate) {
+      if (thisCond.relation != Relation.OR) {
+        assert(thisCond.relation == Relation.AND, 'compound predicate error: $thisCond');
+        thisCond = thisCond.enclose();
+      }
+    } else if (thisCond is InversePredicate) {
+      thisCond = thisCond.enclose();
+    }
+    // other condition
+    Predicate otherCond = other.predicate;
+    if (otherCond is CompoundPredicate) {
+      if (otherCond.relation != Relation.OR) {
+        assert(otherCond.relation == Relation.AND, 'compound predicate error: $otherCond');
+        otherCond = otherCond.enclose();
+      }
+    } else if (otherCond is InversePredicate) {
+      otherCond = otherCond.enclose();
+    }
+    // OK
+    return SQLConditions(thisCond.or(otherCond));
+  }
+
+  /// Create new condition: "NOT {this_cond}"
+  SQLConditions not() {
+    Predicate cond = predicate;
+    if (cond is InversePredicate) {
+      cond = cond.predicate;
+    } else {
+      cond = InversePredicate(cond);
+    }
+    // OK
+    return SQLConditions(cond);
+  }
+
+  //
+  //  conveniences
+  //
+
+  SQLConditions andCompare(String name, String op, dynamic value) =>
+      and(compare(name, op, value));
+
+  SQLConditions orCompare(String name, String op, dynamic value) =>
+      or(compare(name, op, value));
+
+  //
+  //  constants
+  //
+
+  static final SQLConditions TRUE  = simple('1=1');
+  static final SQLConditions FALSE = simple('1=0');
+  // ignore_for_file: non_constant_identifier_names
+
+  //
+  //  factory methods
+  //
+
+  static SQLConditions simple(String expression) =>
+      SQLConditions(SimplePredicate(expression));
+
+  static SQLConditions compare(String name, String op, dynamic value) =>
+      SQLConditions(ComparePredicate(name, op, value));
 
 }
 
 
-class SinglePredicate extends Predicate {
-  SinglePredicate(this.expression);
+class SimplePredicate extends Predicate {
+  SimplePredicate(this.expression);
 
   final String expression;
 
   @override
-  void appendPredicate(StringBuffer sb) {
+  void appendPredicateString(StringBuffer sb) {
     sb.write(expression);
   }
+
 }
 
 
@@ -66,7 +165,7 @@ class ComparePredicate extends Predicate {
   final dynamic value;
 
   @override
-  void appendPredicate(StringBuffer sb) {
+  void appendPredicateString(StringBuffer sb) {
     sb.write(name);
     sb.write(operator);
     SQLValues.appendEscapeValue(sb, value);
@@ -74,17 +173,15 @@ class ComparePredicate extends Predicate {
 
 }
 
-
-// ignore_for_file: constant_identifier_names
-abstract interface class Comparisons {
-
-  static const String EQ = '=';   // Equal
-  static const String NE = '<>';  // Not Equal
-
-  static const String LT = '<';   // Less Than
-  static const String LE = '<=';  // Less than or Equal to
-
-  static const String GT = '>';   // Greater than
-  static const String GE = '>=';  // Greater than or Equal to
-
-}
+// abstract interface class Comparisons {
+//
+//   static const String EQ = '=';   // Equal
+//   static const String NE = '<>';  // Not Equal
+//
+//   static const String LT = '<';   // Less Than
+//   static const String LE = '<=';  // Less than or Equal to
+//
+//   static const String GT = '>';   // Greater than
+//   static const String GE = '>=';  // Greater than or Equal to
+//
+// }

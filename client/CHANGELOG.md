@@ -1,3 +1,7 @@
+## 1.4.7
+
+- SQL Conditions.
+
 ## 1.4.6
 
 - SQL Predicate.
