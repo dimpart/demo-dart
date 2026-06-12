@@ -1,3 +1,7 @@
+## 1.4.8
+
+- Standardize SQL fields.
+
 ## 1.4.7
 
 - SQL Conditions.

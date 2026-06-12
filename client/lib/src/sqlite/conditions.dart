@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'field.dart';
 import 'predicate.dart';
 import 'values.dart';
 
@@ -166,7 +167,11 @@ class ComparePredicate extends Predicate {
 
   @override
   void appendPredicateString(StringBuffer sb) {
-    sb.write(name);
+    String field = name.trim();
+    // preparing
+    field = SQLFields.standardizeName(field);
+    // building
+    sb.write(field);
     sb.write(operator);
     SQLValues.appendEscapeValue(sb, value);
   }

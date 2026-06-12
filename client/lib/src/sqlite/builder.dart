@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'conditions.dart';
+import 'field.dart';
 import 'values.dart';
 import 'buffer.dart';
 
@@ -50,6 +51,9 @@ class SQLBuilder extends SQLStringBuffer {
   ///  CREATE TABLE IF NOT EXISTS table (field type, ...);
   ///
   static String buildCreateTable(String table, {required List<String> fields}) {
+    // preparing
+    fields = SQLFields.standardizeDefinitions(fields);
+    // building
     SQLBuilder builder = SQLBuilder(CREATE);
     builder.appendString(' TABLE IF NOT EXISTS ').appendString(table);
     builder.appendString(' (').appendStringList(fields).appendString(')');
@@ -62,6 +66,9 @@ class SQLBuilder extends SQLStringBuffer {
   static String buildCreateIndex(String table, {bool unique = false,
     required String name, required List<String> columns,
   }) {
+    // preparing
+    columns = SQLFields.standardizeColumns(columns);
+    // building
     SQLBuilder builder = SQLBuilder(CREATE);
     if (unique) {
       builder.appendString(' UNIQUE INDEX IF NOT EXISTS ').appendString(name);
@@ -98,6 +105,9 @@ class SQLBuilder extends SQLStringBuffer {
   static String buildAddColumn(String table, {
     required String name, required String type,
   }) {
+    // preparing
+    name = SQLFields.standardizeName(name);
+    // building
     SQLBuilder builder = SQLBuilder(ALTER);
     builder.appendString(' TABLE ').appendString(table);
     // builder.appendString(' ADD COLUMN IF NOT EXISTS ');
@@ -114,6 +124,9 @@ class SQLBuilder extends SQLStringBuffer {
     List? values,
     String? selectClause,
   }) {
+    // preparing
+    columns = SQLFields.standardizeColumns(columns);
+    // building
     SQLBuilder builder = SQLBuilder(INSERT);
     builder.appendString(' INTO ').appendString(table);
     builder.appendString(' (').appendStringList(columns).appendString(')');
@@ -143,6 +156,9 @@ class SQLBuilder extends SQLStringBuffer {
     String? groupBy, String? having, String? orderBy,
     int? limit, int offset = 0,
   }) {
+    // preparing
+    columns = SQLFields.standardizeColumns(columns);
+    // building
     SQLBuilder builder = SQLBuilder(SELECT);
     if (distinct) {
       builder.appendString(' DISTINCT');

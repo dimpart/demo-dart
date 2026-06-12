@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'conditions.dart';
+import 'field.dart';
 import 'values.dart';
 
 
@@ -108,14 +109,23 @@ class SQLStringBuffer {
     }
     if (groupBy != null) {
       assert(groupBy.isNotEmpty, 'group by empty');
+      // preparing
+      groupBy = SQLFields.standardizeClauseFields(groupBy);
+      // building
       appendString(' GROUP BY ').appendString(groupBy);
     }
     if (having != null) {
       assert(having.isNotEmpty, 'having empty');
+      // preparing
+      having = SQLFields.standardizeClauseFields(having);
+      // building
       appendString(' HAVING ').appendString(having);
     }
     if (orderBy != null) {
       assert(orderBy.isNotEmpty, 'order by empty');
+      // preparing
+      orderBy = SQLFields.standardizeClauseFields(orderBy);
+      // building
       appendString(' ORDER BY ').appendString(orderBy);
     }
     if (limit != null) {

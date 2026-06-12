@@ -30,6 +30,8 @@
  */
 import 'package:object_key/object_key.dart';
 
+import 'field.dart';
+
 class SQLValues {
 
   SQLValues.from(Map<String, dynamic> values) {
@@ -59,10 +61,17 @@ class SQLValues {
 
   void appendValues(StringBuffer sb) {
     StringBuffer tmp = StringBuffer();
+    String name;
+    dynamic value;
     for (Pair<String, dynamic> pair in _values) {
-      tmp.write(pair.first);
+      name = pair.first;
+      value = pair.second;
+      // preparing
+      name = SQLFields.standardizeName(name);
+      // building
+      tmp.write(name);
       tmp.write('=');
-      appendEscapeValue(tmp, pair.second);
+      appendEscapeValue(tmp, value);
       tmp.write(',');
     }
     if (tmp.isNotEmpty) {
