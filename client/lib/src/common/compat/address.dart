@@ -29,9 +29,10 @@
  * ==============================================================================
  */
 import 'package:dim_plugins/dim_plugins.dart';
+import 'package:lnc/log.dart';
 
 
-class CompatibleAddressFactory extends BaseAddressFactory {
+class CompatibleAddressFactory extends BaseAddressFactory with Logging {
 
   /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
   /// this will remove 50% of cached objects
@@ -43,40 +44,24 @@ class CompatibleAddressFactory extends BaseAddressFactory {
 
   @override
   Address? parse(String address) {
+    try {
+      Address? res = super.parse(address);
+      if (res != null) {
+        return res;
+      }
+    } catch (e, st) {
+      logError('address error: "$address", error: $e, $st');
+      assert(false, 'invalid address: $address');
+    }
+    //
+    //  TODO: other types of address
+    //
     int len = address.length;
-    if (len == 0) {
-      assert(false, 'address empty');
-      return null;
-    } else if (len == 8) {
-      // "anywhere"
-      String lower = address.toLowerCase();
-      if (lower == Address.ANYWHERE.toString()) {
-        return Address.ANYWHERE;
-      }
-    } else if (len == 10) {
-      // "everywhere"
-      String lower = address.toLowerCase();
-      if (lower == Address.EVERYWHERE.toString()) {
-        return Address.EVERYWHERE;
-      }
+    if (4 <= len && len <= 64) {
+      return UnknownAddress(address);
     }
-    Address? res;
-    if (26 <= len && len <= 35) {
-      res = BTCAddress.parse(address);
-    } else if (len == 42) {
-      res = ETHAddress.parse(address);
-    } else {
-      // throw AssertionError('invalid address: $address');
-      res = null;
-    }
-    //
-    //  TODO: parse for other types of address
-    //
-    if (res == null && 4 <= len && len <= 64) {
-      res = UnknownAddress(address);
-    }
-    assert(res != null, 'invalid address: $address');
-    return res;
+    assert(false, 'invalid address: $address');
+    return null;
   }
 
 }

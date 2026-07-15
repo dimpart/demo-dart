@@ -90,7 +90,7 @@ abstract class CommonFacebook extends Facebook with Logging {
         // broadcast message can be decrypted by anyone, so
         // just return current user here
         return current;
-      } else if (current == receiver) {
+      } else if (receiver.isSameAs(current)) {
         return current;
       }
     }
@@ -106,8 +106,10 @@ abstract class CommonFacebook extends Facebook with Logging {
       ID current = user.identifier;
       // the messenger will check group info before decrypting message,
       // so we can trust that the group's meta & members MUST exist here.
-      if (members.contains(current)) {
-        return current;
+      for (ID did in members) {
+        if (did.isSameAs(current)) {
+          return current;
+        }
       }
     }
     // check local users

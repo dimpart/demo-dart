@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimsdk/dimsdk.dart';
 import 'package:dim_plugins/dim_plugins.dart';
 
 import '../../common/compat/entity.dart';
@@ -84,6 +85,8 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   void load() {
     super.load();
 
+    registerMessagePackerFactory();
+
     registerCustomizedHandlers();
 
   }
@@ -91,6 +94,12 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   @override
   void registerIDFactory() {
     ID.setFactory(_IdentifierFactory());
+  }
+
+  // protected
+  void registerMessagePackerFactory() {
+    // fix for 'message.key'
+    sharedMessageExtensions.packerFactory = _MessagePackerFactory();
   }
 
   // protected
@@ -114,6 +123,50 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   // TODO: other extensions
 
 }
+
+
+class _MessagePackerFactory extends MessagePackerFactory {
+
+  @override
+  SecureMessagePacker createSecureMessagePacker(SecureMessageDelegate delegate) =>
+      _SecureMessagePacker(delegate);
+
+}
+
+class _SecureMessagePacker extends SecureMessagePacker {
+  _SecureMessagePacker(super.messenger);
+
+  @override
+  Future<EncryptedBundle?> decodeKeys(SecureMessage sMsg, ID receiver) async {
+    Map? msgKeys = sMsg.encryptedKeys;
+    if (msgKeys == null) {
+      // get from 'key'
+      var base64 = sMsg['key'];
+      if (base64 == null) {
+        // broadcast message?
+        // reused key?
+        return null;
+      }
+      msgKeys = {
+        receiver.toString(): base64,
+      };
+    }
+    SecureMessageDelegate? transformer = delegate;
+    assert(transformer != null, 'secure message delegate not found');
+    return await transformer?.decodeKeys(msgKeys, receiver, sMsg);
+  }
+
+  @override
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
+    InstantMessage? iMsg = await super.decryptMessage(sMsg, receiver);
+    if (iMsg != null) {
+      iMsg.remove('key');
+    }
+    return iMsg;
+  }
+
+}
+
 
 IDFactory _identifierFactory = EntityIDFactory();
 

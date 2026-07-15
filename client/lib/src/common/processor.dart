@@ -54,6 +54,48 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
   // protected
   ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger);
 
+  @override
+  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async {
+    Messenger? transceiver = messenger;
+    assert(transceiver != null, 'messenger not ready');
+    // 1. process content
+    List<Content>? responses = await transceiver?.processContent(iMsg.content, rMsg);
+    if (responses == null || responses.isEmpty) {
+      // nothing to respond
+      return [];
+    }
+    // 2. select a local user to build message
+    ID sender = iMsg.sender;
+    ID receiver = iMsg.receiver;
+    User? user = await selectLocalUser(receiver);
+    if (user == null) {
+      assert(false, 'receiver error: $receiver');
+      return [];
+    }
+    // 3. pack all responses in one message
+    Envelope env = Envelope.create(sender: user.identifier, receiver: sender);
+    Content body;
+    if (responses.length == 1) {
+      body = responses.first;
+    } else {
+      body = ArrayContent.create(responses);
+    }
+    return [
+      InstantMessage.create(env, body)
+    ];
+  }
+
+  @override
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+    List<Content> responses = await super.processContent(content, rMsg);
+
+    // check sender's document times from the message
+    // to make sure the user info synchronized
+    await checkVisaTime(content, rMsg);
+
+    return responses;
+  }
+
   // private
   Future<bool> checkVisaTime(Content content, ReliableMessage rMsg) async {
     var checker = entityChecker;
@@ -80,17 +122,6 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
       }
     }
     return docUpdated;
-  }
-
-  @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    List<Content> responses = await super.processContent(content, rMsg);
-
-    // check sender's document times from the message
-    // to make sure the user info synchronized
-    await checkVisaTime(content, rMsg);
-
-    return responses;
   }
 
 }

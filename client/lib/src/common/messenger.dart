@@ -111,8 +111,8 @@ abstract class CommonMessenger extends Messenger with Logging
   }
 
   @override
-  Future<Map<String, Object>> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
-    Map<String, Object> keys = await super.encodeKey(bundle, receiver, iMsg);
+  Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
+    Map<String, Object> keys = await super.encodeKeys(bundle, receiver, iMsg);
     if (keys.isNotEmpty) {
       // TODO: check for wildcard
       // CompatibleOutgoing.fixEncodeKeys(keys, receiver, facebook);

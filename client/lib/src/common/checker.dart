@@ -175,22 +175,8 @@ abstract class EntityChecker with Logging {
 
   // protected
   DateTime? getLastDocumentTime(ID identifier, List<Document> documents) {
-    if (documents.isEmpty) {
-      return null;
-    }
-    DateTime? lastTime;
-    DateTime? docTime;
-    for (Document doc in documents) {
-      assert(identifier == doc['did'], 'document not match: $identifier, $doc');
-      docTime = doc.time;
-      if (docTime == null) {
-        // assert(false, 'document error: $doc');
-        logWarning('document time error: $doc');
-      } else if (lastTime == null || lastTime.isBefore(docTime)) {
-        lastTime = docTime;
-      }
-    }
-    return lastTime;
+    Document? doc = DocumentUtils.lastDocument(documents);
+    return doc?.time;
   }
 
   //

@@ -89,4 +89,24 @@ class CompatibleShortener extends MessageShortener {
     return msg;
   }
 
+  @override
+  Map extractReliableMessage(Map msg) {
+    var keys = msg["K"];
+    if (keys == null) {
+      // assert(msg["data"] != null, "message data should not empty: $msg");
+    } else if (keys is Map) {
+      assert(msg["keys"] == null, "message keys duplicated: $msg");
+      msg.remove("K");
+      msg["keys"] = keys;
+    } else if (keys is String) {
+      assert(msg["key"] == null, "message key duplicated: $msg");
+      msg.remove("K");
+      msg["key"] = keys;
+    } else {
+      assert(false, "message key error: $msg");
+    }
+    // restoreKeys(messageShortKeys, msg);
+    return super.extractReliableMessage(msg);
+  }
+
 }
