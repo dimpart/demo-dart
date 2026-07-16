@@ -31,6 +31,7 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../../common/compat/entity.dart';
 import '../group.dart';
 
 ///  Reset Group Command Processor
@@ -71,8 +72,8 @@ class ResetCommandProcessor extends GroupCommandProcessor {
 
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
-    bool isOwner = owner == sender;
-    bool isAdmin = admins.contains(sender);
+    bool isOwner = sender.isSameAs(owner);
+    bool isAdmin = sender.isContainedIn(admins);
 
     // 2. check permission
     bool canReset = isOwner || isAdmin;
@@ -98,7 +99,7 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     // 2.2. check admins
     bool expelAdmin = false;
     for (ID item in admins) {
-      if (!newMembers.contains(item)) {
+      if (item.isNotContainedIn(newMembers)) {
         expelAdmin = true;
         break;
       }
@@ -145,14 +146,14 @@ class ResetCommandProcessor extends GroupCommandProcessor {
     List<ID> removeList = [];
     // build invited-list
     for (ID item in newMembers) {
-      if (oldMembers.contains(item)) {
+      if (item.isContainedIn(oldMembers)) {
         continue;
       }
       addList.add(item);
     }
     // build expelled-list
     for (ID item in oldMembers) {
-      if (newMembers.contains(item)) {
+      if (item.isContainedIn(newMembers)) {
         continue;
       }
       removeList.add(item);

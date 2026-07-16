@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
+import '../common/compat/entity.dart';
 import '../common/dbi/account.dart';
 import '../common/mkm/utils.dart';
 import '../common/facebook.dart';
@@ -121,7 +122,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(user.isUser && group.isGroup, 'ID error: $user, $group');
     ID? founder = await getFounder(group);
     if (founder != null) {
-      return founder == user;
+      return founder.isSameAs(user);
     }
     // check member's public key with group's meta.key
     Meta? gMeta = await getMeta(group);
@@ -137,7 +138,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
     assert(user.isUser && group.isGroup, 'ID error: $user, $group');
     ID? owner = await getOwner(group);
     if (owner != null) {
-      return owner == user;
+      return owner.isSameAs(user);
     }
     if (group.type == EntityType.GROUP) {
       // this is a polylogue
@@ -149,13 +150,13 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   Future<bool> isMember(ID user, {required ID group}) async {
     assert(user.isUser && group.isGroup, 'ID error: $user, $group');
     List<ID> members = await getMembers(group);
-    return members.contains(user);
+    return user.isContainedIn(members);
   }
 
   Future<bool> isAdministrator(ID user, {required ID group}) async {
     assert(user.isUser && group.isGroup, 'ID error: $user, $group');
     List<ID> admins = await getAdministrators(group);
-    return admins.contains(user);
+    return user.isContainedIn(admins);
   }
 
 }

@@ -65,7 +65,8 @@ abstract class CommonPacker extends MessagePacker with Logging {
   Future<EncryptKey?> getVisaKey(ID user) async {
     List<Document>? docs = await facebook?.getDocuments(user);
     if (docs == null || docs.isEmpty) {
-      assert(false, 'failed to get visa document: $user');
+      logError('failed to get visa document: $user');
+      // assert(false, 'failed to get visa document: $user');
       return null;
     }
     Visa? visa = DocumentUtils.lastVisa(docs);
@@ -98,7 +99,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
       ID? did = helper?.getDocumentID(visa.toMap());
       if (did == null) {
         assert(false, 'visa error: $visa');
-      } else if (sender == did) {
+      } else if (sender.isSameAs(did)) {
         return true;
       } else {
         assert(false, 'visa ID not match: $sender, $did');

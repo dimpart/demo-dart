@@ -73,7 +73,7 @@ class LoginCommandProcessor extends BaseCommandProcessor with Logging {
     assert(content is LoginCommand, 'login command error: $content');
     LoginCommand command = content as LoginCommand;
     ID sender = command.identifier;
-    assert(rMsg.sender == sender, 'sender not match: $sender, ${rMsg.sender}');
+    assert(rMsg.sender.isSameAs(sender), 'sender not match: $sender, ${rMsg.sender}');
     // save login command to session db
     SessionDBI db = database!;
     if (await db.saveLoginCommandMessage(sender, command, rMsg)) {

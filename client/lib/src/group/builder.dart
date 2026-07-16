@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:object_key/object_key.dart';
 
+import '../common/compat/entity.dart';
 import '../common/mkm/utils.dart';
 import '../common/protocol/group_admins.dart';
 
@@ -137,7 +138,7 @@ class GroupHistoryBuilder extends TripletsHelper {
     ID me = user.identifier;
     if (owner != me) {
       List<ID> admins = await delegate.getAdministrators(group);
-      if (!admins.contains(me)) {
+      if (me.isNotContainedIn(admins)) {
         logWarning('not permit to build "reset" command for group: $group, $me');
         return Pair(null, null);
       }

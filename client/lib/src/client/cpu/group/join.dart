@@ -31,6 +31,7 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../../common/compat/entity.dart';
 import '../group.dart';
 
 ///  Join Group Command Processor
@@ -71,9 +72,9 @@ class JoinCommandProcessor extends GroupCommandProcessor {
 
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
-    bool isOwner = owner == sender;
-    bool isAdmin = admins.contains(sender);
-    bool isMember = members.contains(sender);
+    bool isOwner = sender.isSameAs(owner);
+    bool isAdmin = sender.isContainedIn(admins);
+    bool isMember = sender.isContainedIn(members);
     bool canReset = isOwner || isAdmin;
 
     // 2. check membership
@@ -81,7 +82,7 @@ class JoinCommandProcessor extends GroupCommandProcessor {
       // maybe the command sender is already become a member,
       // but if it can still receive a 'join' command here,
       // we should notify the sender that the member list was updated.
-      if (!canReset && owner == me) {
+      if (!canReset && owner.isSameAs(me)) {
         // the sender cannot reset the group, means it's an ordinary member now,
         // and if I am the owner, then send the group history commands
         // to update the sender's memory.

@@ -30,6 +30,7 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/compat/entity.dart';
 import '../common/mkm/station.dart';
 import '../common/register.dart';
 import '../common/messenger.dart';
@@ -170,7 +171,7 @@ class GroupManager extends TripletsHelper {
     List<ID> oldMembers = await delegate.getMembers(group);
     List<ID> expelList = [];
     for (ID item in oldMembers) {
-      if (!newMembers.contains(item)) {
+      if (item.isNotContainedIn(newMembers)) {
         expelList.add(item);
       }
     }
@@ -178,7 +179,7 @@ class GroupManager extends TripletsHelper {
     //
     //  1. check permission
     //
-    bool isOwner = me == first;
+    bool isOwner = first.isSameAs(me);
     bool isAdmin = await delegate.isAdministrator(me, group: group);
     bool canReset = isOwner || isAdmin;
     if (!canReset) {
@@ -258,7 +259,7 @@ class GroupManager extends TripletsHelper {
       // append new members and 'reset' the group
       List<ID> members = [...oldMembers];
       for (ID item in newMembers) {
-        if (!members.contains(item)) {
+        if (item.isNotContainedIn(members)) {
           members.add(item);
         }
       }
@@ -316,7 +317,7 @@ class GroupManager extends TripletsHelper {
 
     bool isOwner = await delegate.isOwner(me, group: group);
     bool isAdmin = await delegate.isAdministrator(me, group: group);
-    bool isMember = members.contains(me);
+    bool isMember = me.isContainedIn(members);
 
     //
     //  1. check permission

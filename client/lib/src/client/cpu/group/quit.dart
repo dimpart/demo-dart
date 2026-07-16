@@ -31,6 +31,7 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../../common/compat/entity.dart';
 import '../group.dart';
 
 ///  Quit Group Command Processor
@@ -65,9 +66,9 @@ class QuitCommandProcessor extends GroupCommandProcessor {
 
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
-    bool isOwner = owner == sender;
-    bool isAdmin = admins.contains(sender);
-    bool isMember = members.contains(sender);
+    bool isOwner = sender.isSameAs(owner);
+    bool isAdmin = sender.isContainedIn(admins);
+    bool isMember = sender.isContainedIn(members);
 
     // 2. check permissions
     if (isOwner) {

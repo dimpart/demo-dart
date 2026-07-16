@@ -31,6 +31,7 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../../common/compat/entity.dart';
 import '../../../common/protocol/groups.dart';
 import '../group.dart';
 
@@ -65,7 +66,7 @@ class QueryCommandProcessor extends GroupCommandProcessor {
     String text;
 
     ID sender = rMsg.sender;
-    bool isMember = members.contains(sender);
+    bool isMember = sender.isContainedIn(members);
 
     // 2. check permission
     bool canQuery = isMember; // || isBot;

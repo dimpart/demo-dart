@@ -31,6 +31,7 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../../common/compat/entity.dart';
 import '../../../common/protocol/group_admins.dart';
 import '../group.dart';
 
@@ -66,8 +67,8 @@ class ResignCommandProcessor extends GroupCommandProcessor {
 
     ID sender = rMsg.sender;
     List<ID> admins = await getAdministrators(group);
-    bool isOwner = owner == sender;
-    bool isAdmin = admins.contains(sender);
+    bool isOwner = sender.isSameAs(owner);
+    bool isAdmin = sender.isContainedIn(admins);
 
     // 2. check permission
     if (isOwner) {
