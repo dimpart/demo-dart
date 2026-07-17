@@ -30,6 +30,8 @@
  */
 import 'package:dim_plugins/dim_plugins.dart';
 
+import '../mkm/provider.dart';
+import '../mkm/station.dart';
 import 'network.dart';
 
 
@@ -53,34 +55,39 @@ class EntityIDFactory extends IdentifierFactory {
   ID? parse(String identifier) {
     // check broadcast IDs
     int size = identifier.length;
-    if (size < 4 || size > 64) {
-      assert(false, 'ID empty');
+    if (13 <= size && size <= 19) {
+      // 13 - moky@anywhere
+      // 15 - anyone@anywhere
+      // 19 - everyone@everywhere
+      // 19 - stations@everywhere
+      // 16 - station@anywhere
+      // 14 - gsp@everywhere
+      String lower = identifier.toLowerCase();
+      ID? did = _broadcastIdentifiers[lower];
+      if (did != null) {
+        return did;
+      }
+    } else if (size < 4 || 64 < size) {
+      assert(false, 'invalid id: $identifier');
       return null;
-    } else if (size == 15) {
-      // "anyone@anywhere"
-      String lower = identifier.toLowerCase();
-      if (ID.ANYONE.toString() == lower) {
-        return ID.ANYONE;
-      }
-    } else if (size == 19) {
-      // "everyone@everywhere"
-      // "stations@everywhere"
-      String lower = identifier.toLowerCase();
-      if (ID.EVERYONE.toString() == lower) {
-        return ID.EVERYONE;
-      }
-    } else if (size == 13) {
-      // "moky@anywhere"
-      String lower = identifier.toLowerCase();
-      if (ID.FOUNDER.toString() == lower) {
-        return ID.FOUNDER;
-      }
     }
     // normal ID
     return super.parse(identifier);
   }
 
 }
+
+final _broadcastIdentifiers = {
+
+  'moky@anywhere'       : ID.FOUNDER,
+  'anyone@anywhere'     : ID.ANYONE,
+  'everyone@everywhere' : ID.EVERYONE,
+
+  'station@anywhere'    : Station.ANY,
+  'stations@everywhere' : Station.EVERY,
+  'gsp@everywhere'      : ServiceProvider.GSP,
+
+};
 
 
 class _EntityID extends Identifier {

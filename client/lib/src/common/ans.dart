@@ -119,9 +119,9 @@ class AddressNameServer implements AddressNameService {
     if (array == null) {
       array = [];
       // TODO: update all tables?
-      for (String key in _caches.keys) {
-        if (_caches[key] == identifier) {
-          array.add(key);
+      for (var entry in _caches.entries) {
+        if (entry.value == identifier) {
+          array.add(entry.key);
         }
       }
       _namesTables[identifier] = array;
@@ -168,9 +168,10 @@ class AddressNameServer implements AddressNameService {
     // _reserved['station'] = false;
     int count = 0;
     ID? identifier;
-    for (String alias in records.keys) {
-      identifier = ID.parse(records[alias]);
-      assert(identifier != null, 'record error: $alias => ${records[alias]}');
+    for (var entry in records.entries) {
+      String alias = entry.key;
+      identifier = ID.parse(entry.value);
+      assert(identifier != null, 'record error: $alias => ${entry.value}');
       if (await save(alias, identifier)) {
         count += 1;
       }

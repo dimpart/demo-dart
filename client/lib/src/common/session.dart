@@ -82,6 +82,9 @@ abstract interface class Session implements Transmitter {
   bool setIdentifier(ID? user);
   ID? get identifier;
 
+  ///  Set login user ID terminal
+  void setDevice(String terminal);
+
   ///  Update active flag
   ///
   /// @param active - flag

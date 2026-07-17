@@ -31,7 +31,8 @@
 import 'package:dimsdk/dimsdk.dart';
 
 
-abstract interface class BroadcastUtils {
+class BroadcastUtils {
+  BroadcastUtils._();
 
   // private
   static String? getGroupSeed(ID group) {

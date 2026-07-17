@@ -46,10 +46,6 @@ class ProviderInfo {
     return '<$runtimeType did="$identifier" chosen=$chosen />';
   }
 
-  /// default service provider
-  // ignore: non_constant_identifier_names
-  static final ID GSP = Identifier.create(name: 'gsp', address: Address.EVERYWHERE);
-
   //
   //  Conveniences
   //
@@ -236,7 +232,7 @@ abstract interface class StationDBI {
 ///  ~~~~~~~~~~~
 abstract interface class LoginDBI {
 
-  Future<Pair<LoginCommand?, ReliableMessage?>> getLoginCommandMessage(ID identifier);
+  Future<List<Pair<LoginCommand, ReliableMessage>>> getLoginCommandMessages(ID identifier);
 
   Future<bool> saveLoginCommandMessage(ID identifier, LoginCommand content, ReliableMessage rMsg);
 

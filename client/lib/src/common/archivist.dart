@@ -215,13 +215,44 @@ class CommonArchivist with Logging implements Archivist, Barrack {
 
   // protected
   Future<bool> checkDocumentExpired(Document doc, ID identifier) async {
-    String type = DocumentUtils.getDocumentType(doc) ?? '*';
-    // check old documents with type
+    if (doc is Visa) {
+      return await _isVisaExpired(doc, identifier);
+    } else if (doc is Bulletin) {
+      return await _isBulletinExpired(doc, identifier);
+    }
+    // get all documents
     List<Document>? documents = await facebook?.getDocuments(identifier);
     if (documents == null || documents.isEmpty) {
       return false;
     }
+    String type = DocumentUtils.getDocumentType(doc) ?? '*';
+    // check last document time
     Document? old = DocumentUtils.lastDocument(documents, type);
+    return old != null && DocumentUtils.isExpired(doc, old);
+  }
+
+  // private
+  Future<bool> _isVisaExpired(Visa doc, ID user) async {
+    // get all documents
+    List<Document>? documents = await facebook?.getDocuments(user);
+    if (documents == null || documents.isEmpty) {
+      return false;
+    }
+    String terminal = DocumentUtils.getVisaTerminal(doc) ?? '*';
+    // check last document time
+    Document? old = DocumentUtils.lastVisa(documents, terminal);
+    return old != null && DocumentUtils.isExpired(doc, old);
+  }
+
+  // private
+  Future<bool> _isBulletinExpired(Bulletin doc, ID group) async {
+    // get all documents
+    List<Document>? documents = await facebook?.getDocuments(group);
+    if (documents == null || documents.isEmpty) {
+      return false;
+    }
+    // check last document time
+    Document? old = DocumentUtils.lastBulletin(documents);
     return old != null && DocumentUtils.isExpired(doc, old);
   }
 

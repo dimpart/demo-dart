@@ -1,3 +1,7 @@
+## 1.5.0
+
+- Visa terminal.
+
 ## 1.4.8
 
 - Standardize SQL fields.

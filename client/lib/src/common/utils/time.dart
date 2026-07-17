@@ -29,7 +29,8 @@
  * =============================================================================
  */
 
-abstract class TimeUtils {
+final class TimeUtils {
+  TimeUtils._();
 
   ///  Now()
   ///

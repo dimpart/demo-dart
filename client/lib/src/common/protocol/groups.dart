@@ -133,7 +133,8 @@ abstract interface class GroupHistory {
 ///          "{MEMBER_ID}" : "{ENCRYPTED_KEY}",
 ///      }
 ///  }
-abstract interface class GroupKeys {
+final class GroupKeys {
+  GroupKeys._();
 
   static const String APP = 'chat.dim.group';
   static const String MOD = 'keys';

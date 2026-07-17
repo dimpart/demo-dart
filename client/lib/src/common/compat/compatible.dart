@@ -36,7 +36,8 @@ import '../protocol/version.dart';
 
 
 // TODO: remove after all server/client upgraded
-abstract interface class Compatible {
+final class Compatible {
+  Compatible._();
 
   /// Fix meta
   static void fixMetaAttachment(ReliableMessage rMsg) {
@@ -147,7 +148,8 @@ const fileTypes = [
 ];
 
 // TODO: remove after all server/client upgraded
-abstract interface class CompatibleIncoming {
+final class CompatibleIncoming {
+  CompatibleIncoming._();
 
   static void fixContent(Map content) {
     // get content type
@@ -234,7 +236,8 @@ void fixType(Map content) {
 }
 
 /// TODO: remove after all server/client upgraded
-abstract interface class CompatibleOutgoing {
+final class CompatibleOutgoing {
+  CompatibleOutgoing._();
 
   static void fixContent(Content content) {
     // fix content type

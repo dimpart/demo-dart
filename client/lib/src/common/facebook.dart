@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
+import 'compat/entity.dart';
 import 'dbi/account.dart';
 import 'mkm/utils.dart';
 
@@ -106,10 +107,8 @@ abstract class CommonFacebook extends Facebook with Logging {
       ID current = user.identifier;
       // the messenger will check group info before decrypting message,
       // so we can trust that the group's meta & members MUST exist here.
-      for (ID did in members) {
-        if (did.isSameAs(current)) {
-          return current;
-        }
+      if (current.isContainedIn(members)) {
+        return current;
       }
     }
     // check local users

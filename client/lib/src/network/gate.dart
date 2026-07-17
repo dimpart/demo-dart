@@ -119,7 +119,8 @@ Uint8List? _fetchValue(Uint8List data, Uint8List tag) {
 }
 
 
-abstract interface class DataUtils {
+final class DataUtils {
+  DataUtils._();
 
   static Uint8List bytes(String text) =>
       Uint8List.fromList(utf8.encode(text));

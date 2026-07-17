@@ -62,6 +62,8 @@ abstract class BaseSession extends Runner with Logging implements Session, Porte
   DateTime? _lastActiveTime;  // last update time
 
   ID? _identifier;
+  String? _terminal;
+
   WeakReference<CommonMessenger>? _transceiver;
 
   @override
@@ -91,20 +93,38 @@ abstract class BaseSession extends Runner with Logging implements Session, Porte
   }
 
   @override
-  ID? get identifier => _identifier;
+  ID? get identifier {
+    ID? did = _identifier;
+    if (did == null) {
+      return null;
+    }
+    String? device = _terminal;
+    if (device == null/* || device.isEmpty*/) {
+      return did;
+    } else if (device != did.terminal) {
+      // did = ID.create(name: did.name, address: did.address, terminal: device);
+      did = did.withTerminal(device);
+      _identifier = did;
+    }
+    return did;
+  }
 
   @override
   bool setIdentifier(ID? user) {
-    if (_identifier == null) {
+    ID? old = _identifier;
+    if (old == null) {
       if (user == null) {
         return false;
       }
-    } else if (identifier == user) {
+    } else if (old == user) {
       return false;
     }
     _identifier = user;
     return true;
   }
+
+  @override
+  void setDevice(String terminal) => _terminal = terminal;
 
   @override
   String toString() {

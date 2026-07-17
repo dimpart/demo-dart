@@ -40,6 +40,10 @@ class ServiceProvider extends BaseGroup {
     assert(identifier.type == EntityType.ISP, 'SP ID error: $identifier');
   }
 
+  /// default service provider
+  // ignore: non_constant_identifier_names
+  static final ID GSP = Identifier.create(name: 'gsp', address: Address.EVERYWHERE);
+
   /// Provider Document
   Future<Document?> get profile async =>
       DocumentUtils.lastDocument(await documents, '*');

@@ -35,9 +35,9 @@ import 'field.dart';
 class SQLValues {
 
   SQLValues.from(Map<String, dynamic> values) {
-    for (String key in values.keys) {
-      setValue(key, values[key]);
-    }
+    values.forEach((k, v) {
+      setValue(k, v);
+    });
   }
 
   final List<Pair<String, dynamic>> _values = [];

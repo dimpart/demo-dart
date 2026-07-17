@@ -28,12 +28,19 @@
  * SOFTWARE.
  * ==============================================================================
  */
+import 'dart:collection';
+
 import 'package:dimsdk/dimsdk.dart';
+import 'package:lnc/log.dart';
+import 'package:object_key/object_key.dart';
+
+import '../protocol/login.dart';
 
 
 /// 1. [Meta Protocol]
 /// 2. [Visa Protocol]
-abstract interface class MessageUtils {
+class MessageUtils {
+  MessageUtils._();
 
   ///  Sender's Meta
   ///  ~~~~~~~~~~~~~
@@ -61,4 +68,111 @@ abstract interface class MessageUtils {
   static void setVisa(Visa? visa, Message msg) =>
       msg.setMap('visa', visa);
 
+}
+
+
+class CommandMessageUtils {
+  CommandMessageUtils._();
+
+  static String? getLoginTerminal(LoginCommand content) {
+    String? terminal = content.getString('terminal');
+    if (terminal == null || terminal.isEmpty) {
+      terminal = content.getString('device');
+      if (terminal == null || terminal.isEmpty) {
+        ID did = content.identifier;
+        terminal = did.terminal;
+      }
+    }
+    if (terminal == null || terminal.isEmpty) {
+      // '*'
+      return null;
+    }
+    return terminal;
+  }
+
+  /// Serialize command messages
+  static Map dumpCommandMessages(List<Pair<Command, ReliableMessage>> records) {
+    // sort and remove duplicated item
+    var results = sortCommandMessages(records);
+    Log.info('Dump ${results.length}/${records.length} command message(s)');
+    return {
+      'records': results.map((pair) => {
+        'cmd': pair.first.toMap(),
+        'msg': pair.second.toMap()
+      })
+    };
+  }
+
+  /// Deserialize command messages
+  static List<Pair<Command, ReliableMessage>>? pumpCommandMessages(dynamic info) {
+    List? array = fetchCommandMessages(info);
+    if (array == null) {
+      return null;
+    }
+    List<Pair<Command, ReliableMessage>> records = [];
+    Command? cmd;
+    ReliableMessage? msg;
+    // Convert each raw map to command + message
+    for (var item in array) {
+      if (item is Map) {
+        cmd = Command.parse(item['cmd']);
+        msg = ReliableMessage.parse(item['msg']);
+        if (cmd != null && msg != null) {
+          records.add(Pair(cmd, msg));
+          continue;
+        }
+      }
+      Log.error('command message error: $item');
+    }
+    // Sort and remove deduplicate item
+    var results = sortCommandMessages(records);
+    Log.info('Pump ${results.length}/${array.length} command message(s)');
+    return results;
+  }
+
+}
+
+
+List? fetchCommandMessages(dynamic info) {
+  if (info is List) {
+    return info;
+  } else if (info is Map) {
+    var records = info['records'];
+    if (records is List) {
+      return records;
+    } else if (info.containsKey('cmd') && info.containsKey('msg')) {
+      return [info];
+    }
+  }
+  // error
+  Log.error('command messages error: $info');
+  return null;
+}
+
+
+List<Pair<Command, ReliableMessage>> sortCommandMessages(List<Pair<Command, ReliableMessage>> records) {
+  // 1. Sort by time DESC
+  final sortedRecords = List.of(records)..sort((a, b) {
+    final timeA = a.first.time ?? DateTime.fromMillisecondsSinceEpoch(0);
+    final timeB = b.first.time ?? DateTime.fromMillisecondsSinceEpoch(0);
+    // Descending: b.compareTo(a)
+    return timeB.compareTo(timeA);
+  });
+  // 2. Duplicate by serial number
+  Set<int> numbers = HashSet();
+  int sn;
+  List<Pair<Command, ReliableMessage>> array = [];
+  for (var pair in sortedRecords) {
+    sn = pair.first.sn;
+    if (numbers.contains(sn)) {
+      Log.warning('skip duplicated command message: $sn, ${pair.first}');
+      continue;
+    } else {
+      numbers.add(sn);
+    }
+    // next record
+    array.add(pair);
+  }
+  // done
+  return array;
 }
