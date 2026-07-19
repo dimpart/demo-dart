@@ -39,11 +39,11 @@ dependencies:
 #  startrek:    ^1.2.0
   stargate:    ^1.2.0
   
-#  mkm:         ^2.3.3
-#  dkd:         ^2.3.3
-#  dimp:        ^2.3.3
-  dimsdk:      ^2.3.3
-  dim_plugins: ^2.3.3
+#  mkm:         ^2.3.4
+#  dkd:         ^2.3.4
+#  dimp:        ^2.3.4
+  dimsdk:      ^2.3.4
+  dim_plugins: ^2.3.4
 ```
 
 Copyright &copy; 2023-2026 Albert Moky

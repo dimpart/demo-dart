@@ -31,8 +31,8 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/ext/command.dart';
 import '../common/dbi/account.dart';
-import '../common/mkm/utils.dart';
 import '../common/protocol/group_admins.dart';
 
 import 'delegate.dart';
@@ -103,7 +103,7 @@ class GroupCommandHelper extends TripletsHelper {
         assert(false, 'group document not exists: $group');
         return true;
       }
-      return DocumentUtils.isBefore(doc.time, content.time);
+      return content.isBefore(doc.time);
     }
     // membership command, check with reset command
     Pair<ResetCommand?, ReliableMessage?> pair = await getResetCommandMessage(group);
@@ -112,7 +112,7 @@ class GroupCommandHelper extends TripletsHelper {
     if (cmd == null/* || msg == null*/) {
       return false;
     }
-    return DocumentUtils.isBefore(cmd.time, content.time);
+    return content.isBefore(cmd.time);
   }
 
   /// members

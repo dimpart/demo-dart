@@ -1,3 +1,7 @@
+## 1.5.1
+
+- Extensions.
+
 ## 1.5.0
 
 - Visa terminal.

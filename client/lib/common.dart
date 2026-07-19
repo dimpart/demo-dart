@@ -9,6 +9,12 @@ library dim_client;
 // export 'src/common/compat/meta.dart';        // -> 'compat.dart'
 // export 'src/common/compat/loader.dart';      // -> 'compat.dart'
 
+export 'src/common/ext/identifier.dart';
+export 'src/common/ext/meta.dart';
+export 'src/common/ext/document.dart';
+export 'src/common/ext/attachment.dart';
+export 'src/common/ext/command.dart';
+
 export 'src/common/utils/checkers.dart';
 export 'src/common/utils/time.dart';
 

@@ -106,26 +106,3 @@ class _EntityID extends Identifier {
   }
 
 }
-
-
-extension MemberExtension on ID {
-
-  bool isContainedIn(List<ID> members) {
-    for (ID did in members) {
-      if (isSameAs(did)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool isNotContainedIn(List<ID> members) {
-    for (ID did in members) {
-      if (isSameAs(did)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-}

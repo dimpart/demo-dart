@@ -32,6 +32,8 @@ import 'package:dimsdk/dimsdk.dart';
 import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
+import 'ext/meta.dart';
+import 'ext/document.dart';
 import 'dbi/account.dart';
 import 'mkm/bot.dart';
 import 'mkm/provider.dart';
@@ -142,7 +144,7 @@ class CommonArchivist with Logging implements Archivist, Barrack {
 
   // protected
   bool checkMeta(Meta meta, ID identifier) {
-    return meta.isValid && MetaUtils.matchIdentifier(identifier, meta);
+    return meta.isValid && meta.matchIdentifier(identifier);
   }
 
   @override
@@ -225,10 +227,10 @@ class CommonArchivist with Logging implements Archivist, Barrack {
     if (documents == null || documents.isEmpty) {
       return false;
     }
-    String type = DocumentUtils.getDocumentType(doc) ?? '*';
+    String type = doc.type ?? '*';
     // check last document time
     Document? old = DocumentUtils.lastDocument(documents, type);
-    return old != null && DocumentUtils.isExpired(doc, old);
+    return old != null && doc.isBefore(old.time);
   }
 
   // private
@@ -238,10 +240,10 @@ class CommonArchivist with Logging implements Archivist, Barrack {
     if (documents == null || documents.isEmpty) {
       return false;
     }
-    String terminal = DocumentUtils.getVisaTerminal(doc) ?? '*';
+    String terminal = doc.terminal ?? '*';
     // check last document time
     Document? old = DocumentUtils.lastVisa(documents, terminal);
-    return old != null && DocumentUtils.isExpired(doc, old);
+    return old != null && doc.isBefore(old.time);
   }
 
   // private
@@ -253,7 +255,7 @@ class CommonArchivist with Logging implements Archivist, Barrack {
     }
     // check last document time
     Document? old = DocumentUtils.lastBulletin(documents);
-    return old != null && DocumentUtils.isExpired(doc, old);
+    return old != null && doc.isBefore(old.time);
   }
 
   @override

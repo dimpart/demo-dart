@@ -30,7 +30,7 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import '../common/compat/entity.dart';
+import '../common/ext/identifier.dart';
 import '../common/mkm/station.dart';
 import '../common/register.dart';
 import '../common/messenger.dart';

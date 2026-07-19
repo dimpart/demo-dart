@@ -31,9 +31,9 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
-import '../common/compat/entity.dart';
+import '../common/ext/identifier.dart';
+import '../common/ext/meta.dart';
 import '../common/dbi/account.dart';
-import '../common/mkm/utils.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
@@ -131,7 +131,7 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
       assert(false, 'failed to get meta for group: $group, user: $user');
       return false;
     }
-    return MetaUtils.matchPublicKey(mMeta.publicKey, gMeta);
+    return gMeta.matchPublicKey(mMeta.publicKey);
   }
 
   Future<bool> isOwner(ID user, {required ID group}) async {

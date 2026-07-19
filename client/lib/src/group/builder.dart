@@ -31,8 +31,8 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:object_key/object_key.dart';
 
-import '../common/compat/entity.dart';
-import '../common/mkm/utils.dart';
+import '../common/ext/identifier.dart';
+import '../common/ext/command.dart';
 import '../common/protocol/group_admins.dart';
 
 import 'delegate.dart';
@@ -93,13 +93,13 @@ class GroupHistoryBuilder extends TripletsHelper {
         continue;
       } else if (item.first is ResignCommand) {
         // 'resign' command, comparing it with document time
-        if (DocumentUtils.isBefore(doc.time, item.first.time)) {
+        if (item.first.isBefore(doc.time)) {
           logWarning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }
       } else {
         // other commands('invite', 'join', 'quit'), comparing with 'reset' time
-        if (DocumentUtils.isBefore(reset.time, item.first.time)) {
+        if (item.first.isBefore(reset.time)) {
           logWarning('expired "${item.first.cmd}" command in group: $group, sender: ${item.second.sender}');
           continue;
         }

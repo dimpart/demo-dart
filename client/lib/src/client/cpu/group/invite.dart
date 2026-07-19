@@ -31,7 +31,7 @@
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
-import '../../../common/compat/entity.dart';
+import '../../../common/ext/identifier.dart';
 import '../group.dart';
 
 ///  Invite Group Command Processor

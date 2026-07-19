@@ -32,7 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
 
-import '../common/dkd/utils.dart';
+import '../common/ext/attachment.dart';
 import '../common/messenger.dart';
 import '../common/mkm/station.dart';
 import '../common/mkm/utils.dart';
@@ -203,8 +203,8 @@ class ClientMessenger extends CommonMessenger {
       Visa? visa = DocumentUtils.lastVisa(await user.documents);
       // create instant message with meta & visa
       InstantMessage iMsg = InstantMessage.create(env, content);
-      MessageUtils.setMeta(meta, iMsg);
-      MessageUtils.setVisa(visa, iMsg);
+      iMsg.meta = meta;
+      iMsg.visa = visa;
       await sendInstantMessage(iMsg, priority: -1);
     } else {
       // handshake again

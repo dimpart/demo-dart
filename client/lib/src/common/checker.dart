@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
+import 'ext/meta.dart';
 import 'dbi/account.dart';
 import 'mkm/station.dart';
 import 'mkm/utils.dart';
@@ -130,7 +131,7 @@ abstract class EntityChecker with Logging {
       // meta not found, sure to query
       return true;
     }
-    bool matched = MetaUtils.matchIdentifier(identifier, meta);
+    bool matched = meta.matchIdentifier(identifier);
     assert(matched, 'meta not match: $identifier, $meta');
     return !matched;
   }

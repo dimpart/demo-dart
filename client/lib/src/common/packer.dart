@@ -29,10 +29,10 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
-import 'dkd/utils.dart';
+import 'ext/document.dart';
+import 'ext/attachment.dart';
 import 'mkm/utils.dart';
 
 
@@ -92,14 +92,11 @@ abstract class CommonPacker extends MessagePacker with Logging {
     ID sender = rMsg.sender;
     assert(sender.isUser, 'sender error: $sender');
     // check sender's meta & document
-    Visa? visa = MessageUtils.getVisa(rMsg);
+    Visa? visa = rMsg.visa;
     if (visa != null) {
       // first handshake?
-      var helper = sharedAccountExtensions.helper;
-      ID? did = helper?.getDocumentID(visa.toMap());
-      if (did == null) {
-        assert(false, 'visa error: $visa');
-      } else if (sender.isSameAs(did)) {
+      ID did = visa.identifier;
+      if (sender.isSameAs(did)) {
         return true;
       } else {
         assert(false, 'visa ID not match: $sender, $did');
@@ -204,12 +201,12 @@ abstract class CommonPacker extends MessagePacker with Logging {
     }
     ID sender = rMsg.sender;
     // [Meta Protocol]
-    Meta? meta = MessageUtils.getMeta(rMsg);
+    Meta? meta = rMsg.meta;
     if (meta != null) {
       await archivist?.saveMeta(meta, sender);
     }
     // [Visa Protocol]
-    Visa? visa = MessageUtils.getVisa(rMsg);
+    Visa? visa = rMsg.visa;
     if (visa != null) {
       await archivist?.saveDocument(visa, sender);
     }

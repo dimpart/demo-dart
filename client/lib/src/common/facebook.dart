@@ -31,7 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
-import 'compat/entity.dart';
+import 'ext/identifier.dart';
 import 'dbi/account.dart';
 import 'mkm/utils.dart';
 
