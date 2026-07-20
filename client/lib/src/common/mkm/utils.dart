@@ -238,18 +238,37 @@ final class DocumentUtils {
     // Deduplicate by signature string
     Set<String> signatures = HashSet();
     String? sig;
+    Set<String> terminals = HashSet();
+    String? device;
+    dynamic did;
     for (Document doc in documents) {
+      did = doc.getString('did');
+      // check signature
       sig = doc.getString('signature');
       if (sig == null || signatures.contains(sig)) {
-        Log.warning('skip duplicated document: $sig, $doc');
+        Log.warning('skip duplicated document: $did, signature: $sig, $doc');
         continue;
       } else {
         signatures.add(sig);
+      }
+      if (doc is Visa) {
+        // check terminal (device)
+        device = getVisaTerminal(doc);
+        if (device == null || device.isEmpty) {
+          device = '*';
+        }
+        if (terminals.contains(device)) {
+          Log.error('skip duplicated document: $did, terminal: $device, $doc');
+          continue;
+        } else {
+          terminals.add(device);
+        }
       }
       // next document
       array.add(doc);
     }
     // TODO: remove expired document(s)
+    Log.info('trim ${array.length}/${documents.length} document(s) for $did, signatures: ${signatures.length}');
     return array;
   }
 

@@ -1,3 +1,7 @@
+## 1.5.2
+
+- Duplicated terminal.
+
 ## 1.5.1
 
 - Extensions.

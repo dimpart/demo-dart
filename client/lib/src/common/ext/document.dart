@@ -33,7 +33,7 @@ import 'package:dimsdk/dimsdk.dart';
 import '../mkm/utils.dart';
 
 
-extension DocumentExtension on Document {
+extension DocumentProperties on Document {
 
   String? get type => DocumentUtils.getDocumentType(this);
 

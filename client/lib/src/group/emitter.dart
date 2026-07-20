@@ -131,7 +131,6 @@ class GroupEmitter extends TripletsHelper {
       assert(false, 'failed to get members for group: $group');
       return null;
     }
-    // no 'assistants' found in group's bulletin document?
     // split group messages and send to all members one by one
     if (members.length < SECRET_GROUP_LIMIT) {
       // it is a tiny group, split this message before encrypting and signing,

@@ -35,7 +35,7 @@ import '../dkd/utils.dart';
 
 /// 1. [Meta Protocol]
 /// 2. [Visa Protocol]
-extension MessageAttachmentExtension on Message {
+extension MessageAttachments on Message {
 
   ///  Sender's Meta
   ///  ~~~~~~~~~~~~~

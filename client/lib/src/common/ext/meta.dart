@@ -33,7 +33,7 @@ import 'package:dimsdk/dimsdk.dart';
 import '../mkm/utils.dart';
 
 
-extension MetaExtension on Meta {
+extension MetaVerifications on Meta {
 
   ///  Check whether meta matches with entity ID
   ///  (must call this when received a new meta from network)

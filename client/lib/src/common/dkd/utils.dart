@@ -108,18 +108,37 @@ final class LoginCommandUtils {
     // Duplicate by serial number
     Set<int> numbers = HashSet();
     int sn;
+    Set<String> terminals = HashSet();
+    String? device;
+    ID? did;
+    LoginCommand cmd;
     for (var pair in records) {
-      sn = pair.first.sn;
+      cmd = pair.first;
+      did = cmd.identifier;
+      // check serial number
+      sn = cmd.sn;
       if (numbers.contains(sn)) {
-        Log.warning('skip duplicated command message: $sn, ${pair.first}');
+        Log.warning('skip duplicated command message: $did, sn: $sn, $cmd');
         continue;
       } else {
         numbers.add(sn);
+      }
+      // check terminal (device)
+      device = cmd.device;
+      if (device == null || device.isEmpty) {
+        device = '*';
+      }
+      if (terminals.contains(device)) {
+        Log.error('skip duplicated command message: $did, device: $device, $cmd');
+        continue;
+      } else {
+        terminals.add(device);
       }
       // next record
       array.add(pair);
     }
     // TODO: remove expired record(s)
+    Log.info('trim ${array.length}/${records.length} commands(s) for $did, sn: ${numbers.length}');
     return array;
   }
 
