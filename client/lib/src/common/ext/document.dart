@@ -31,6 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 
 import '../mkm/utils.dart';
+import '../register.dart';
 
 
 extension DocumentProperties on Document {
@@ -50,8 +51,30 @@ extension DocumentProperties on Document {
 }
 
 
-extension VisaTerminal on Visa {
+extension VisaTerminalGetter on Visa {
 
   String? get terminal => DocumentUtils.getVisaTerminal(this);
+
+}
+
+
+extension UserVisaGetter on User {
+
+  Future<Visa?> get visa async => DocumentUtils.lastVisa(await documents);
+
+  /// get visa for local user
+  Future<Visa?> get localVisa async {
+    List<Document> docs = await documents;
+    String? device = Register.terminal;
+    assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
+    return DocumentUtils.lastVisa(docs, device);
+  }
+
+}
+
+
+extension GroupBulletinGetter on Group {
+
+  Future<Bulletin?> get bulletin async => DocumentUtils.lastBulletin(await documents);
 
 }

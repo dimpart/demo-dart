@@ -43,7 +43,7 @@ extension GroupCommandExtension on Command {
 }
 
 
-extension LoginExtension on LoginCommand {
+extension LoginCommandExtension on LoginCommand {
 
   String? get terminal => LoginCommandUtils.getLoginTerminal(this);
 

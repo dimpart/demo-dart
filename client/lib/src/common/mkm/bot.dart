@@ -30,7 +30,7 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import 'utils.dart';
+import '../ext/document.dart';
 
 
 ///  Bot User
@@ -40,7 +40,8 @@ class Bot extends BaseUser {
   }
 
   /// Bot Document
-  Future<Document?> get profile async => DocumentUtils.lastVisa(await documents);
+  Future<Document?> get profile async => await visa;
+      // DocumentUtils.lastDocument(await documents, '*');
 
   ///  Get provider ID
   ///

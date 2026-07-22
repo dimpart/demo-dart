@@ -31,7 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 
 
-extension MemberExtension on ID {
+extension MemberRelationship on ID {
 
   /// Alternative method: members.contains(did)
   bool isContainedIn(final Iterable<ID> members) {

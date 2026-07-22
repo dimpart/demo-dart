@@ -33,13 +33,13 @@ import 'dart:typed_data';
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/ext/attachment.dart';
-import '../common/messenger.dart';
+import '../common/ext/document.dart';
 import '../common/mkm/station.dart';
-import '../common/mkm/utils.dart';
-import '../common/packer.dart';
 import '../common/protocol/handshake.dart';
 import '../common/protocol/login.dart';
 import '../common/protocol/report.dart';
+import '../common/messenger.dart';
+import '../common/packer.dart';
 
 import 'network/session.dart';
 import 'checkpoint.dart';
@@ -200,7 +200,7 @@ class ClientMessenger extends CommonMessenger {
       // update visa before first handshake
       await updateVisa();
       Meta meta = await user.meta;
-      Visa? visa = DocumentUtils.lastVisa(await user.documents);
+      Visa? visa = await user.localVisa;
       // create instant message with meta & visa
       InstantMessage iMsg = InstantMessage.create(env, content);
       iMsg.meta = meta;
@@ -240,7 +240,7 @@ class ClientMessenger extends CommonMessenger {
       assert(false, 'current user not found');
       return;
     }
-    Visa? visa = DocumentUtils.lastVisa(await user.documents);
+    Visa? visa = await user.localVisa;
     if (visa == null) {
       assert(false, 'failed to get my visa: $user');
       return;

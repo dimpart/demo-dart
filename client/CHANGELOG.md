@@ -1,6 +1,6 @@
 ## 1.5.3
 
-- Register terminal.
+- Visa for local user.
 
 ## 1.5.2
 
