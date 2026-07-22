@@ -35,6 +35,7 @@ import 'package:lnc/log.dart';
 
 import '../common/dbi/account.dart';
 import '../common/protocol/version.dart';
+import '../common/register.dart';
 
 import 'keychain.dart';
 
@@ -92,7 +93,10 @@ class Account {
     //
     //  Step 4: generate visa with ID and sign with private key
     //
+    String? device = Register.terminal;
+    assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
     Visa visa = BaseVisa.empty();
+    visa['terminal'] = device;
     visa.setString('did', identifier);
     visa.name = name.trim();
     visa.avatar = TransportableFile.parse(avatar);

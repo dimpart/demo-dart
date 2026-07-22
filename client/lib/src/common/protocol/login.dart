@@ -33,6 +33,8 @@ import 'package:dimsdk/dimsdk.dart';
 import '../mkm/provider.dart';
 import '../mkm/station.dart';
 
+import '../register.dart';
+
 
 ///  Login command: {
 ///      type : 0x88,
@@ -98,6 +100,9 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
 
   BaseLoginCommand.fromID(ID identifier) : super.fromCmd(LoginCommand.LOGIN) {
     setString('did', identifier);
+    String? device = Register.terminal;
+    assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
+    this['terminal'] = device;
   }
 
   @override

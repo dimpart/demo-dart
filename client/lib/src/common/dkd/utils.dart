@@ -77,11 +77,8 @@ final class LoginCommandUtils {
   static String? getLoginTerminal(LoginCommand content) {
     String? terminal = content.getString('terminal');
     if (terminal == null || terminal.isEmpty) {
-      terminal = content.getString('device');
-      if (terminal == null || terminal.isEmpty) {
-        ID did = content.identifier;
-        terminal = did.terminal;
-      }
+      ID did = content.identifier;
+      terminal = did.terminal;
     }
     if (terminal == null || terminal.isEmpty) {
       // '*'
@@ -124,7 +121,7 @@ final class LoginCommandUtils {
         numbers.add(sn);
       }
       // check terminal (device)
-      device = cmd.device;
+      device = cmd.getString('terminal');
       if (device == null || device.isEmpty) {
         device = '*';
       }
@@ -138,7 +135,9 @@ final class LoginCommandUtils {
       array.add(pair);
     }
     // TODO: remove expired record(s)
-    Log.info('trim ${array.length}/${records.length} commands(s) for $did, sn: ${numbers.length}');
+    if (array.length != records.length) {
+      Log.info('trim ${array.length}/${records.length} commands(s) for $did, sn: ${numbers.length}');
+    }
     return array;
   }
 

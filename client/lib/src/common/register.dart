@@ -40,6 +40,8 @@ class Register {
 
   final AccountDBI database;
 
+  static String? terminal;  // base58_encode(device)
+
   ///  Generate user account
   ///
   /// @param nickname  - user name
@@ -121,7 +123,10 @@ class Register {
   static Visa createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
       {required String name, TransportableFile? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
+    String? device = terminal;
+    assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
     Visa doc = BaseVisa.empty();
+    doc['terminal'] = device;
     doc.setString('did', identifier);
     // App ID
     doc.setProperty('app_id', 'chat.dim.tarsier');

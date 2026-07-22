@@ -268,7 +268,9 @@ final class DocumentUtils {
       array.add(doc);
     }
     // TODO: remove expired document(s)
-    Log.info('trim ${array.length}/${documents.length} document(s) for $did, signatures: ${signatures.length}');
+    if (array.length != documents.length) {
+      Log.info('trim ${array.length}/${documents.length} document(s) for $did, signatures: ${signatures.length}');
+    }
     return array;
   }
 

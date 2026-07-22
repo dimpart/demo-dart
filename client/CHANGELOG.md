@@ -1,3 +1,7 @@
+## 1.5.3
+
+- Register terminal.
+
 ## 1.5.2
 
 - Duplicated terminal.

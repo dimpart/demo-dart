@@ -50,7 +50,7 @@ extension DocumentProperties on Document {
 }
 
 
-extension VisaExtension on Visa {
+extension VisaTerminal on Visa {
 
   String? get terminal => DocumentUtils.getVisaTerminal(this);
 
