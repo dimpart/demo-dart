@@ -1,3 +1,7 @@
+## 1.5.4
+
+- Broadcast all documents.
+
 ## 1.5.3
 
 - Visa for local user.

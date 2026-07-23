@@ -67,6 +67,7 @@ extension UserVisaGetter on User {
     List<Document> docs = await documents;
     String? device = Register.terminal;
     assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
+    assert(docs.isNotEmpty, 'document not found: $identifier');
     return DocumentUtils.lastVisa(docs, device);
   }
 

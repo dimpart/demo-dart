@@ -30,7 +30,6 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import '../common/ext/document.dart';
 import '../common/facebook.dart';
 import '../common/packer.dart';
 
@@ -206,12 +205,12 @@ abstract class ClientMessagePacker extends CommonPacker {
       assert(false, 'failed to get current user');
       return false;
     }
-    Visa? visa = await user.localVisa;
-    if (visa == null) {
+    List<Document> docs = await user.documents;
+    if (docs.isEmpty) {
       assert(false, 'failed to get visa: $user');
       return false;
     }
-    return await checker.sendDocuments(user.identifier, [visa], recipients: [contact]);
+    return await checker.sendDocuments(user.identifier, docs, recipients: [contact]);
   }
 
   // protected

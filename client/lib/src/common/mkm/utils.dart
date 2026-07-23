@@ -117,6 +117,10 @@ final class DocumentUtils {
     if (terminal == null || terminal.isEmpty) {
       ID? did = getDocumentID(document);
       terminal = did?.terminal;
+      if (terminal == null || terminal.isEmpty) {
+        // '*'
+        return null;
+      }
     }
     return terminal;
   }
@@ -237,15 +241,15 @@ final class DocumentUtils {
     List<Document> array = [];
     // Deduplicate by signature string
     Set<String> signatures = HashSet();
-    String? sig;
+    String sig;
     Set<String> terminals = HashSet();
-    String? device;
-    dynamic did;
+    String device;
+    ID? did;
     for (Document doc in documents) {
-      did = doc.getString('did');
+      did ??= getDocumentID(doc);
       // check signature
-      sig = doc.getString('signature');
-      if (sig == null || signatures.contains(sig)) {
+      sig = doc.getString('signature') ?? '';
+      if (signatures.contains(sig)) {
         Log.warning('skip duplicated document: $did, signature: $sig, $doc');
         continue;
       } else {
@@ -253,10 +257,7 @@ final class DocumentUtils {
       }
       if (doc is Visa) {
         // check terminal (device)
-        device = getVisaTerminal(doc);
-        if (device == null || device.isEmpty) {
-          device = '*';
-        }
+        device = getVisaTerminal(doc) ?? '*';
         if (terminals.contains(device)) {
           Log.error('skip duplicated document: $did, terminal: $device, $doc');
           continue;

@@ -79,10 +79,10 @@ final class LoginCommandUtils {
     if (terminal == null || terminal.isEmpty) {
       ID did = content.identifier;
       terminal = did.terminal;
-    }
-    if (terminal == null || terminal.isEmpty) {
-      // '*'
-      return null;
+      if (terminal == null || terminal.isEmpty) {
+        // '*'
+        return null;
+      }
     }
     return terminal;
   }
@@ -106,12 +106,12 @@ final class LoginCommandUtils {
     Set<int> numbers = HashSet();
     int sn;
     Set<String> terminals = HashSet();
-    String? device;
+    String device;
     ID? did;
     LoginCommand cmd;
     for (var pair in records) {
       cmd = pair.first;
-      did = cmd.identifier;
+      did ??= cmd.identifier;
       // check serial number
       sn = cmd.sn;
       if (numbers.contains(sn)) {
@@ -121,10 +121,7 @@ final class LoginCommandUtils {
         numbers.add(sn);
       }
       // check terminal (device)
-      device = cmd.getString('terminal');
-      if (device == null || device.isEmpty) {
-        device = '*';
-      }
+      device = getLoginTerminal(cmd) ?? '*';
       if (terminals.contains(device)) {
         Log.error('skip duplicated command message: $did, device: $device, $cmd');
         continue;

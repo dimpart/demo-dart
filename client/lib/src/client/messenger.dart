@@ -201,6 +201,10 @@ class ClientMessenger extends CommonMessenger {
       await updateVisa();
       Meta meta = await user.meta;
       Visa? visa = await user.localVisa;
+      if (visa == null) {
+        assert(false, 'failed to get local visa: $me');
+        visa = await user.visa;
+      }
       // create instant message with meta & visa
       InstantMessage iMsg = InstantMessage.create(env, content);
       iMsg.meta = meta;
@@ -240,9 +244,9 @@ class ClientMessenger extends CommonMessenger {
       assert(false, 'current user not found');
       return;
     }
-    Visa? visa = await user.localVisa;
-    if (visa == null) {
-      assert(false, 'failed to get my visa: $user');
+    List<Document> docs = await user.documents;
+    if (docs.isEmpty) {
+      assert(false, 'failed to get my documents: $user');
       return;
     }
     if (updated) {
@@ -250,12 +254,12 @@ class ClientMessenger extends CommonMessenger {
       //  send to all contacts
       //
       List<ID> contacts = await user.contacts;
-      await checker.sendDocuments(user.identifier, [visa], force: true, recipients: contacts);
+      await checker.sendDocuments(user.identifier, docs, force: true, recipients: contacts);
     }
     //
     //  broadcast to 'everyone@everywhere'
     //
-    await checker.sendDocuments(user.identifier, [visa], force: true, recipients: [ID.EVERYONE]);
+    await checker.sendDocuments(user.identifier, docs, force: true, recipients: [ID.EVERYONE]);
   }
 
   ///  Send login command to keep roaming

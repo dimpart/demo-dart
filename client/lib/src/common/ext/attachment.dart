@@ -43,7 +43,7 @@ extension MessageAttachments on Message {
 
   Meta? get meta => MessageUtils.getMeta(this);
 
-  set meta(Meta? info) => MessageUtils.setMeta(meta, this);
+  set meta(Meta? info) => MessageUtils.setMeta(info, this);
 
   ///  Sender's Visa
   ///  ~~~~~~~~~~~~~
@@ -51,6 +51,6 @@ extension MessageAttachments on Message {
 
   Visa? get visa => MessageUtils.getVisa(this);
 
-  set visa(Visa? info) => MessageUtils.setVisa(visa, this);
+  set visa(Visa? info) => MessageUtils.setVisa(info, this);
 
 }
