@@ -1,3 +1,7 @@
+## 1.5.5
+
+- Entity ID.
+
 ## 1.5.4
 
 - Broadcast all documents.

@@ -67,7 +67,7 @@ class EntityIDFactory extends IdentifierFactory {
       if (did != null) {
         return did;
       }
-    } else if (size < 4 || 64 < size) {
+    } else if (size < 4 || 128 < size) {
       assert(false, 'invalid id: $identifier');
       return null;
     }
@@ -90,8 +90,23 @@ final _broadcastIdentifiers = {
 };
 
 
-class _EntityID extends Identifier {
-  _EntityID(super.string, {super.name, required super.address, super.terminal});
+class _EntityID extends ConstantString implements ID {
+  _EntityID(super.string, {
+    String? name, required Address address, String? terminal
+  }) : _name = name, _address = address, _terminal = terminal;
+
+  final String? _name;
+  final Address _address;
+  final String? _terminal;
+
+  @override
+  String? get name => _name;
+
+  @override
+  Address get address => _address;
+
+  @override
+  String? get terminal => _terminal;
 
   @override
   int get type {
@@ -103,6 +118,72 @@ class _EntityID extends Identifier {
     }
     // compatible with MKM 0.9.*
     return NetworkID.getType(address.network);
+  }
+
+  @override
+  bool get isBroadcast => EntityType.isBroadcast(type);
+
+  @override
+  bool get isUser => EntityType.isUser(type);
+
+  @override
+  bool get isGroup => EntityType.isGroup(type);
+
+  @override
+  bool isSameAs(Object? other) {
+    ID? did  = ID.parse(other);
+    if (did == null) {
+      // should not happen
+      return false;
+    } else if (identical(did, this)) {
+      // same object
+      return true;
+    }
+    //
+    //  1. check address
+    //
+    if (address != did.address) {
+      // addresses not equal,
+      // sure not the same entity
+      return false;
+    }
+    //
+    //  2. check name
+    //
+    String thisName = name ?? '';
+    String thatName = did.name ?? '';
+    return thisName == thatName;
+  }
+
+  @override
+  ID withoutTerminal() {
+    // check old terminal (device)
+    String? device = terminal;
+    if (device == null/* || device.isEmpty*/) {
+      // nothing changed
+      return this;
+    }
+    // create new ID without terminal
+    return ID.create(name: name, address: address);
+  }
+
+  @override
+  ID withTerminal(String newTerminal) {
+    // check old terminal (device)
+    String oldTerminal = terminal ?? '';
+    if (newTerminal.isEmpty) {
+      // should not happen
+      return oldTerminal.isEmpty ? this : ID.create(name: name, address: address);
+    }
+    // new terminal not empty (normally),
+    // try to add/replace terminal
+    if (newTerminal == oldTerminal) {
+      // old terminal equals to the new terminal,
+      // nothing changed
+      return this;
+    }
+    // create new ID with terminal
+    return ID.create(name: name, address: address, terminal: newTerminal);
   }
 
 }

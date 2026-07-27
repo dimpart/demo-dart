@@ -32,9 +32,8 @@ import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
 
-import '../ext/document.dart';
-
 import 'provider.dart';
+import 'utils.dart';
 
 
 ///  DIM Server
@@ -118,8 +117,8 @@ class Station implements User {
   }
 
   /// Station Document
-  Future<Document?> get profile async => await visa;
-      // DocumentUtils.lastDocument(await documents, '*');
+  Future<Document?> get profile async =>// await visa;
+      DocumentUtils.lastDocument(await documents, '*');
 
   /// Station IP
   String? get host => _host;

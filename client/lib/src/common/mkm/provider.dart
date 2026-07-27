@@ -45,7 +45,7 @@ class ServiceProvider extends BaseGroup {
   static final ID GSP = Identifier.create(name: 'gsp', address: Address.EVERYWHERE);
 
   /// Provider Document
-  Future<Document?> get profile async =>
+  Future<Document?> get profile async =>// await bulletin;
       DocumentUtils.lastDocument(await documents, '*');
 
   Future<List> get stations async {

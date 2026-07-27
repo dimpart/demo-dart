@@ -24,8 +24,8 @@
 | [DIMP (去中心化通讯协议)](https://github.com/dimchat/core-dart) | [![Version](https://img.shields.io/pub/v/dimp)](https://pub.dev/packages/dimp) | Decentralized Instant Messaging Protocol |
 | [DIM SDK](https://github.com/dimchat/sdk-dart) | [![Version](https://img.shields.io/pub/v/dimsdk)](https://pub.dev/packages/dimsdk) | Software Development Kit |
 | [DIM Plugins](https://github.com/dimchat/plugins-dart) | [![Version](https://img.shields.io/pub/v/dim_plugins)](https://pub.dev/packages/dim_plugins) | Cryptography & Account Plugins |
-| [LNC](https://github.com/dimpart/demo-dart) | [![Version](https://img.shields.io/pub/v/lnc)](https://pub.dev/packages/lnc) | Log, Notification & Cache |
 | [Star Gate](https://github.com/moky/StarGate) | [![Version](https://img.shields.io/pub/v/stargate)](https://pub.dev/packages/stargate) | Network Connection Module (WebSocket) |
+| [LNC](https://github.com/dimpart/demo-dart) | [![Version](https://img.shields.io/pub/v/lnc)](https://pub.dev/packages/lnc) | Log, Notification & Cache |
 
 * pubspec.yaml
 
@@ -39,11 +39,44 @@ dependencies:
 #  startrek:    ^1.2.0
   stargate:    ^1.2.0
   
-#  mkm:         ^2.3.4
-#  dkd:         ^2.3.4
-#  dimp:        ^2.3.4
-  dimsdk:      ^2.3.4
-  dim_plugins: ^2.3.4
+#  mkm:         ^2.3.6
+#  dkd:         ^2.3.6
+#  dimp:        ^2.3.6
+  dimsdk:      ^2.3.6
+  dim_plugins: ^2.3.6
+```
+
+## FIXME
+
+LoadException:
+
+```
+../../../../../.pub-cache/hosted/pub.dev/asn1lib-1.6.5/lib/src/asn1octetstring.dart:30:26: Error: A value of type 'List<int>' can't be assigned to a variable of type 'Uint8List'.
+ - 'List' is from 'dart:core'.
+ - 'Uint8List' is from 'dart:typed_data'.
+      this.octets = utf8.encode(octets);
+                         ^
+```
+
+* **file**: asn1lib-1.6.5/lib/src/asn1octetstring.dart
+* **line**: 29
+
+```dart
+  ASN1OctetString(dynamic octets, {super.tag = OCTET_STRING_TYPE}) {
+    if (octets is String) {
+      // We now default to utf8 encoding
+      this.octets = Uint8List.fromList(octets.codeUnits);
+      // this.octets = utf8.encode(octets);
+    } else if (octets is Uint8List) {
+      this.octets = octets;
+    } else if (octets is List<int>) {
+      this.octets = Uint8List.fromList(octets);
+    } else {
+      throw ArgumentError(
+        'Parameters octets should be either of type String or List<int>.',
+      );
+    }
+  }
 ```
 
 Copyright &copy; 2023-2026 Albert Moky

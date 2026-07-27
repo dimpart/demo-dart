@@ -24,27 +24,11 @@
 | [DIMP (去中心化通讯协议)](https://github.com/dimchat/core-dart) | [![Version](https://img.shields.io/pub/v/dimp)](https://pub.dev/packages/dimp) | Decentralized Instant Messaging Protocol |
 | [DIM SDK](https://github.com/dimchat/sdk-dart) | [![Version](https://img.shields.io/pub/v/dimsdk)](https://pub.dev/packages/dimsdk) | Software Development Kit |
 | [DIM Plugins](https://github.com/dimchat/plugins-dart) | [![Version](https://img.shields.io/pub/v/dim_plugins)](https://pub.dev/packages/dim_plugins) | Cryptography & Account Plugins |
-| [LNC](https://github.com/dimpart/demo-dart) | [![Version](https://img.shields.io/pub/v/lnc)](https://pub.dev/packages/lnc) | Log, Notification & Cache |
 | [Star Gate](https://github.com/moky/StarGate) | [![Version](https://img.shields.io/pub/v/stargate)](https://pub.dev/packages/stargate) | Network Connection Module (WebSocket) |
+| [LNC](https://github.com/dimpart/demo-dart) | [![Version](https://img.shields.io/pub/v/lnc)](https://pub.dev/packages/lnc) | Log, Notification & Cache |
+| [PNF](https://github.com/dimpart/demo-dart) | [![Version](https://img.shields.io/pub/v/pnf)](https://pub.dev/packages/pnf) | Portable Network File |
 
-* pubspec.yaml
-
-```
-environment:
-  sdk: '>=3.0.0 <4.0.0'
-
-dependencies:
-  object_key:  ^1.1.1
-  lnc:         ^1.2.2
-#  startrek:    ^1.2.0
-  stargate:    ^1.2.0
-  
-#  mkm:         ^2.3.4
-#  dkd:         ^2.3.4
-#  dimp:        ^2.3.4
-  dimsdk:      ^2.3.4
-  dim_plugins: ^2.3.4
-```
+----
 
 Copyright &copy; 2023-2026 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)
