@@ -41,26 +41,26 @@ final class Compatible {
 
   /// Fix meta
   static void fixMetaAttachment(ReliableMessage rMsg) {
-    Map? meta = rMsg['meta'];
+    MutableMapping? meta = rMsg['meta'];
     if (meta != null) {
       fixMetaVersion(meta);
     }
   }
-  // static void fixMetaType(Map meta) => fixMetaVersion(meta);
+  // static void fixMetaType(MutableMapping meta) => fixMetaVersion(meta);
 
   /// Fix visa document
   static void fixVisaAttachment(ReliableMessage rMsg) {
-    Map? visa = rMsg['visa'];
+    MutableMapping? visa = rMsg['visa'];
     if (visa != null) {
       fixDocument(visa);
     }
   }
-  // static void fixDocumentID(Map document) => fixDocId(document);
+  // static void fixDocumentID(MutableMapping document) => fixDocId(document);
 
 }
 
 /// 'type' <-> 'version'
-void fixMetaVersion(Map meta) {
+void fixMetaVersion(MutableMapping meta) {
   dynamic type = meta['type'];
   if (type == null) {
     type = meta['version'];
@@ -78,14 +78,14 @@ void fixMetaVersion(Map meta) {
 }
 
 /// 'ID' <-> 'did'
-Map fixDocument(Map document) {
+MutableMapping fixDocument(MutableMapping document) {
   fixDid(document);
   return document;
 }
 
 
 /// 'cmd' <-> 'command'
-void fixCmd(Map content) {
+void fixCmd(MutableMapping content) {
   String? cmd = content['command'];
   if (cmd == null) {
     // 'command' not exists, copy the value from 'cmd'
@@ -105,7 +105,7 @@ void fixCmd(Map content) {
 }
 
 /// 'ID' <-> 'did'
-void fixDid(Map content) {
+void fixDid(MutableMapping content) {
   String? did = content['did'];
   if (did == null) {
     // 'did' not exists, copy the value from 'ID'
@@ -124,7 +124,7 @@ void fixDid(Map content) {
   }
 }
 
-void fixFileContent(Map content) {
+void fixFileContent(MutableMapping content) {
   var pwd = content['key'];
   if (pwd != null) {
     // Tarsier version > 1.3.7
@@ -151,7 +151,7 @@ const fileTypes = [
 final class CompatibleIncoming {
   CompatibleIncoming._();
 
-  static void fixContent(Map content) {
+  static void fixContent(MutableMapping content) {
     // get content type
     String type = Converter.getString(content['type']) ?? '';
 
@@ -198,7 +198,7 @@ final class CompatibleIncoming {
       // 3. 'ID' <-> 'did'
       fixDid(content);
 
-      Map? meta = content['meta'];
+      MutableMapping? meta = content['meta'];
       if (meta != null) {
         // 4. 'type' <-> 'version'
         fixMetaVersion(meta);
@@ -207,14 +207,14 @@ final class CompatibleIncoming {
 
   }
 
-  static void _fixDocs(Map content) {
+  static void _fixDocs(MutableMapping content) {
     // cmd: 'document' -> 'documents'
     String? cmd = content['command'];
     if (cmd == 'document') {
       content['command'] = 'documents';
     }
     // 'document' -> 'documents
-    Map? doc = content['document'];
+    MutableMapping? doc = content['document'];
     if (doc != null) {
       content['documents'] = [fixDocument(doc)];
       content.remove('document');
@@ -225,7 +225,7 @@ final class CompatibleIncoming {
 
 
 /// change 'type' value from string to int
-void fixType(Map content) {
+void fixType(MutableMapping content) {
   var type = content['type'];
   if (type is String) {
     int? number = Converter.getInt(type);
@@ -295,7 +295,7 @@ final class CompatibleOutgoing {
       // 3. 'ID' <-> 'did'
       fixDid(content.toMap());
 
-      Map? meta = content['meta'];
+      MutableMapping? meta = content['meta'];
       if (meta != null) {
         // 4. 'type' <-> 'version'
         fixMetaVersion(meta);
@@ -331,6 +331,6 @@ final class CompatibleOutgoing {
 
 }
 
-void fixReceiptCommand(Map content) {
+void fixReceiptCommand(MutableMapping content) {
   // TODO: check for v2.0
 }

@@ -158,7 +158,7 @@ class AddressNameServer implements AddressNameService {
   }
 
   /// remove the keywords temporary before save new records
-  Future<int> fix(Map<String, String> records) async {
+  Future<int> fix(MutableMapping<String, String> records) async {
     // _reserved['apns'] = false;
     _reserved['master'] = false;
     _reserved['monitor'] = false;

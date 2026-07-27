@@ -1,6 +1,6 @@
 ## 1.5.5
 
-- Entity ID.
+- Type alias.
 
 ## 1.5.4
 

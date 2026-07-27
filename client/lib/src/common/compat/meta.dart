@@ -35,7 +35,7 @@ class CompatibleMetaFactory extends BaseMetaFactory {
   CompatibleMetaFactory(super.type);
 
   @override
-  Meta? parseMeta(Map meta) {
+  Meta? parseMeta(Mapping meta) {
     Meta out;
     var helper = sharedAccountExtensions.helper;
     String? version = helper?.getMetaType(meta);

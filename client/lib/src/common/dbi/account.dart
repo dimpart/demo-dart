@@ -91,8 +91,8 @@ abstract interface class PrivateKeyDBI {
     return privateKeys;
   }
 
-  static List<Map> revertPrivateKeys(Iterable<PrivateKey> privateKeys) {
-    List<Map> array = [];
+  static List<MutableMapping> revertPrivateKeys(Iterable<PrivateKey> privateKeys) {
+    List<MutableMapping> array = [];
     for (PrivateKey key in privateKeys) {
       array.add(key.toMap());
     }

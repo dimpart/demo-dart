@@ -96,7 +96,7 @@ final class MetaUtils {
 final class DocumentUtils {
   DocumentUtils._();
 
-  static String? getDocumentType(Map document) {
+  static String? getDocumentType(Mapping document) {
     if (document is Document) {
       document = document.toMap();
     }
@@ -104,7 +104,7 @@ final class DocumentUtils {
     return helper?.getDocumentType(document);
   }
 
-  static ID? getDocumentID(Map document) {
+  static ID? getDocumentID(Mapping document) {
     if (document is Document) {
       document = document.toMap();
     }

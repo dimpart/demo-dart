@@ -39,14 +39,14 @@ class CompatibleCompressor extends MessageCompressor {
   CompatibleCompressor() : super(CompatibleShortener());
 
   // @override
-  // Uint8List compressContent(Map content, Map key) {
+  // Uint8List compressContent(Mapping content, Mapping key) {
   //   //CompatibleOutgoing.fixContent(content);
   //   return super.compressContent(content, key);
   // }
 
   @override
-  Map? extractContent(Uint8List data, Map key) {
-    Map? content = super.extractContent(data, key);
+  Mapping? extractContent(Uint8List data, Mapping key) {
+    Mapping? content = super.extractContent(data, key);
     if (content != null) {
       CompatibleIncoming.fixContent(content);
     }
@@ -58,39 +58,32 @@ class CompatibleCompressor extends MessageCompressor {
 
 class CompatibleShortener extends MessageShortener {
 
-  @override  // protected
-  void moveKey(String from, String to, Map info) {
-    var value = info[from];
-    if (value != null) {
-      if (info[to] != null) {
-        assert(false, 'keys conflicted: "$from" -> "$to", $info');
-        return;
-      }
-      info.remove(from);
-      info[to] = value;
-    }
-  }
-
   @override
-  Map compressContent(Map content) {
+  Mapping compressContent(Mapping content) {
     // DON'T COMPRESS NOW
     return content;
   }
 
   @override
-  Map compressSymmetricKey(Map key) {
+  Mapping compressSymmetricKey(Mapping key) {
     // DON'T COMPRESS NOW
     return key;
   }
 
   @override
-  Map compressReliableMessage(Map msg) {
+  Mapping compressReliableMessage(Mapping msg) {
     // DON'T COMPRESS NOW
     return msg;
   }
 
   @override
-  Map extractReliableMessage(Map msg) {
+  Mapping extractReliableMessage(Mapping msg) {
+    msg = _fixKey(msg);
+    return super.extractReliableMessage(msg);
+  }
+
+  // private
+  Mapping _fixKey(MutableMapping msg) {
     var keys = msg["K"];
     if (keys == null) {
       // assert(msg["data"] != null, "message data should not empty: $msg");
@@ -105,8 +98,7 @@ class CompatibleShortener extends MessageShortener {
     } else {
       assert(false, "message key error: $msg");
     }
-    // restoreKeys(messageShortKeys, msg);
-    return super.extractReliableMessage(msg);
+    return msg;
   }
 
 }
