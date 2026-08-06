@@ -34,6 +34,9 @@ import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/protocol/app.dart';
+import '../common/protocol/chats.dart';
+import '../common/register.dart';
 import '../common/session.dart';
 import '../group/shared.dart';
 
@@ -251,12 +254,62 @@ abstract class Emitter with Logging {
     //
     ID receiver = iMsg.receiver;
     logInfo('sending message (type=${iMsg.content.type}): ${iMsg.sender} -> $receiver');
+    ReliableMessage? rMsg;
     if (receiver.isUser) {
       // send out directly
-      return await messenger?.sendInstantMessage(iMsg, priority: priority);
+      rMsg = await messenger?.sendInstantMessage(iMsg, priority: priority);
+    } else {
+      // send by group manager
+      rMsg = await sharedGroupManager.sendInstantMessage(iMsg, priority: priority);
     }
-    // send by group manager
-    return await sharedGroupManager.sendInstantMessage(iMsg, priority: priority);
+    if (rMsg != null) {
+      // message sent successfully,
+      // now sync to other terminal(s) of my account
+      await syncInstantMessage(iMsg, priority: priority);
+    }
+    return rMsg;
+  }
+
+  // protected
+  Future<bool> syncInstantMessage(InstantMessage iMsg, {int priority = 0}) async {
+    ID sender = iMsg.sender;
+    User? current = await currentUser;
+    if (current == null) {
+      logError('should not happen');
+      return false;
+    } else if (!current.identifier.isSameAs(sender)) {
+      logError('sender error: $sender, $current');
+      return false;
+    }
+    var terminals = await current.terminals;
+    if (terminals.length < 2) {
+      logInfo('no more terminals: $terminals');
+      return false;
+    } else {
+      String device = Register.terminal;
+      assert(device.isNotEmpty, 'terminal (device) not initialized');
+      sender = sender.withTerminal(device);
+    }
+    var body = syncMessageContent(iMsg);
+    for (final device in terminals) {
+      if (device == sender.terminal) {
+        continue;
+      }
+      ID receiver = sender.withTerminal(device);
+      await messenger?.sendContent(body, sender: sender, receiver: receiver, priority: priority);
+    }
+    return true;
+  }
+
+  // protected
+  Content syncMessageContent(InstantMessage iMsg) {
+    var content = CustomizedContent.create(
+      app: SyncChatContent.APP,
+      mod: SyncChatContent.MOD,
+      act: SyncChatContent.ACT_SYNC,
+    );
+    content['message'] = iMsg.toMap();
+    return content;
   }
 
   //  Send file content asynchronously

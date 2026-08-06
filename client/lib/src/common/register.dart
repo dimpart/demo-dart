@@ -40,7 +40,8 @@ class Register {
 
   final AccountDBI database;
 
-  static String? terminal;  // base58_encode(device)
+  // base58_encode(device)
+  static String terminal = 'AquilaRift';
 
   ///  Generate user account
   ///
@@ -123,8 +124,8 @@ class Register {
   static Visa createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
       {required String name, TransportableFile? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
-    String? device = terminal;
-    assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
+    String device = terminal;
+    assert(device.isNotEmpty, 'terminal (device) not initialized');
     Visa doc = BaseVisa.empty();
     doc['terminal'] = device;
     doc.setString('did', identifier);

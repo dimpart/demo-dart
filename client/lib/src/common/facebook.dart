@@ -131,7 +131,7 @@ abstract class CommonFacebook extends Facebook with Logging {
 
   Future<Visa?> getVisa(ID user) async {
     List<Document> documents = await getDocuments(user);
-    return DocumentUtils.lastVisa(documents);
+    return DocumentUtils.lastVisa(documents, user.terminal);
   }
 
   Future<Bulletin?> getBulletin(ID group) async {

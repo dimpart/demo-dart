@@ -1,3 +1,7 @@
+## 1.5.6
+
+- Sync message.
+
 ## 1.5.5
 
 - Type alias.

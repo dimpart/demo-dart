@@ -51,7 +51,7 @@ abstract class BaseSession extends Runner with Logging implements Session, Porte
     _queue = MessageQueue();
   }
 
-  static final GateKeeper keeper = GateKeeper();
+  final GateKeeper keeper = GateKeeper();
   CommonGate get gate => keeper.gate;
 
   final SessionDBI _db;
@@ -153,7 +153,7 @@ abstract class BaseSession extends Runner with Logging implements Session, Porte
 
   @override
   Future<void> finish() async {
-    // await keeper.disconnect(remote: remoteAddress);
+    await keeper.disconnect(remote: remoteAddress);
     keeper.removeListener(this);
     await super.finish();
   }

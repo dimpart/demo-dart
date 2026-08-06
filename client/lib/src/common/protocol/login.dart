@@ -100,8 +100,8 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
 
   BaseLoginCommand.fromID(ID identifier) : super.fromCmd(LoginCommand.LOGIN) {
     setString('did', identifier);
-    String? device = Register.terminal;
-    assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
+    String device = Register.terminal;
+    assert(device.isNotEmpty, 'terminal (device) not initialized');
     this['terminal'] = device;
   }
 

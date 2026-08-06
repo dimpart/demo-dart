@@ -88,6 +88,11 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     List<Content> responses = await super.processContent(content, rMsg);
+    if (responses.isNotEmpty && _contentsEmpty(responses)) {
+      // remove empty ArrayContent, ForwardContent
+      logWarning('drop ${responses.length} empty response(s): ${rMsg.sender} -> ${rMsg.receiver}, $responses');
+      responses = [];
+    }
 
     // check sender's document times from the message
     // to make sure the user info synchronized
@@ -124,4 +129,25 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
     return docUpdated;
   }
 
+}
+
+bool _contentsEmpty(List<Content> contents) {
+  for (final item in contents) {
+    if (!_contentEmpty(item)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool _contentEmpty(Content content) {
+  if (content is ArrayContent) {
+    content.toMap();  // serialize "contents"
+    return _contentsEmpty(content.contents);
+  } else if (content is ForwardContent) {
+    content.toMap();  // serialize "messages"
+    return content.secrets.isEmpty;
+  } else {
+    return false;
+  }
 }

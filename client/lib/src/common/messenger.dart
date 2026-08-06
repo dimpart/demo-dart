@@ -256,4 +256,7 @@ abstract class CommonMessenger extends Messenger with Logging
     return session.queueMessagePackage(rMsg, data, priority: priority);
   }
 
+  /// Save message for myself: "chat.dim.messenger:chat_history"
+  Future<bool> saveInstantMessage(InstantMessage iMsg);
+
 }

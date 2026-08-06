@@ -93,8 +93,8 @@ class Account {
     //
     //  Step 4: generate visa with ID and sign with private key
     //
-    String? device = Register.terminal;
-    assert(device != null && device.isNotEmpty, 'terminal (device) not initialized');
+    String device = Register.terminal;
+    assert(device.isNotEmpty, 'terminal (device) not initialized');
     Visa visa = BaseVisa.empty();
     visa['terminal'] = device;
     visa.setString('did', identifier);

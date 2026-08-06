@@ -25,6 +25,7 @@ export 'src/common/protocol/utils.dart';
 export 'src/common/protocol/ans.dart';
 export 'src/common/protocol/app.dart';
 export 'src/common/protocol/block.dart';
+export 'src/common/protocol/chats.dart';
 export 'src/common/protocol/handshake.dart';
 export 'src/common/protocol/login.dart';
 export 'src/common/protocol/mute.dart';

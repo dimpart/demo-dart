@@ -39,9 +39,7 @@ import 'gate.dart';
 
 
 class GateKeeper with Logging implements Processor, PorterDelegate {
-  factory GateKeeper() => _instance;
-  static final GateKeeper _instance = GateKeeper._internal();
-  GateKeeper._internal() {
+  GateKeeper() {
     _gate = createGate();
     _hub = createHub(_gate);
     _gate.hub = _hub;

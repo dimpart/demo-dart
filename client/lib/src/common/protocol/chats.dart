@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
  *                                Written in 2026 by Moky <albert.moky@gmail.com>
  *
@@ -30,52 +30,34 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import '../mkm/utils.dart';
-import '../register.dart';
+import 'app.dart';
 
 
-extension DocumentProperties on Document {
+///  Application Customized message: {
+///      "type" : i2s(0xCC),
+///      "sn"   : 12345,
+///      "time" : 123.45,
+///
+///      "app"     : "chat.dim.messenger",
+///      "mod"     : "chat_history",
+///      "act"     : "sync_message",
+///
+///      "message" : self_message
+///  }
+abstract interface class SyncChatContent implements CustomizedContent {
 
-  String? get type => DocumentUtils.getDocumentType(this);
+  // ignore_for_file: constant_identifier_names
+  static const String APP = 'chat.dim.messenger';
+  static const String MOD = 'chat_history';
+  static const String ACT_SYNC = 'sync_message';
 
-  /// Unique identifier of the entity this document belongs to.
-  ID get identifier => DocumentUtils.getDocumentID(this)!;
+  //
+  //  Factory
+  //
 
-  /// Display name of the entity (from properties).
-  String? get name  => DocumentUtils.getDocumentName(this);
-  set name(String? value) => setProperty('name', value);
-
-  /// Check whether this document's time is before old document's time
-  bool isBefore(DateTime? lastTime) => DocumentUtils.isBefore(lastTime, time);
-
-}
-
-
-extension VisaTerminalGetter on Visa {
-
-  String? get terminal => DocumentUtils.getVisaTerminal(this);
-
-}
-
-
-extension UserVisaGetter on User {
-
-  Future<Visa?> get visa async => DocumentUtils.lastVisa(await documents);
-
-  /// get visa for local user
-  Future<Visa?> get localVisa async {
-    List<Document> docs = await documents;
-    String device = Register.terminal;
-    assert(device.isNotEmpty, 'terminal (device) not initialized');
-    assert(docs.isNotEmpty, 'document not found: $identifier');
-    return DocumentUtils.lastVisa(docs, device);
+  static CustomizedContent create(InstantMessage iMsg) {
+    var content = CustomizedContent.create(app: APP, mod: MOD, act: ACT_SYNC);
+    content['message'] = iMsg.toMap();
+    return content;
   }
-
-}
-
-
-extension GroupBulletinGetter on Group {
-
-  Future<Bulletin?> get bulletin async => DocumentUtils.lastBulletin(await documents);
-
 }
