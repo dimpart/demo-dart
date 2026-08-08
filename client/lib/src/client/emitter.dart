@@ -289,13 +289,22 @@ abstract class Emitter with Logging {
       String device = Register.terminal;
       assert(device.isNotEmpty, 'terminal (device) not initialized');
       sender = sender.withTerminal(device);
+      logInfo('sync message: $sender -> $terminals');
     }
     var body = syncMessageContent(iMsg);
+    ID receiver;
     for (final device in terminals) {
-      if (device == sender.terminal) {
+      if (device.isEmpty || device == '*') {
+        if (sender.terminal == null) {
+          continue;
+        }
+        receiver = sender.withoutTerminal();
+      } else if (device == sender.terminal) {
         continue;
+      } else {
+        receiver = sender.withTerminal(device);
       }
-      ID receiver = sender.withTerminal(device);
+      logInfo('sync message: $sender -> $receiver (${iMsg.receiver})');
       await messenger?.sendContent(body, sender: sender, receiver: receiver, priority: priority);
     }
     return true;

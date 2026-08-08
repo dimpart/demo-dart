@@ -89,7 +89,6 @@ final class LoginCommandUtils {
 
   /// Sort records by timestamp descending
   static List<Pair<LoginCommand, ReliableMessage>> sortCommandMessages(List<Pair<LoginCommand, ReliableMessage>> records) {
-    // Sort by time DESC
     records.sort((a, b) {
       final timeA = a.first.time ?? DateTime.fromMillisecondsSinceEpoch(0);
       final timeB = b.first.time ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -99,43 +98,22 @@ final class LoginCommandUtils {
     return records;
   }
 
-  /// Remove duplicated/expired record(s)
-  static List<Pair<LoginCommand, ReliableMessage>> trimCommandMessages(final Iterable<Pair<LoginCommand, ReliableMessage>> records) {
-    List<Pair<LoginCommand, ReliableMessage>> array = [];
-    // Duplicate by serial number
-    Set<int> numbers = HashSet();
-    int sn;
-    Set<String> terminals = HashSet();
-    String device;
-    ID? did;
-    LoginCommand cmd;
-    for (var pair in records) {
-      cmd = pair.first;
-      did ??= cmd.identifier;
-      // check serial number
-      sn = cmd.sn;
-      if (numbers.contains(sn)) {
-        Log.warning('skip duplicated command message: $did, sn: $sn, $cmd');
-        continue;
+  /// Remove duplicated items by signature
+  static List<Pair<LoginCommand, ReliableMessage>> tidyCommandMessages(List<Pair<LoginCommand, ReliableMessage>> records) {
+    Set<String> signatures = HashSet();
+    records.removeWhere((pair) {
+      String? sig = pair.second.getString('signature');
+      if (sig == null || signatures.contains(sig)) {
+        assert(sig != null, 'login command error: ${pair.first.identifier}, ${pair.first}');
+        Log.warning('skip duplicated command: ${pair.first.identifier}, ${pair.first}');
+        return true;
       } else {
-        numbers.add(sn);
+        signatures.add(sig);
       }
-      // check terminal (device)
-      device = getLoginTerminal(cmd) ?? '*';
-      if (terminals.contains(device)) {
-        Log.error('skip duplicated command message: $did, device: $device, $cmd');
-        continue;
-      } else {
-        terminals.add(device);
-      }
-      // next record
-      array.add(pair);
-    }
-    // TODO: remove expired record(s)
-    if (array.length != records.length) {
-      Log.info('trim ${array.length}/${records.length} commands(s) for $did, sn: ${numbers.length}');
-    }
-    return array;
+      // TODO: remove expired command(s)
+      return false;
+    });
+    return records;
   }
 
 }

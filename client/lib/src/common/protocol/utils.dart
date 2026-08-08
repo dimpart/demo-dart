@@ -31,7 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 
 
-class BroadcastUtils {
+final class BroadcastUtils {
   BroadcastUtils._();
 
   // private

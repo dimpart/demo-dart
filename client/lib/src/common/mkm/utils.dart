@@ -34,6 +34,8 @@ import 'dart:typed_data';
 import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
+import '../ext/document.dart';
+
 
 final class MetaUtils {
   MetaUtils._();
@@ -226,7 +228,6 @@ final class DocumentUtils {
 
   /// Sort documents by timestamp descending
   static List<Document> sortDocuments(List<Document> documents) {
-    // Sort by time DESC
     documents.sort((a, b) {
       final timeA = a.time ?? DateTime.fromMillisecondsSinceEpoch(0);
       final timeB = b.time ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -236,43 +237,22 @@ final class DocumentUtils {
     return documents;
   }
 
-  /// Remove duplicated/expired item(s)
-  static List<Document> trimDocuments(final Iterable<Document> documents) {
-    List<Document> array = [];
-    // Deduplicate by signature string
+  /// Remove duplicated items by signature
+  static List<Document> tidyDocuments(List<Document> documents) {
     Set<String> signatures = HashSet();
-    String sig;
-    Set<String> terminals = HashSet();
-    String device;
-    ID? did;
-    for (Document doc in documents) {
-      did ??= getDocumentID(doc);
-      // check signature
-      sig = doc.getString('signature') ?? '';
-      if (signatures.contains(sig)) {
-        Log.warning('skip duplicated document: $did, signature: $sig, $doc');
-        continue;
+    documents.removeWhere((doc) {
+      String? sig = doc.getString('signature');
+      if (sig == null || signatures.contains(sig)) {
+        assert(sig != null, 'document info error: ${doc.identifier}, $doc');
+        Log.warning('skip duplicated document: ${doc.identifier}, $doc');
+        return true;
       } else {
         signatures.add(sig);
       }
-      if (doc is Visa) {
-        // check terminal (device)
-        device = getVisaTerminal(doc) ?? '*';
-        if (terminals.contains(device)) {
-          Log.error('skip duplicated document: $did, terminal: $device, $doc');
-          continue;
-        } else {
-          terminals.add(device);
-        }
-      }
-      // next document
-      array.add(doc);
-    }
-    // TODO: remove expired document(s)
-    if (array.length != documents.length) {
-      Log.info('trim ${array.length}/${documents.length} document(s) for $did, signatures: ${signatures.length}');
-    }
-    return array;
+      // TODO: remove expired document(s)
+      return false;
+    });
+    return documents;
   }
 
 }

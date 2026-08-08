@@ -1,3 +1,7 @@
+## 1.5.7
+
+- Remove duplicated item by signature.
+
 ## 1.5.6
 
 - Sync message.

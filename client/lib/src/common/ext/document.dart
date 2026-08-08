@@ -39,7 +39,7 @@ extension DocumentProperties on Document {
   String? get type => DocumentUtils.getDocumentType(this);
 
   /// Unique identifier of the entity this document belongs to.
-  ID get identifier => DocumentUtils.getDocumentID(this)!;
+  ID? get identifier => DocumentUtils.getDocumentID(this);
 
   /// Display name of the entity (from properties).
   String? get name  => DocumentUtils.getDocumentName(this);

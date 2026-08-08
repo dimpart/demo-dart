@@ -95,7 +95,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
     Visa? visa = rMsg.visa;
     if (visa != null) {
       // first handshake?
-      ID did = visa.identifier;
+      ID? did = visa.identifier;
       if (sender.isSameAs(did)) {
         return true;
       } else {
@@ -203,18 +203,23 @@ abstract class CommonPacker extends MessagePacker with Logging {
     // [Meta Protocol]
     Meta? meta = rMsg.meta;
     if (meta != null) {
-      await archivist?.saveMeta(meta, sender);
+      var ok = await archivist?.saveMeta(meta, sender);
+      if (ok != true) {
+        logError('meta error: $sender, $meta');
+        return false;
+      }
     }
     // [Visa Protocol]
     Visa? visa = rMsg.visa;
     if (visa != null) {
-      await archivist?.saveDocument(visa, sender);
+      var ok = await archivist?.saveDocument(visa, sender);
+      if (ok != true) {
+        logWarning('visa expired? $sender, $visa');
+        // FIXME: visa document maybe expired
+        // return false;
+      }
     }
-    //
-    //  TODO: check [Visa Protocol] before calling this
-    //        make sure the sender's meta(visa) exists
-    //        (do it by application)
-    //
+    // OK
     return true;
   }
 
