@@ -30,28 +30,42 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
-import '../../../common/messenger.dart';
 import '../../../common/protocol/app.dart';
 import '../../../common/protocol/chats.dart';
 
 import 'handler.dart';
 
 
-class ChatHistoryHandler extends BaseCustomizedContentHandler {
+abstract class ChatHistoryHandler extends BaseCustomizedContentHandler {
 
   @override
   Future<List<Content>> handleAction(CustomizedContent content, ReliableMessage rMsg, Messenger messenger) async {
     String act = content.action;
     if (act == SyncChatContent.ACT_SYNC) {
       InstantMessage? iMsg = InstantMessage.parse(content['message']);
-      if (iMsg == null) {
-        assert(false, 'message error: $content');
-      } else {
-        (messenger as CommonMessenger).saveInstantMessage(iMsg);
+      if (iMsg != null) {
+        bool ok = await syncInstantMessage(iMsg, rMsg);
+        assert(ok, 'failed to sync message: ${rMsg.sender}, $content');
       }
+      assert(iMsg != null, 'sync message error: ${rMsg.sender}, $content');
     }
     // no need to response this action
     return [];
   }
+
+  Future<bool> syncInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async {
+    String? fromWhere = iMsg.getString('from');
+    if (fromWhere == null) {
+      fromWhere = rMsg.getString('from');
+      if (fromWhere != null) {
+        iMsg['from'] = fromWhere;
+      }
+      assert(fromWhere != null, 'sync message error: ${rMsg.sender}, $iMsg');
+    }
+    return await saveInstantMessage(iMsg);
+  }
+
+  /// Save message for myself: "chat.dim.messenger:chat_history"
+  Future<bool> saveInstantMessage(InstantMessage iMsg);
 
 }

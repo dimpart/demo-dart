@@ -36,8 +36,8 @@ import 'package:dimsdk/dimsdk.dart';
 
 import '../common/protocol/app.dart';
 import '../common/protocol/chats.dart';
-import '../common/register.dart';
 import '../common/session.dart';
+import '../common/utils/sys.dart';
 import '../group/shared.dart';
 
 import '../common/protocol/password.dart';
@@ -262,7 +262,7 @@ abstract class Emitter with Logging {
       // send by group manager
       rMsg = await sharedGroupManager.sendInstantMessage(iMsg, priority: priority);
     }
-    if (rMsg != null) {
+    if (rMsg != null || receiver.isGroup) {
       // message sent successfully,
       // now sync to other terminal(s) of my account
       await syncInstantMessage(iMsg, priority: priority);
@@ -285,21 +285,17 @@ abstract class Emitter with Logging {
     if (terminals.length < 2) {
       logInfo('no more terminals: $terminals');
       return false;
-    } else {
-      String device = Register.terminal;
-      assert(device.isNotEmpty, 'terminal (device) not initialized');
-      sender = sender.withTerminal(device);
-      logInfo('sync message: $sender -> $terminals');
     }
+    String terminal = SysEnv().terminal;
+    logInfo('sync message: $sender/$terminal -> $terminals');
     var body = syncMessageContent(iMsg);
     ID receiver;
     for (final device in terminals) {
       if (device.isEmpty || device == '*') {
-        if (sender.terminal == null) {
-          continue;
-        }
-        receiver = sender.withoutTerminal();
-      } else if (device == sender.terminal) {
+        // ignore old version
+        continue;
+      } else if (device == terminal) {
+        // skip myself
         continue;
       } else {
         receiver = sender.withTerminal(device);

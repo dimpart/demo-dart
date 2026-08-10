@@ -33,10 +33,7 @@ import 'package:dim_plugins/dim_plugins.dart';
 
 import '../../common/compat/entity.dart';
 import '../../common/compat/loader.dart';
-
-import '../../common/protocol/chats.dart';
 import '../../common/protocol/groups.dart';
-import '../cpu/app/chats.dart';
 import '../cpu/app/filter.dart';
 import '../cpu/app/group.dart';
 import '../facebook.dart';
@@ -120,12 +117,12 @@ class ClientExtensionLoader extends CommonExtensionLoader {
       handler: GroupHistoryHandler(),
     );
 
-    // 'chat.dim.messenger'
-    filter.setContentHandler(
-      app: SyncChatContent.APP,
-      mod: SyncChatContent.MOD,
-      handler: ChatHistoryHandler(),
-    );
+    // // 'chat.dim.messenger:chat_history'
+    // filter.setContentHandler(
+    //   app: SyncChatContent.APP,
+    //   mod: SyncChatContent.MOD,
+    //   handler: ChatHistoryHandler(),
+    // );
 
   }
 

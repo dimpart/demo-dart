@@ -31,7 +31,7 @@
 import 'package:dimsdk/dimsdk.dart';
 
 import '../mkm/utils.dart';
-import '../register.dart';
+import '../utils/sys.dart';
 
 
 extension DocumentProperties on Document {
@@ -65,10 +65,9 @@ extension UserVisaGetter on User {
   /// get visa for local user
   Future<Visa?> get localVisa async {
     List<Document> docs = await documents;
-    String device = Register.terminal;
-    assert(device.isNotEmpty, 'terminal (device) not initialized');
+    String terminal = SysEnv().terminal;
     assert(docs.isNotEmpty, 'document not found: $identifier');
-    return DocumentUtils.lastVisa(docs, device);
+    return DocumentUtils.lastVisa(docs, terminal);
   }
 
 }

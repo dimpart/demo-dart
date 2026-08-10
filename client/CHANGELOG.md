@@ -1,3 +1,7 @@
+## 1.5.8
+
+- Terminal for current user.
+
 ## 1.5.7
 
 - Remove duplicated item by signature.

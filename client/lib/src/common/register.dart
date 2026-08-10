@@ -34,14 +34,12 @@ import 'dart:typed_data';
 import 'package:dimsdk/dimsdk.dart';
 
 import 'dbi/account.dart';
+import 'utils/sys.dart';
 
 class Register {
   Register(this.database);
 
   final AccountDBI database;
-
-  // base58_encode(device)
-  static String terminal = 'AquilaRift';
 
   ///  Generate user account
   ///
@@ -124,11 +122,10 @@ class Register {
   static Visa createVisa(ID identifier, EncryptKey visaKey, SignKey idKey,
       {required String name, TransportableFile? avatar}) {
     assert(identifier.isUser, 'user ID error: $identifier');
-    String device = terminal;
-    assert(device.isNotEmpty, 'terminal (device) not initialized');
     Visa doc = BaseVisa.empty();
-    doc['terminal'] = device;
+    assert(identifier.terminal == null, 'user id should not carry terminal here: $identifier');
     doc.setString('did', identifier);
+    doc['terminal'] = SysEnv().terminal;
     // App ID
     doc.setProperty('app_id', 'chat.dim.tarsier');
     // nickname

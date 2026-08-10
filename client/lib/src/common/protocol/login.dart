@@ -32,8 +32,7 @@ import 'package:dimsdk/dimsdk.dart';
 
 import '../mkm/provider.dart';
 import '../mkm/station.dart';
-
-import '../register.dart';
+import '../utils/sys.dart';
 
 
 ///  Login command: {
@@ -99,10 +98,9 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
   BaseLoginCommand(super.dict);
 
   BaseLoginCommand.fromID(ID identifier) : super.fromCmd(LoginCommand.LOGIN) {
+    assert(identifier.terminal == null, 'user id should not carry terminal here: $identifier');
     setString('did', identifier);
-    String device = Register.terminal;
-    assert(device.isNotEmpty, 'terminal (device) not initialized');
-    this['terminal'] = device;
+    this['terminal'] = SysEnv().terminal;
   }
 
   @override

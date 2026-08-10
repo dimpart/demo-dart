@@ -17,6 +17,7 @@ export 'src/common/ext/command.dart';
 
 export 'src/common/utils/checkers.dart';
 export 'src/common/utils/time.dart';
+export 'src/common/utils/sys.dart';
 
 export 'src/common/protocol/members.dart';
 export 'src/common/protocol/version.dart';

@@ -35,7 +35,7 @@ import 'package:lnc/log.dart';
 
 import '../common/dbi/account.dart';
 import '../common/protocol/version.dart';
-import '../common/register.dart';
+import '../common/utils/sys.dart';
 
 import 'keychain.dart';
 
@@ -93,11 +93,10 @@ class Account {
     //
     //  Step 4: generate visa with ID and sign with private key
     //
-    String device = Register.terminal;
-    assert(device.isNotEmpty, 'terminal (device) not initialized');
     Visa visa = BaseVisa.empty();
-    visa['terminal'] = device;
+    assert(identifier.terminal == null, 'user id should not carry terminal here: $identifier');
     visa.setString('did', identifier);
+    visa['terminal'] = SysEnv().terminal;
     visa.name = name.trim();
     visa.avatar = TransportableFile.parse(avatar);
     visa.publicKey = msgKey.publicKey as EncryptKey;
