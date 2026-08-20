@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dim_plugins/dim_plugins.dart';
+import 'package:dimap/dimap.dart';
 
 
 /// SymmetricKey
@@ -60,7 +60,7 @@ class Password {
       }
     }
     // Uint8List iv = digest.sublist(digest.length - _blockSize);
-    Map key = {
+    Map<String, dynamic> key = {
       'algorithm': SymmetricAlgorithms.AES,
       'data': Base64.encode(data),
       // 'iv': Base64.encode(iv),

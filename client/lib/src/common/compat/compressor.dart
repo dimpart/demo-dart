@@ -48,7 +48,7 @@ class CompatibleCompressor extends MessageCompressor {
   Mapping? extractContent(Uint8List data, Mapping key) {
     Mapping? content = super.extractContent(data, key);
     if (content != null) {
-      CompatibleIncoming.fixContent(content);
+      CompatibleIncoming.fixContent(content.asMutableMapping());
     }
     return content;
   }
@@ -78,7 +78,7 @@ class CompatibleShortener extends MessageShortener {
 
   @override
   Mapping extractReliableMessage(Mapping msg) {
-    msg = _fixKey(msg);
+    msg = _fixKey(msg.asMutableMapping());
     return super.extractReliableMessage(msg);
   }
 

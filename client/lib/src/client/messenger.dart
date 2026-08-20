@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 
 import '../common/ext/attachment.dart';

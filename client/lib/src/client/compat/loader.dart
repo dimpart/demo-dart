@@ -28,8 +28,9 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimap/dimap.dart';
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/dim_plugins.dart';
 
 import '../../common/compat/entity.dart';
 import '../../common/compat/loader.dart';
@@ -159,7 +160,7 @@ class _SecureMessagePacker extends SecureMessagePacker {
     }
     SecureMessageDelegate? transformer = delegate;
     assert(transformer != null, 'secure message delegate not found');
-    return await transformer?.decodeKeys(msgKeys, receiver, sMsg);
+    return await transformer?.decodeKeys(msgKeys.asMapping(), receiver, sMsg);
   }
 
   @override
@@ -179,8 +180,8 @@ IDFactory _identifierFactory = EntityIDFactory();
 class _IdentifierFactory implements IDFactory {
 
   @override
-  ID generateID(Meta meta, int? network, {String? terminal}) {
-    return _identifierFactory.generateID(meta, network, terminal: terminal);
+  ID generateID(Meta meta, int? network) {
+    return _identifierFactory.generateID(meta, network);
   }
 
   @override

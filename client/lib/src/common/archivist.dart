@@ -28,8 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
-import 'package:dim_plugins/dim_plugins.dart';
 import 'package:lnc/log.dart';
 
 import 'ext/meta.dart';
@@ -40,7 +40,7 @@ import 'mkm/provider.dart';
 import 'mkm/station.dart';
 import 'mkm/utils.dart';
 
-class CommonArchivist with Logging implements Archivist, Barrack {
+class CommonArchivist with Logging implements Barrack {
   CommonArchivist(Facebook facebook, this.database) : _facebook = WeakReference(facebook);
 
   final WeakReference<Facebook> _facebook;
@@ -119,7 +119,15 @@ class CommonArchivist with Logging implements Archivist, Barrack {
   //  Archivist
   //
 
-  @override
+  /// Saves entity metadata to persistent storage (must verify metadata first).
+  ///
+  /// Precondition: Metadata must be validated (authenticity/integrity) before saving.
+  ///
+  /// Parameters:
+  /// - [meta] : Validated metadata of the entity (user/group)
+  /// - [did]  : Unique ID of the entity to associate with the metadata
+  ///
+  /// Returns: True if metadata is saved successfully, false otherwise
   Future<bool> saveMeta(Meta meta, ID identifier) async {
     //
     //  1. check valid
@@ -147,7 +155,15 @@ class CommonArchivist with Logging implements Archivist, Barrack {
     return meta.isValid && meta.matchIdentifier(identifier);
   }
 
-  @override
+  /// Saves an entity document to persistent storage (must verify document first).
+  ///
+  /// Precondition: Document must be validated (authenticity/integrity) before saving.
+  ///
+  /// Parameters:
+  /// - [doc] : Validated document data of the entity (user/group)
+  /// - [did] : Unique ID of the entity to associate with the document
+  ///
+  /// Returns: True if document is saved successfully, false otherwise
   Future<bool> saveDocument(Document doc, ID identifier) async {
     //
     //  1. check valid

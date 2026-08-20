@@ -30,7 +30,9 @@
  */
 import 'dart:typed_data';
 
-import 'package:dim_plugins/dim_plugins.dart';
+import 'package:dimap/dimap.dart';
+import 'package:dimax/dimax.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
 import '../dkd/app.dart';
@@ -161,6 +163,14 @@ class CommonExtensionLoader extends ExtensionLoader {
 
     // ANS
     setCommandFactory(AnsCommand.ANS, creator: (dict) => BaseAnsCommand(dict));
+
+    // Meta Command
+    setCommandFactory(MetaCommand.META,           creator: (dict) => BaseMetaCommand(dict));
+    // Document Command
+    setCommandFactory(DocumentCommand.DOCUMENTS,  creator: (dict) => BaseDocumentCommand(dict));
+
+    // Receipt Command
+    setCommandFactory(ReceiptCommand.RECEIPT,     creator: (dict) => BaseReceiptCommand(dict));
 
     // Handshake
     setCommandFactory(HandshakeCommand.HANDSHAKE, creator: (dict) => BaseHandshakeCommand(dict));

@@ -28,7 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dim_plugins/dim_plugins.dart';
+import 'package:dimap/dimap.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import '../../../common/protocol/app.dart';
 

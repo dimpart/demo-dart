@@ -28,7 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dim_plugins/dim_plugins.dart';
+import 'package:dimax/dimax.dart';
+import 'package:dimsdk/dimsdk.dart';
 
 import '../mkm/utils.dart';
 import '../protocol/login.dart';
@@ -189,12 +190,12 @@ final class CompatibleIncoming {
       return;
     }
 
-    if (Command.DOCUMENTS == cmd || cmd == 'document') {
+    if (DocumentCommand.DOCUMENTS == cmd || cmd == 'document') {
       // 2. cmd: 'document' -> 'documents'
       _fixDocs(content);
     }
 
-    if (Command.META == cmd || Command.DOCUMENTS == cmd || cmd == 'document') {
+    if (MetaCommand.META == cmd || DocumentCommand.DOCUMENTS == cmd || cmd == 'document') {
       // 3. 'ID' <-> 'did'
       fixDid(content);
 
@@ -272,12 +273,12 @@ final class CompatibleOutgoing {
       // 3. fix station
       var station = content['station'];
       if (station is Map) {
-        fixDid(station);
+        fixDid(station.asMutableMapping());
       }
       // 4. fix provider
       var provider = content['provider'];
       if (provider is Map) {
-        fixDid(provider);
+        fixDid(provider.asMutableMapping());
       }
       return;
     }
@@ -325,7 +326,7 @@ final class CompatibleOutgoing {
     }
     Object? document = content['document'];
     if (document is Map) {
-      fixDid(document);
+      fixDid(document.asMutableMapping());
     }
   }
 

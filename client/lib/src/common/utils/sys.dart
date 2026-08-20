@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dim_plugins/crypto.dart';
+import 'package:dimap/crypto.dart';
 import 'package:lnc/log.dart';
 
 
@@ -70,6 +70,7 @@ class SysEnv with Logging {
 
   /// load text file content from "assets/*"
   Future<String> loadString(final String path, {bool cache = true}) async {
+    assert(path.startsWith('assets/'), 'path error: $path');
     String? text;
     // 1. check cache
     if (cache) {
@@ -79,12 +80,13 @@ class SysEnv with Logging {
       }
     }
     // 2. cache not found, try to load text file
-    text = await _loader!.loadString(path, cache: cache);
+    text = await _loader!.loadString(path, cache: false);
     _texts[path] = text;
     return text;
   }
 
   void cacheString(final String path, {required String content}) {
+    assert(path.startsWith('assets/'), 'path error: $path');
     assert(_texts[path] == null, 'text file content conflicts: $path');
     _texts[path] = content;
   }

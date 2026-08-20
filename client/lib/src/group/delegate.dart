@@ -34,6 +34,7 @@ import 'package:lnc/log.dart';
 import '../common/ext/identifier.dart';
 import '../common/ext/meta.dart';
 import '../common/dbi/account.dart';
+import '../common/archivist.dart';
 import '../common/facebook.dart';
 import '../common/messenger.dart';
 
@@ -47,7 +48,8 @@ class GroupDelegate extends TwinsHelper implements GroupDataSource {
   @override
   CommonMessenger? get messenger => super.messenger as CommonMessenger?;
 
-  Archivist? get archivist => facebook?.archivist;
+  // protected
+  CommonArchivist? get archivist => facebook?.barrack;
 
   Future<String> buildGroupName(List<ID> members) async {
     assert(members.isNotEmpty, 'members should not be empty here');

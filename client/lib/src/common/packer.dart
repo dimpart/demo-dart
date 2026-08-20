@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
@@ -35,12 +36,18 @@ import 'ext/document.dart';
 import 'ext/attachment.dart';
 import 'mkm/utils.dart';
 
+import 'archivist.dart';
+
 
 abstract class CommonPacker extends MessagePacker with Logging {
   CommonPacker(super.facebook, super.messenger);
 
   // protected
-  Archivist? get archivist => facebook?.archivist;
+  CommonArchivist? get archivist {
+    var barrack = facebook?.barrack;
+    assert(barrack is CommonArchivist, 'archivist error: $barrack');
+    return barrack as CommonArchivist?;
+  }
 
   ///  Add income message in a queue for waiting sender's visa
   ///

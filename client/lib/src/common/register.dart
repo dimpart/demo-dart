@@ -31,6 +31,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 
 import 'dbi/account.dart';

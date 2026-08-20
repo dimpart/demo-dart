@@ -1,5 +1,7 @@
 library dim_client;
 
+export 'src/common/cpu/commands.dart';
+
 export 'src/client/cpu/app/handler.dart';
 export 'src/client/cpu/app/filter.dart';
 export 'src/client/cpu/app/group.dart';

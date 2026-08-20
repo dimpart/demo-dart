@@ -73,7 +73,7 @@ class BaseCustomizedContentHandler implements CustomizedContentHandler {
   //
 
   // protected
-  List<ReceiptCommand> respondReceipt(String text, {
+  List<Command> respondReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, Object>? extra
   }) => [
     // create base receipt command with text & original envelope

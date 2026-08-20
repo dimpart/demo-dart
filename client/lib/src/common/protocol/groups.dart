@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimsdk/dimsdk.dart';
+import 'package:dimax/dimax.dart';
 
 import 'app.dart';
 

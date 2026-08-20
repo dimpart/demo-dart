@@ -1,3 +1,7 @@
+## 1.6.0
+
+- Application eXtensions.
+
 ## 1.5.8
 
 - Terminal for current user.

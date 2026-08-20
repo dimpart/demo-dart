@@ -33,7 +33,8 @@ import 'dart:typed_data';
 import 'package:bip32/bip32.dart';
 import 'package:bip39/bip39.dart';
 
-import 'package:dim_plugins/dim_plugins.dart';
+import 'package:dimap/dimap.dart';
+import 'package:dimax/dimax.dart';
 import 'package:lnc/log.dart';
 
 import '../common/dbi/account.dart';

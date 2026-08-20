@@ -30,9 +30,10 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimax/dimax.dart';
+import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
-import 'package:dimsdk/dimsdk.dart';
 
 import '../common/protocol/app.dart';
 import '../common/protocol/chats.dart';

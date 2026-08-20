@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
@@ -49,7 +50,7 @@ abstract class CommonProcessor extends MessageProcessor with Logging {
   @override
   ContentProcessorFactory createFactory(Facebook facebook, Messenger messenger) {
     var creator = createCreator(facebook, messenger);
-    return GeneralContentProcessorFactory(creator);
+    return _GeneralContentProcessorFactory(creator);
   }
   // protected
   ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger);
@@ -150,4 +151,32 @@ bool _contentEmpty(Content content) {
   } else {
     return false;
   }
+}
+
+
+class _GeneralContentProcessorFactory extends GeneralContentProcessorFactory {
+  _GeneralContentProcessorFactory(super.creator);
+
+  @override
+  ContentProcessor? getContentProcessor(Content content) {
+    ContentProcessor? cpu;
+    String msgType = content.type;
+    if (content is Command) {
+      String cmd = content.cmd;
+      // assert(name.isNotEmpty, 'command name error: $name');
+      cpu = getCommandProcessor(msgType, cmd);
+      if (cpu != null) {
+        return cpu;
+      } else if (content is GroupCommand/* || content.containsKey('group')*/) {
+        // assert(name != 'group', 'command name error: $content');
+        cpu = getCommandProcessor(msgType, 'group');
+        if (cpu != null) {
+          return cpu;
+        }
+      }
+    }
+    // content processor
+    return getContentProcessorForType(msgType);
+  }
+
 }

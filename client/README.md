@@ -23,7 +23,8 @@
 | [Dao Ke Dao (道可道)](https://github.com/dimchat/dkd-dart) | [![Version](https://img.shields.io/pub/v/dkd)](https://pub.dev/packages/dkd) | Universal Message Module |
 | [DIMP (去中心化通讯协议)](https://github.com/dimchat/core-dart) | [![Version](https://img.shields.io/pub/v/dimp)](https://pub.dev/packages/dimp) | Decentralized Instant Messaging Protocol |
 | [DIM SDK](https://github.com/dimchat/sdk-dart) | [![Version](https://img.shields.io/pub/v/dimsdk)](https://pub.dev/packages/dimsdk) | Software Development Kit |
-| [DIM Plugins](https://github.com/dimchat/plugins-dart) | [![Version](https://img.shields.io/pub/v/dim_plugins)](https://pub.dev/packages/dim_plugins) | Cryptography & Account Plugins |
+| [DIM-AX](https://github.com/dimchat/extensions-dart) | [![Version](https://img.shields.io/pub/v/dimax)](https://pub.dev/packages/dimax) | Application eXtensions |
+| [DIM-AP](https://github.com/dimchat/plugins-dart) | [![Version](https://img.shields.io/pub/v/dimap)](https://pub.dev/packages/dimap) | Algorithm Plugins |
 | [Star Gate](https://github.com/moky/StarGate) | [![Version](https://img.shields.io/pub/v/stargate)](https://pub.dev/packages/stargate) | Network Connection Module (WebSocket) |
 | [LNC](https://github.com/dimpart/demo-dart) | [![Version](https://img.shields.io/pub/v/lnc)](https://pub.dev/packages/lnc) | Log, Notification & Cache |
 
@@ -39,11 +40,12 @@ dependencies:
 #  startrek:    ^1.2.0
   stargate:    ^1.2.0
   
-#  mkm:         ^2.3.6
-#  dkd:         ^2.3.6
-#  dimp:        ^2.3.6
-  dimsdk:      ^2.3.6
-  dim_plugins: ^2.3.6
+#  mkm:         ^2.4.2
+#  dkd:         ^2.4.1
+#  dimp:        ^2.4.1
+  dimsdk:      ^2.4.0
+  dimax:       ^2.4.0
+  dimap:       ^2.1.0
 ```
 
 ## FIXME

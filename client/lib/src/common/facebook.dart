@@ -52,9 +52,6 @@ abstract class CommonFacebook extends Facebook with Logging {
   User? _currentUser;
 
   @override
-  Archivist? get archivist => _barrack;
-
-  @override
   CommonArchivist? get barrack => _barrack;
   set barrack(CommonArchivist? archivist) => _barrack = archivist;
 

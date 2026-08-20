@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 
 import '../../common/protocol/ans.dart';
@@ -75,7 +76,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   @override
   ContentProcessor? createCommandProcessor(String msgType, String cmd) {
     switch (cmd) {
-      case Command.RECEIPT:
+      case ReceiptCommand.RECEIPT:
         return ReceiptCommandProcessor(facebook!, messenger!);
       case HandshakeCommand.HANDSHAKE:
         return HandshakeCommandProcessor(facebook!, messenger!);
@@ -104,13 +105,14 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
         return ResignCommandProcessor(facebook!, messenger!);
 
       // efficient commands
-      case Command.META:
+      case MetaCommand.META:
         return EfficientMetaCommandProcessor(facebook!, messenger!);
-      case Command.DOCUMENTS:
+      case DocumentCommand.DOCUMENTS:
         return EfficientDocumentCommandProcessor(facebook!, messenger!);
     }
     // others
-    return super.createCommandProcessor(msgType, cmd);
+    return null;
+    // return super.createCommandProcessor(msgType, cmd);
   }
 
 }

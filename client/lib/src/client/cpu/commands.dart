@@ -28,9 +28,11 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
+import '../../common/cpu/commands.dart';
 import '../../common/dbi/session.dart';
 import '../../common/protocol/ans.dart';
 import '../../common/protocol/login.dart';
@@ -50,7 +52,7 @@ class AnsCommandProcessor extends BaseCommandProcessor with Logging {
     if (records == null) {
       logInfo('ANS: querying ${content.names}');
     } else {
-      int count = await ClientFacebook.ans!.fix(records);
+      int count = await ClientFacebook.ans!.fix(records.asMutableMapping());
       logInfo('ANS: update $count record(s), $records');
     }
     return [];
