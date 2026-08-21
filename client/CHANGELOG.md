@@ -1,3 +1,7 @@
+## 1.6.1
+
+- String key map.
+
 ## 1.6.0
 
 - Application eXtensions.

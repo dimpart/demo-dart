@@ -215,7 +215,7 @@ final class GroupKeys {
     required ID member,
     required Object encodedKey,
     required String digest,
-  }) => create(ACT_RESPOND, group, sender: sender, encodedKeys: {
+  }) => create(ACT_RESPOND, group, sender: sender, encodedKeys: <String, dynamic>{
     'digest': digest,
     member.toString(): encodedKey,
   });

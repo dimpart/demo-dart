@@ -7,6 +7,10 @@ export 'src/client/network/session.dart';
 export 'src/client/network/state.dart';
 export 'src/client/network/transition.dart';
 
+// export 'src/client/cpu/app/handler.dart';   // -> 'cpu.dart'
+// export 'src/client/cpu/app/filter.dart';    // -> 'cpu.dart'
+// export 'src/client/cpu/app/group.dart';     // -> 'cpu.dart'
+// export 'src/client/cpu/app/chats.dart';     // -> 'cpu.dart'
 // export 'src/client/cpu/group/invite.dart';  // -> 'cpu.dart'
 // export 'src/client/cpu/group/expel.dart';   // -> 'cpu.dart'
 // export 'src/client/cpu/group/join.dart';    // -> 'cpu.dart'

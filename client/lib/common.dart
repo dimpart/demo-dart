@@ -1,5 +1,9 @@
 library dim_client;
 
+export 'package:dimsdk/dimsdk.dart';
+export 'package:dimax/dimax.dart';
+export 'package:dimap/dimap.dart';
+
 
 // export 'src/common/compat/address.dart';     // -> 'compat.dart'
 // export 'src/common/compat/compatible.dart';  // -> 'compat.dart'
@@ -8,6 +12,8 @@ library dim_client;
 // export 'src/common/compat/entity.dart';      // -> 'compat.dart'
 // export 'src/common/compat/meta.dart';        // -> 'compat.dart'
 // export 'src/common/compat/loader.dart';      // -> 'compat.dart'
+
+// export 'src/common/cpu/commands.dart';  // -> 'cpu.dart'
 
 export 'src/common/ext/identifier.dart';
 export 'src/common/ext/meta.dart';

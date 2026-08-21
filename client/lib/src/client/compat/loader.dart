@@ -154,7 +154,7 @@ class _SecureMessagePacker extends SecureMessagePacker {
         // reused key?
         return null;
       }
-      msgKeys = {
+      msgKeys = <String, dynamic>{
         receiver.toString(): base64,
       };
     }

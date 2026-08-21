@@ -85,7 +85,7 @@ class Keychain {
       // entropy error
       return false;
     }
-    PrivateKey puppet = PrivateKey.parse({
+    PrivateKey puppet = PrivateKey.parse(<String, dynamic>{
       'algorithm': AsymmetricAlgorithms.ECC,
       'data': entropy,
     })!;
@@ -126,7 +126,7 @@ class Keychain {
     if (privateKey == null) {
       return null;
     }
-    return PrivateKey.parse({
+    return PrivateKey.parse(<String, dynamic>{
       'algorithm': AsymmetricAlgorithms.ECC,
       'data': Hex.encode(privateKey),
     });

@@ -98,7 +98,7 @@ class GroupPacker extends TripletsHelper {
 
     assert(!rMsg.containsKey('key'), 'should not happen');
     Map? keys = rMsg.encryptedKeys;
-    keys ??= {};  // TODO: get key digest
+    keys ??= <String, dynamic>{};  // TODO: get key digest
 
     Object? keyData;  // Base-64
     Map info;
