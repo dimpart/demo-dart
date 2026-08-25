@@ -1,3 +1,7 @@
+## 1.6.2
+
+- TED factory.
+
 ## 1.6.1
 
 - String key map.

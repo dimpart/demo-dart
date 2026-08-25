@@ -92,6 +92,14 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   }
 
   @override
+  void registerTEDFactory() {
+
+    var ted = _NetworkDataFactory();
+    TransportableData.setFactory(ted);
+
+  }
+
+  @override
   void registerIDFactory() {
     ID.setFactory(_IdentifierFactory());
   }
@@ -209,14 +217,6 @@ class _IdentifierFactory implements IDFactory {
 
 
 class ClientPluginLoader extends CommonPluginLoader {
-
-  @override
-  void registerTEDFactory() {
-
-    var ted = _NetworkDataFactory();
-    TransportableData.setFactory(ted);
-
-  }
 
   // TODO: other plugins
 
