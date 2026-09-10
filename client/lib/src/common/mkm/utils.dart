@@ -31,8 +31,8 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:dimap/dimap.dart';
 import 'package:dimax/dimax.dart';
+import 'package:dimap/dimap.dart';
 import 'package:lnc/log.dart';
 
 import '../ext/document.dart';
@@ -61,7 +61,7 @@ final class MetaUtils {
     }
     // check ID.address
     Address old = identifier.address;
-    Address gen = Address.generate(meta, old.network);
+    Address gen = meta.generateID(old.network).address;
     return old == gen;
   }
 
@@ -103,7 +103,7 @@ final class DocumentUtils {
     if (document is Document) {
       document = document.toMap();
     }
-    var helper = sharedAccountExtensions.helper;
+    var helper = sharedAccountExtensions.handler;
     return helper?.getDocumentType(document);
   }
 
@@ -111,7 +111,7 @@ final class DocumentUtils {
     if (document is Document) {
       document = document.toMap();
     }
-    var helper = sharedAccountExtensions.helper;
+    var helper = sharedAccountExtensions.handler;
     return helper?.getDocumentID(document);
   }
 

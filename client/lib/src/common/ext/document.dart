@@ -29,6 +29,7 @@
  * ==============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dimax/dimax.dart';
 
 import '../mkm/utils.dart';
 import '../utils/sys.dart';

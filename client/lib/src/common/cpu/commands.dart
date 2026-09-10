@@ -144,7 +144,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
       return false;
     }
     Address old = did.address;
-    Address gen = Address.generate(meta, old.network);
+    Address gen = meta.generateID(old.network).address;
     return old == gen;
   }
 
@@ -334,7 +334,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       return false;
     }
     // check document ID
-    var helper = sharedAccountExtensions.helper;
+    var helper = sharedAccountExtensions.handler;
     ID? docID = helper?.getDocumentID(doc.toMap());
     if (docID == null) {
       assert(false, 'document ID not found: $doc');

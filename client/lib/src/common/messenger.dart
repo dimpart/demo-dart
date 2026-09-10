@@ -31,6 +31,8 @@
 import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dkd/dkd.dart';  // FIXME:
+import 'package:dimax/dimax.dart';
 import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 
@@ -108,16 +110,6 @@ abstract class CommonMessenger extends Messenger with Logging
       logDebug('failed to encrypt key for receiver: $receiver, error: $e, $st');
       return null;
     }
-  }
-
-  @override
-  Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
-    Map<String, Object> keys = await super.encodeKeys(bundle, receiver, iMsg);
-    if (keys.isNotEmpty) {
-      // TODO: check for wildcard
-      // CompatibleOutgoing.fixEncodeKeys(keys, receiver, facebook);
-    }
-    return keys;
   }
 
   @override

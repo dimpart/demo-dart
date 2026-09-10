@@ -29,6 +29,7 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dimax/dimax.dart';
 
 import '../common/ans.dart';
 import '../common/archivist.dart';

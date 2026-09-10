@@ -30,7 +30,7 @@
  */
 import 'dart:collection';
 
-import 'package:dimsdk/dimsdk.dart';
+import 'package:dimax/dimax.dart';
 import 'package:lnc/log.dart';
 import 'package:object_key/object_key.dart';
 

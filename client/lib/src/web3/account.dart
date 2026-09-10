@@ -86,7 +86,7 @@ class Account {
     //
     //  Step 2: generate user ID with meta & address type
     //
-    ID identifier = ID.generate(meta, EntityType.USER);
+    ID identifier = meta.generateID(EntityType.USER);
     //
     //  Step 3: generate private key (RSA) for communication
     //

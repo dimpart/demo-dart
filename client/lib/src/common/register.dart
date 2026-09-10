@@ -32,7 +32,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dimax/dimax.dart';
-import 'package:dimsdk/dimsdk.dart';
+import 'package:dimap/dimap.dart';
 
 import 'dbi/account.dart';
 import 'utils/sys.dart';
@@ -59,7 +59,7 @@ class Register {
     //
     //  Step 3: generate ID with meta
     //
-    ID identifier = ID.generate(meta, EntityType.USER);
+    ID identifier = meta.generateID(EntityType.USER);
     //
     //  Step 4: generate visa with ID and sign with private key
     //
@@ -100,7 +100,7 @@ class Register {
     //
     //  Step 3: generate ID with meta
     //
-    ID identifier = ID.generate(meta, EntityType.GROUP);
+    ID identifier = meta.generateID(EntityType.GROUP);
     //
     //  Step 4: generate bulletin with ID and sign with founder's private key
     //

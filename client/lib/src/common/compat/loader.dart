@@ -32,7 +32,6 @@ import 'dart:typed_data';
 
 import 'package:dimap/dimap.dart';
 import 'package:dimax/dimax.dart';
-import 'package:dimsdk/dimsdk.dart';
 import 'package:lnc/log.dart';
 
 import '../dkd/app.dart';
@@ -205,8 +204,8 @@ class CommonPluginLoader extends PluginLoader {
   }
 
   @override
-  void loadCoders() {
-    super.loadCoders();
+  void registerBase64Coder() {
+    // super.registerBase64Coder();
 
     /// Base64 coding
     Base64.coder = _Base64Coder();

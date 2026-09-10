@@ -31,6 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dkd/dkd.dart';  // FIXME:
 
 import 'provider.dart';
 import 'utils.dart';
@@ -189,9 +190,9 @@ class Station implements User {
       await _user.decryptBundle(ciphertext);
 
   @override
-  Future<Visa?> signVisa(Visa doc) async => await _user.signVisa(doc);
+  Future<Document?> signDocument(Document doc) async => await _user.signDocument(doc);
 
   @override
-  Future<bool> verifyVisa(Visa doc) async => await _user.verifyVisa(doc);
+  Future<bool> verifyDocument(Document doc) async => await _user.verifyDocument(doc);
 
 }

@@ -29,6 +29,8 @@
  * =============================================================================
  */
 import 'package:dimsdk/dimsdk.dart';
+import 'package:dimax/dimax.dart';
+import 'package:dimax/src/dkd/base.dart';
 
 import '../mkm/provider.dart';
 import '../mkm/station.dart';
@@ -126,9 +128,9 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
     if (info is Station) {
       ID sid = info.identifier;
       if (sid.isBroadcast) {
-        info = {'host': info.host, 'port': info.port};
+        info = <String, dynamic>{'host': info.host, 'port': info.port};
       } else {
-        info = {'host': info.host, 'port': info.port, 'did': sid.toString()};
+        info = <String, dynamic>{'host': info.host, 'port': info.port, 'did': sid.toString()};
       }
       this['station'] = info;
     } else if (info is Map) {
@@ -146,9 +148,9 @@ class BaseLoginCommand extends BaseCommand implements LoginCommand{
   @override
   set provider(dynamic info) {
     if (info is ServiceProvider) {
-      this['provider'] = {'did': info.identifier.toString()};
+      this['provider'] = <String, dynamic>{'did': info.identifier.toString()};
     } else if (info is ID) {
-      this['provider'] = {'did': info.toString()};
+      this['provider'] = <String, dynamic>{'did': info.toString()};
     } else if (info is Map) {
       assert(info.containsKey('did'), 'station info error: $info');
       this['provider'] = info;

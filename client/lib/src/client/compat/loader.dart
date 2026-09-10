@@ -92,14 +92,6 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   }
 
   @override
-  void registerTEDFactory() {
-
-    var ted = _NetworkDataFactory();
-    TransportableData.setFactory(ted);
-
-  }
-
-  @override
   void registerIDFactory() {
     ID.setFactory(_IdentifierFactory());
   }
@@ -152,26 +144,6 @@ class _SecureMessagePacker extends SecureMessagePacker {
   _SecureMessagePacker(super.messenger);
 
   @override
-  Future<EncryptedBundle?> decodeKeys(SecureMessage sMsg, ID receiver) async {
-    Map? msgKeys = sMsg.encryptedKeys;
-    if (msgKeys == null) {
-      // get from 'key'
-      var base64 = sMsg['key'];
-      if (base64 == null) {
-        // broadcast message?
-        // reused key?
-        return null;
-      }
-      msgKeys = <String, dynamic>{
-        receiver.toString(): base64,
-      };
-    }
-    SecureMessageDelegate? transformer = delegate;
-    assert(transformer != null, 'secure message delegate not found');
-    return await transformer?.decodeKeys(msgKeys.asMapping(), receiver, sMsg);
-  }
-
-  @override
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
     InstantMessage? iMsg = await super.decryptMessage(sMsg, receiver);
     if (iMsg != null) {
@@ -186,11 +158,6 @@ class _SecureMessagePacker extends SecureMessagePacker {
 IDFactory _identifierFactory = EntityIDFactory();
 
 class _IdentifierFactory implements IDFactory {
-
-  @override
-  ID generateID(Meta meta, int? network) {
-    return _identifierFactory.generateID(meta, network);
-  }
 
   @override
   ID createID({String? name, required Address address, String? terminal}) {
@@ -217,6 +184,14 @@ class _IdentifierFactory implements IDFactory {
 
 
 class ClientPluginLoader extends CommonPluginLoader {
+
+  @override
+  void registerTEDFactory() {
+
+    var ted = _NetworkDataFactory();
+    TransportableData.setFactory(ted);
+
+  }
 
   // TODO: other plugins
 
