@@ -70,7 +70,7 @@ class ProviderInfo {
   static List<Map> revert(Iterable<ProviderInfo> providers) {
     List<Map> array = [];
     for (var info in providers) {
-      array.add({
+      array.add(<String, dynamic>{
         'ID': info.identifier.toString(),
         'did': info.identifier.toString(),
         'chosen': info.chosen,
@@ -132,7 +132,7 @@ class StationInfo {
   static List<Map> revert(Iterable<StationInfo> stations) {
     List<Map> array = [];
     for (var info in stations) {
-      array.add({
+      array.add(<String, dynamic>{
         'ID': info.identifier.toString(),
         'did': info.identifier.toString(),
         'chosen': info.chosen,

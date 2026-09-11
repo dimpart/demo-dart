@@ -30,7 +30,6 @@
  */
 import 'package:dimap/dimap.dart';
 import 'package:dimax/dimax.dart';
-import 'package:dkd/dkd.dart';  // FIXME:
 import 'package:dimsdk/dimsdk.dart';
 
 import '../../common/compat/entity.dart';
@@ -172,7 +171,7 @@ class _CompatibleVisaAgent extends DefaultVisaAgent {
   /// continue with the standard decryption flow.
   @override
   EncryptedBundle? decodeBundle(SecureMessage sMsg, ID receiver) {
-    Mapping? keys = sMsg.encryptedKeys?.asMapping();
+    Map? keys = sMsg.encryptedKeys;
     if (keys == null || keys.isEmpty) {
       // get from 'key'
       Object? base64 = sMsg['key'];
@@ -188,12 +187,12 @@ class _CompatibleVisaAgent extends DefaultVisaAgent {
     String? terminal = receiver.terminal;
     if (terminal == null || terminal.isEmpty) {
       // get full bundle
-      return EncryptedBundle.decode(keys, receiver, null);
+      return EncryptedBundle.decode(keys.asMapping(), receiver, null);
     }
     // get single bundle
     Set<String> devices = {terminal};
     receiver = receiver.withoutTerminal();
-    return EncryptedBundle.decode(keys, receiver, devices);
+    return EncryptedBundle.decode(keys.asMapping(), receiver, devices);
   }
 
 }

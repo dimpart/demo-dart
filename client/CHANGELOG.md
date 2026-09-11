@@ -1,3 +1,7 @@
+## 1.7.0
+
+- Decode key bundle.
+
 ## 1.6.3
 
 - Decode key bundle.

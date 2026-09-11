@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimax/dimax.dart';
-import 'package:dimsdk/dimsdk.dart';
 import 'package:object_key/object_key.dart';
 
 import '../../../common/ext/identifier.dart';

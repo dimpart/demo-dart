@@ -29,7 +29,6 @@
  * =============================================================================
  */
 import 'package:dimax/dimax.dart';
-import 'package:dimsdk/dimsdk.dart';
 
 import '../group.dart';
 

@@ -265,7 +265,7 @@ abstract class CommonPacker extends MessagePacker with Logging {
   //     bool reused = key!.getBool('reused') ?? false;
   //     if (reused) {
   //       // replace key/keys with key digest
-  //       Map keys = {
+  //       Map<String, dynamic> keys = {
   //         'digest': digest,
   //       };
   //       rMsg['keys'] = keys;

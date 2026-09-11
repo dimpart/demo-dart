@@ -1,6 +1,6 @@
 name: dim_client
 description: DIM demo.
-version: 1.6.3
+version: 1.7.0
 homepage: https://github.com/dimpart/demo-dart
 repository: https://github.com/dimpart/demo-dart
 issue_tracker: https://github.com/dimpart/demo-dart/issues
@@ -18,12 +18,12 @@ dependencies:
 #  startrek: ^1.2.0
   stargate: ^1.2.0
 
-#  mkm: ^2.5.0
-  dkd: ^2.5.0
-#  dimp: ^2.5.0
-  dimsdk: ^2.5.0
-  dimax: ^2.5.0
-  dimap: ^2.4.0
+  mkm: ^2.5.3
+#  dkd: ^2.5.2
+#  dimp: ^2.5.2
+  dimsdk: ^2.5.1
+  dimax: ^2.5.1
+  dimap: ^2.5.1
 
 dev_dependencies:
   lints: ^2.0.0

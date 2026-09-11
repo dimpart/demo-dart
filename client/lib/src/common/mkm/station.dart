@@ -31,7 +31,6 @@
 import 'dart:typed_data';
 
 import 'package:dimsdk/dimsdk.dart';
-import 'package:dkd/dkd.dart';  // FIXME:
 
 import 'provider.dart';
 import 'utils.dart';
