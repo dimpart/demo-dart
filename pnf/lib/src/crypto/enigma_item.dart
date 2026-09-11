@@ -47,13 +47,13 @@ mixin ClassNameMixIn {
 
 
 class EnigmaItem extends Dictionary with ClassNameMixIn {
-  EnigmaItem(Map item) : super(item);
+  EnigmaItem(Mapping item) : super(item);
 
   /// Enigma secret formats:
   ///   0. {BASE64_ENCODE}
   ///   1. base64,{BASE64_ENCODE}
   ///   2. hex,{HEX_ENCODE}
-  ///   3. 0x{HEX_ENCODE}
+  ///   3. 0x{HEX_ENCODE}    // - (DELETED, conflicted with case 0)
   TransportableData? _data;
 
   // protected
@@ -106,8 +106,8 @@ class EnigmaItem extends Dictionary with ClassNameMixIn {
     return items;
   }
 
-  static List<Map> revert(Iterable<EnigmaItem> items) {
-    List<Map> array = [];
+  static List<MutableMapping> revert(Iterable<EnigmaItem> items) {
+    List<MutableMapping> array = [];
     for (EnigmaItem enigma in items) {
       array.add(enigma.toMap());
     }
@@ -124,11 +124,11 @@ class EnigmaItem extends Dictionary with ClassNameMixIn {
     } else if (enigma is EnigmaItem) {
       return enigma;
     }
-    Map info;
+    Mapping info;
     if (enigma is Mapper) {
       info = enigma.toMap();
     } else if (enigma is Map) {
-      info = enigma;
+      info = enigma.asMapping();
     } else {
       assert(false, 'enigma item error: $enigma');
       return null;

@@ -322,7 +322,8 @@ mixin UploadMixin on PortableNetworkWrapper {
       return pwd;
     }
     // generate new key
-    pwd = SymmetricKey.generate(SymmetricAlgorithms.AES);
+    pwd = SymmetricKey.generate('AES');
+    // pwd = SymmetricKey.generate(SymmetricAlgorithms.AES);
     pnf.password = pwd;
     return pwd;
   }

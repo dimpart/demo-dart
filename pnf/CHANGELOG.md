@@ -1,3 +1,7 @@
+## 1.5.1
+
+- SymmetricAlgorithms.
+
 ## 1.5.0
 
 - URLBuilder.
