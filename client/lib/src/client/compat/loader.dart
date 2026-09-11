@@ -30,6 +30,7 @@
  */
 import 'package:dimap/dimap.dart';
 import 'package:dimax/dimax.dart';
+import 'package:dkd/dkd.dart';  // FIXME:
 import 'package:dimsdk/dimsdk.dart';
 
 import '../../common/compat/entity.dart';
@@ -85,6 +86,8 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   void load() {
     super.load();
 
+    registerVisaAgent();
+
     registerMessagePackerFactory();
 
     registerCustomizedHandlers();
@@ -94,6 +97,12 @@ class ClientExtensionLoader extends CommonExtensionLoader {
   @override
   void registerIDFactory() {
     ID.setFactory(_IdentifierFactory());
+  }
+
+  // protected
+  void registerVisaAgent() {
+    // fix for old 'key' field
+    sharedAccountExtensions.visaAgent = _CompatibleVisaAgent();
   }
 
   // protected
@@ -150,6 +159,41 @@ class _SecureMessagePacker extends SecureMessagePacker {
       iMsg.remove('key');
     }
     return iMsg;
+  }
+
+}
+
+
+class _CompatibleVisaAgent extends DefaultVisaAgent {
+
+  /// Compatible with the old protocol: a SecureMessage may carry a single
+  /// 'key' field instead of the new 'keys' map (e.g. messages produced by
+  /// old group splitting). Map the 'key' field to {receiver: base64} and
+  /// continue with the standard decryption flow.
+  @override
+  EncryptedBundle? decodeBundle(SecureMessage sMsg, ID receiver) {
+    Mapping? keys = sMsg.encryptedKeys?.asMapping();
+    if (keys == null || keys.isEmpty) {
+      // get from 'key'
+      Object? base64 = sMsg['key'];
+      if (base64 == null) {
+        // broadcast message?
+        // reused key?
+        return null;
+      }
+      keys = {
+        receiver.toString(): base64,
+      };
+    }
+    String? terminal = receiver.terminal;
+    if (terminal == null || terminal.isEmpty) {
+      // get full bundle
+      return EncryptedBundle.decode(keys, receiver, null);
+    }
+    // get single bundle
+    Set<String> devices = {terminal};
+    receiver = receiver.withoutTerminal();
+    return EncryptedBundle.decode(keys, receiver, devices);
   }
 
 }

@@ -31,6 +31,7 @@
 import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../common/cpu/contents.dart';
 import '../../common/protocol/ans.dart';
 import '../../common/protocol/groups.dart';
 import '../../common/protocol/handshake.dart';
@@ -55,6 +56,14 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   @override
   ContentProcessor? createContentProcessor(String msgType) {
     switch (msgType) {
+
+      // forward content
+      case ContentType.FORWARD:
+        return ForwardContentProcessor(facebook!, messenger!);
+
+      // array content
+      case ContentType.ARRAY:
+        return ArrayContentProcessor(facebook!, messenger!);
 
       // application customized
       case ContentType.APPLICATION:

@@ -78,7 +78,7 @@ class EntityIDFactory extends IdentifierFactory {
 
 }
 
-final _broadcastIdentifiers = {
+final Map<String, ID> _broadcastIdentifiers = {
 
   'moky@anywhere'       : ID.FOUNDER,
   'anyone@anywhere'     : ID.ANYONE,
