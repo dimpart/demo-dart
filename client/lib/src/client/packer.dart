@@ -31,7 +31,10 @@
 import 'package:dimax/dimax.dart';
 import 'package:dimsdk/dimsdk.dart';
 
+import '../common/ext/attachment.dart';
+import '../common/ext/document.dart';
 import '../common/facebook.dart';
+import '../common/messenger.dart';
 import '../common/packer.dart';
 
 
@@ -211,7 +214,28 @@ abstract class ClientMessagePacker extends CommonPacker {
       assert(false, 'failed to get visa: $user');
       return false;
     }
-    return await checker.sendDocuments(user.identifier, docs, recipients: [contact]);
+    ID me = user.identifier;
+    if (!checker.isDocsResponseExpired(me, recipient: contact)) {
+      logInfo('documents response not expired yet: $me -> $contact');
+      return false;
+    }
+    // The document command is encrypted with the keys we have cached for the contact;
+    // if those are stale too (the usual case when the contact's message could not be
+    // decrypted here), the contact cannot decrypt the command and drops it, so the two
+    // sides never recover. Attach this device's meta + visa to the message itself:
+    // the contact saves attachments BEFORE decrypting (CommonPacker.checkAttachments),
+    // so its next messages are encrypted for this device again.
+    Meta meta = await user.meta;
+    Content content = DocumentCommand.response(me, meta, docs);
+    InstantMessage iMsg = InstantMessage.create(Envelope.create(sender: me, receiver: contact), content);
+    iMsg.meta = meta;
+    iMsg.visa = await user.localVisa ?? await user.visa;
+    var transmitter = messenger;
+    if (transmitter is! CommonMessenger) {
+      assert(false, 'messenger error: $transmitter');
+      return false;
+    }
+    return await transmitter.sendInstantMessage(iMsg, priority: 1) != null;
   }
 
   // protected
