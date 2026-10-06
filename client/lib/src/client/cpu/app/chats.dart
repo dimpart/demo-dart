@@ -30,6 +30,8 @@
  */
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../../common/facebook.dart';
+import '../../../common/messenger.dart';
 import '../../../common/protocol/app.dart';
 import '../../../common/protocol/chats.dart';
 
@@ -46,6 +48,7 @@ abstract class ChatHistoryHandler extends BaseCustomizedContentHandler {
       if (iMsg != null) {
         bool ok = await syncInstantMessage(iMsg, rMsg);
         assert(ok, 'failed to sync message: ${rMsg.sender}, $content');
+        await checkSyncedGroup(iMsg, rMsg, messenger);
       }
       assert(iMsg != null, 'sync message error: ${rMsg.sender}, $content');
     }
@@ -67,5 +70,33 @@ abstract class ChatHistoryHandler extends BaseCustomizedContentHandler {
 
   /// Save message for myself: "chat.dim.messenger:chat_history"
   Future<bool> saveInstantMessage(InstantMessage iMsg);
+
+  ///  A message synced from another of my devices may belong to a group this device has never
+  ///  seen (a device added after the group was created). Stations do not keep group documents,
+  ///  and a synced copy never passes the group check of a normal group message, so nothing would
+  ///  ask a member: the group stays nameless and its members unknown on this device for good.
+  ///  Ask the device that synced it -- it is a member and answers with the group histories
+  ///  (bulletin + members).
+  // protected
+  Future<bool> checkSyncedGroup(InstantMessage iMsg, ReliableMessage rMsg, Messenger messenger) async {
+    ID? group = iMsg.content.group;
+    if (group == null && iMsg.receiver.isGroup) {
+      group = iMsg.receiver;
+    }
+    if (group == null || group.isBroadcast || messenger is! CommonMessenger) {
+      return false;
+    }
+    CommonFacebook facebook = messenger.facebook;
+    List<ID> members = await facebook.getMembers(group);
+    if (members.isNotEmpty) {
+      return false;
+    }
+    var checker = facebook.entityChecker;
+    if (checker == null) {
+      assert(false, 'entity checker not set');
+      return false;
+    }
+    return await checker.checkMembers(group, members, sender: rMsg.sender);
+  }
 
 }
