@@ -176,6 +176,15 @@ abstract class EntityChecker with Logging {
 
   // protected
   DateTime? getLastDocumentTime(ID identifier, List<Document> documents) {
+    String? terminal = identifier.terminal;
+    if (terminal != null && terminal.isNotEmpty) {
+      // 'SDT' in a message is the visa time of the sending DEVICE, so compare it with
+      // the cached visa of that device (none cached -> null -> query).
+      // Comparing with the newest document of ANY device means a stale visa of one
+      // device is never refreshed while another device of the same user has a newer
+      // one -- and every message to that device stays undecryptable.
+      return DocumentUtils.lastVisa(documents, terminal)?.time;
+    }
     Document? doc = DocumentUtils.lastDocument(documents);
     return doc?.time;
   }
