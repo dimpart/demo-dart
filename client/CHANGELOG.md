@@ -1,3 +1,7 @@
+## 1.7.1
+
+- Remove enigmas from log.
+
 ## 1.7.0
 
 - Decode key bundle.

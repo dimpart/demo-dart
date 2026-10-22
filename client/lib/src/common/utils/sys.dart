@@ -135,7 +135,7 @@ class SysEnv with Logging {
     Map? info = enigma;
     var keys = info?['secrets'];
     if (keys is List && keys.isNotEmpty) {
-      logInfo('got enigma secrets: $keys');
+      logInfo('got enigma secrets: ${keys.length}');
       return keys;
     }
     assert(false, 'enigma secrets not found: $info');

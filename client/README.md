@@ -40,12 +40,12 @@ dependencies:
 #  startrek:    ^1.2.0
   stargate:    ^1.2.0
   
-#  mkm:         ^2.4.2
-#  dkd:         ^2.4.1
-#  dimp:        ^2.4.1
-  dimsdk:      ^2.4.0
-  dimax:       ^2.4.0
-  dimap:       ^2.1.0
+#  mkm:         ^2.5.3
+#  dkd:         ^2.5.3
+#  dimp:        ^2.5.3
+  dimsdk:      ^2.5.2
+  dimax:       ^2.5.2
+  dimap:       ^2.5.2
 ```
 
 ## FIXME

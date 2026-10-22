@@ -68,17 +68,17 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
       // S -> C: station ask client to handshake again
       if (oldKey == null) {
         // first handshake response with new session key
-        logInfo('[DIM] handshake with session key: $newKey');
+        logInfo('[DIM] handshake with session key: ${maskSessionKey(newKey)}');
         await messenger?.handshake(newKey);
       } else if (oldKey == newKey) {
         // duplicated handshake response?
         // or session expired and the station ask to handshake again?
-        logWarning('[DIM] handshake response duplicated: $newKey');
+        logWarning('[DIM] handshake response duplicated: ${maskSessionKey(newKey)}');
         await messenger?.handshake(newKey);
       } else {
         // connection changed?
         // erase session key to handshake again
-        logWarning('[DIM] handshake again: $oldKey => $newKey');
+        logWarning('[DIM] handshake again: ${maskSessionKey(oldKey)} => ${maskSessionKey(newKey)}');
         session.sessionKey = null;
       }
     } else if (title == "DIM!") {
@@ -86,17 +86,17 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
       if (oldKey == null) {
         // normal handshake response,
         // update session key to change state to 'running'
-        logInfo('[DIM] handshake success with session key: $newKey');
+        logInfo('[DIM] handshake success with session key: ${maskSessionKey(newKey)}');
         session.sessionKey = newKey;
       } else if (oldKey == newKey) {
         // duplicated handshake response?
-        logWarning('[DIM] handshake success duplicated: $newKey');
+        logWarning('[DIM] handshake success duplicated: ${maskSessionKey(newKey)}');
         // set it again here to invoke the flutter channel
         session.sessionKey = newKey;
       } else {
         // FIXME: handshake error
         // erase session key to handshake again
-        logError('[DIM] handshake again: $oldKey, $newKey');
+        logError('[DIM] handshake again: ${maskSessionKey(oldKey)}, ${maskSessionKey(newKey)}');
         session.sessionKey = null;
       }
     } else {
@@ -104,6 +104,19 @@ class HandshakeCommandProcessor extends BaseCommandProcessor with Logging {
       logWarning('Handshake from other user? $sender: $content');
     }
     return [];
+  }
+
+  /// Mask the session key before logging, keep only the head and tail
+  /// for identification (e.g. "abcd....wxyz").
+  // protected
+  static String maskSessionKey(String? key) {
+    if (key == null) {
+      return 'null';
+    }
+    if (key.length < 32) {
+      return '****';
+    }
+    return '${key.substring(0, 4)}....${key.substring(key.length - 4)}';
   }
 
 }
