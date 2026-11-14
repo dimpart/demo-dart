@@ -85,7 +85,8 @@ class CachePool <K, V> {
   int purge({double? now}) {
     now ??= Time.currentTimestamp;
     int count = 0;
-    Iterable allKeys = keys;
+    // copy the keys since the map is modified below
+    Iterable allKeys = List.of(keys);
     CacheHolder? holder;
     for (K key in allKeys) {
       holder = _holderMap[key];

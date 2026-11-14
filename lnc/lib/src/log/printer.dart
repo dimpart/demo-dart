@@ -107,10 +107,10 @@ abstract interface class Logger {
 
   LogPrinter get printer;
 
-  void   debug(String msg, {String? className});
-  void    info(String msg, {String? className});
-  void warning(String msg, {String? className});
-  void   error(String msg, {String? className});
+  void   debug(Object? msg, {String? className});
+  void    info(Object? msg, {String? className});
+  void warning(Object? msg, {String? className});
+  void   error(Object? msg, {String? className});
 
   /// limit log info
   static String shorten(String text, int maxLen) {

@@ -1,6 +1,6 @@
 ## 1.2.3
 
-- Colors.
+- Closure for log.
 
 ## 1.2.2
 

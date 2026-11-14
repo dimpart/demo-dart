@@ -58,29 +58,39 @@ class Log {
 
   static Logger logger = DefaultLogger();
 
-  static void   debug(String msg) => logger.debug(msg);
-  static void    info(String msg) => logger.info(msg);
-  static void warning(String msg) => logger.warning(msg);
-  static void   error(String msg) => logger.error(msg);
+  /// The [msg] argument of the log methods can be:
+  ///  * a plain [String] - built eagerly at the call site;
+  ///  * a nullary closure - called lazily, only when this level is
+  ///    enabled (saves the concatenation in release builds); its
+  ///    result is resolved by the same rule, a null result yields an
+  ///    empty line;
+  ///  * any other object - stringified with `toString()`, a null
+  ///    argument yields an empty line.
+  static void   debug(Object? msg) => logger.debug(msg);
+  static void    info(Object? msg) => logger.info(msg);
+  static void warning(Object? msg) => logger.warning(msg);
+  static void   error(Object? msg) => logger.error(msg);
 
 }
 
 
 /// Log with class name
+///
+/// The log methods accept the same [msg] forms as [Log].
 mixin Logging {
 
   String get className => _runtimeType(this) ?? 'Object';
 
-  void logDebug(String msg) =>
+  void logDebug(Object? msg) =>
       Log.logger.debug(msg, className: _runtimeType(this));
 
-  void logInfo(String msg) =>
+  void logInfo(Object? msg) =>
       Log.logger.info(msg, className: _runtimeType(this));
 
-  void logWarning(String msg) =>
+  void logWarning(Object? msg) =>
       Log.logger.warning(msg, className: _runtimeType(this));
 
-  void logError(String msg) =>
+  void logError(Object? msg) =>
       Log.logger.error(msg, className: _runtimeType(this));
 
 }
@@ -171,11 +181,11 @@ mixin LogMixin implements Logger {
   }
 
   @override
-  void debug(String msg, {String? className}) {
+  void debug(Object? msg, {String? className}) {
     assert(() {
       var flag = Log.level & Log.DEBUG_FLAG;
       if (flag > 0) {
-        output(msg,
+        output(_message(msg),
           className: className,
           tag: Logger.DEBUG_TAG,
           color: Logger.debugColor,
@@ -186,11 +196,11 @@ mixin LogMixin implements Logger {
   }
 
   @override
-  void info(String msg, {String? className}) {
+  void info(Object? msg, {String? className}) {
     assert(() {
       var flag = Log.level & Log.INFO_FLAG;
       if (flag > 0) {
-        output(msg,
+        output(_message(msg),
           className: className,
           tag: Logger.INFO_TAG,
           color: Logger.normalColor,
@@ -201,11 +211,11 @@ mixin LogMixin implements Logger {
   }
 
   @override
-  void warning(String msg, {String? className}) {
+  void warning(Object? msg, {String? className}) {
     assert(() {
       var flag = Log.level & Log.WARNING_FLAG;
       if (flag > 0) {
-        output(msg,
+        output(_message(msg),
           className: className,
           tag: Logger.WARNING_TAG,
           color: Logger.warningColor,
@@ -216,11 +226,11 @@ mixin LogMixin implements Logger {
   }
 
   @override
-  void error(String msg, {String? className}) {
+  void error(Object? msg, {String? className}) {
     //assert(() {
       var flag = Log.level & Log.ERROR_FLAG;
       if (flag > 0) {
-        output(msg,
+        output(_message(msg),
           className: className,
           tag: Logger.ERROR_TAG,
           color: Logger.fatalColor,
@@ -229,5 +239,17 @@ mixin LogMixin implements Logger {
     //  return true;
     //}());
   }
+
+  /// Resolve the log message: plain strings pass through, closures are
+  /// built now (deferred construction - the interpolation runs only when
+  /// this level is enabled), other objects are stringified, null yields
+  /// an empty line. A closure may return another closure, it will be
+  /// resolved recursively.
+  static String _message(Object? msg) => switch (msg) {
+    null                     => '',
+    String text              => text,
+    Object? Function() build => _message(build()),
+    _                        => msg.toString(),
+  };
 
 }
