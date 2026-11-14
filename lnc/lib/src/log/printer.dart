@@ -72,3 +72,61 @@ class LogPrinter {
   }) => print(x);
 
 }
+
+
+abstract interface class Logger {
+
+  // ignore_for_file: constant_identifier_names
+  //
+  //  Colors
+  //
+  static const String GRAY    = '\x1B[90m';  // bright black
+  static const String RED     = '\x1B[91m';
+  static const String GREEN   = '\x1B[92m';
+  static const String YELLOW  = '\x1B[93m';
+  static const String BLUE    = '\x1B[94m';
+  static const String MAGENTA = '\x1B[95m';
+  static const String CYAN    = '\x1B[96m';
+  static const String WHITE   = '\x1B[97m';
+  static const String CLEAR   = '\x1B[0m';
+
+  static String    debugColor = GRAY;     // debug
+  static String   normalColor = '';       // info
+  static String  warningColor = YELLOW;   // warning
+  static String    fatalColor = MAGENTA;  // error
+  static String    clearColor = CLEAR;
+
+  // ignore_for_file: non_constant_identifier_names
+  //
+  //  Tags
+  //
+  static String   DEBUG_TAG = " DEBUG ";
+  static String    INFO_TAG = "       ";
+  static String WARNING_TAG = "WARNING";
+  static String   ERROR_TAG = " ERROR ";
+
+  LogPrinter get printer;
+
+  void   debug(String msg, {String? className});
+  void    info(String msg, {String? className});
+  void warning(String msg, {String? className});
+  void   error(String msg, {String? className});
+
+  /// limit log info
+  static String shorten(String text, int maxLen) {
+    assert(maxLen > 128, 'too short: $maxLen');
+    int size = text.length;
+    if (size <= maxLen) {
+      return text;
+    }
+    String desc = 'total $size chars';
+    int pos = (maxLen - desc.length - 10) >> 1;
+    if (pos <= 0) {
+      return text;
+    }
+    String prefix = text.substring(0, pos);
+    String suffix = text.substring(size - pos);
+    return '$prefix ... $desc ... $suffix';
+  }
+
+}

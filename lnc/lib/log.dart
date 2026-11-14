@@ -1,4 +1,4 @@
-library lnc;
+library;
 
 export 'src/log/caller.dart';
 export 'src/log/printer.dart';

@@ -107,48 +107,7 @@ class DefaultLogger with LogMixin {
 
 }
 
-abstract interface class Logger {
-
-  //
-  //  Tags
-  //
-  static String   DEBUG_TAG = " DEBUG ";
-  static String    INFO_TAG = "       ";
-  static String WARNING_TAG = "WARNING";
-  static String   ERROR_TAG = " ERROR ";
-
-  LogPrinter get printer;
-
-  void   debug(String msg, {String? className});
-  void    info(String msg, {String? className});
-  void warning(String msg, {String? className});
-  void   error(String msg, {String? className});
-
-  /// limit log info
-  static String shorten(String text, int maxLen) {
-    assert(maxLen > 128, 'too short: $maxLen');
-    int size = text.length;
-    if (size <= maxLen) {
-      return text;
-    }
-    String desc = 'total $size chars';
-    int pos = (maxLen - desc.length - 10) >> 1;
-    if (pos <= 0) {
-      return text;
-    }
-    String prefix = text.substring(0, pos);
-    String suffix = text.substring(size - pos);
-    return '$prefix ... $desc ... $suffix';
-  }
-
-}
-
 mixin LogMixin implements Logger {
-
-  static String colorRed    = '\x1B[95m';  // error
-  static String colorYellow = '\x1B[93m';  // warning
-  static String colorGreen  = '\x1B[92m';  // debug
-  static String colorClear  = '\x1B[0m';
 
   // protected
   String get now => Time.now;
@@ -171,7 +130,7 @@ mixin LogMixin implements Logger {
     //
     String clear;
     if (Log.colorful && color.isNotEmpty) {
-      clear = colorClear;
+      clear = Logger.clearColor;
     } else {
       color = '';
       clear = '';
@@ -216,7 +175,11 @@ mixin LogMixin implements Logger {
     assert(() {
       var flag = Log.level & Log.DEBUG_FLAG;
       if (flag > 0) {
-        output(msg, className: className, tag: Logger.DEBUG_TAG, color: colorGreen);
+        output(msg,
+          className: className,
+          tag: Logger.DEBUG_TAG,
+          color: Logger.debugColor,
+        );
       }
       return true;
     }());
@@ -227,7 +190,11 @@ mixin LogMixin implements Logger {
     assert(() {
       var flag = Log.level & Log.INFO_FLAG;
       if (flag > 0) {
-        output(msg, className: className, tag: Logger.INFO_TAG, color: '');
+        output(msg,
+          className: className,
+          tag: Logger.INFO_TAG,
+          color: Logger.normalColor,
+        );
       }
       return true;
     }());
@@ -238,7 +205,11 @@ mixin LogMixin implements Logger {
     assert(() {
       var flag = Log.level & Log.WARNING_FLAG;
       if (flag > 0) {
-        output(msg, className: className, tag: Logger.WARNING_TAG, color: colorYellow);
+        output(msg,
+          className: className,
+          tag: Logger.WARNING_TAG,
+          color: Logger.warningColor,
+        );
       }
       return true;
     }());
@@ -249,7 +220,11 @@ mixin LogMixin implements Logger {
     //assert(() {
       var flag = Log.level & Log.ERROR_FLAG;
       if (flag > 0) {
-        output(msg, className: className, tag: Logger.ERROR_TAG, color: colorRed);
+        output(msg,
+          className: className,
+          tag: Logger.ERROR_TAG,
+          color: Logger.fatalColor,
+        );
       }
     //  return true;
     //}());

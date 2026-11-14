@@ -1,3 +1,7 @@
+## 1.2.3
+
+- Colors.
+
 ## 1.2.2
 
 - Update value holder.

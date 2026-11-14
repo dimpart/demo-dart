@@ -1,4 +1,4 @@
-library lnc;
+library;
 
 export 'src/cache/holder.dart';
 export 'src/cache/pool.dart';
