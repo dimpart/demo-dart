@@ -62,10 +62,9 @@ class Log {
   ///  * a plain [String] - built eagerly at the call site;
   ///  * a nullary closure - called lazily, only when this level is
   ///    enabled (saves the concatenation in release builds); its
-  ///    result is resolved by the same rule, a null result yields an
-  ///    empty line;
-  ///  * any other object - stringified with `toString()`, a null
-  ///    argument yields an empty line.
+  ///    result is resolved by the same rule;
+  ///  * any other object (including null) - stringified with
+  ///    `toString()`, so a null argument prints `null`.
   static void   debug(Object? msg) => logger.debug(msg);
   static void    info(Object? msg) => logger.info(msg);
   static void warning(Object? msg) => logger.warning(msg);
@@ -242,11 +241,10 @@ mixin LogMixin implements Logger {
 
   /// Resolve the log message: plain strings pass through, closures are
   /// built now (deferred construction - the interpolation runs only when
-  /// this level is enabled), other objects are stringified, null yields
-  /// an empty line. A closure may return another closure, it will be
-  /// resolved recursively.
+  /// this level is enabled), anything else (including null) is
+  /// stringified with `toString()`. A closure may return another
+  /// closure, it will be resolved recursively.
   static String _message(Object? msg) => switch (msg) {
-    null                     => '',
     String text              => text,
     Object? Function() build => _message(build()),
     _                        => msg.toString(),

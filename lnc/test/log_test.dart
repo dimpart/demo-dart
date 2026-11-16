@@ -99,10 +99,10 @@ void main() {
       expect(printer.lines.single, contains('lazy-msg'));
     });
 
-    test('null message yields an empty line', () {
+    test('a null message prints null', () {
       Log.info(null);
       expect(printer.lines, hasLength(1));
-      expect(printer.lines.single, endsWith('| '));
+      expect(printer.lines.single, endsWith('| null'));
     });
 
     test('object message is stringified with toString()', () {
@@ -110,10 +110,10 @@ void main() {
       expect(printer.lines.single, contains('[1, 2, 3]'));
     });
 
-    test('a closure returning null yields an empty line', () {
+    test('a closure returning null prints null', () {
       Log.info(() => null);
       expect(printer.lines, hasLength(1));
-      expect(printer.lines.single, endsWith('| '));
+      expect(printer.lines.single, endsWith('| null'));
     });
 
     test('a closure may return another closure, resolved recursively', () {

@@ -1,3 +1,7 @@
+## 1.3.0
+
+- Log for null object.
+
 ## 1.2.3
 
 - Closure for log.
